@@ -11,10 +11,41 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+// ---------------------------------------------------------------
+// Determine if the campaign's location is accessible to this user
+// ---------------------------------------------------------------
+$campaign_location_id   = 0;
+$campaign_location_name = '';
+$location_access_denied = false;
+$is_edit_mode           = !empty($_GET['id']);
+
+// Load the campaign's own location up-front (before rendering the dropdown)
+if ($is_edit_mode) {
+    $loc_check = $db_account->Execute(
+        "SELECT DOA_MARKET_CAMPAIGN.PK_LOCATION, DOA_LOCATION.LOCATION_NAME
+         FROM DOA_MARKET_CAMPAIGN
+         LEFT JOIN $master_database.DOA_LOCATION
+                ON DOA_MARKET_CAMPAIGN.PK_LOCATION = DOA_LOCATION.PK_LOCATION
+         WHERE DOA_MARKET_CAMPAIGN.PK_MARKET_CAMPAIGN = " . intval($_GET['id']) . "
+           AND DOA_MARKET_CAMPAIGN.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER'])
+    );
+
+    if ($loc_check && $loc_check->RecordCount() > 0) {
+        $campaign_location_id   = (int)$loc_check->fields['PK_LOCATION'];
+        $campaign_location_name = $loc_check->fields['LOCATION_NAME'];
+
+        // Is that location in the user's allowed list?
+        $allowed_ids = array_filter(array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+        if (!in_array($campaign_location_id, $allowed_ids, true)) {
+            $location_access_denied = true;
+        }
+    }
+}
+
 // Get selected tag values for edit mode
 $selected_tag = array();
 if (!empty($_GET['id'])) {
-    $tag_res = $db_account->Execute("SELECT TAGS FROM DOA_MARKET_CAMPAIGN WHERE PK_CAMPAIGN_ID = '$_GET[id]'");
+    $tag_res = $db_account->Execute("SELECT TAGS FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = " . intval($_GET['id']));
     if ($tag_res->RecordCount() > 0) {
         $tags_str = $tag_res->fields['TAGS'];
         if (!empty($tags_str)) {
@@ -28,7 +59,7 @@ $all_tags = array();
 $tag_res = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
 while (!$tag_res->EOF) {
     $all_tags[] = array(
-        'id' => $tag_res->fields['PK_TAG'],
+        'id'   => $tag_res->fields['PK_TAG'],
         'name' => $tag_res->fields['TAG_NAME']
     );
     $tag_res->MoveNext();
@@ -36,10 +67,10 @@ while (!$tag_res->EOF) {
 
 // Get all lead statuses for display
 $all_lead_statuses = array();
-$status_res = $db->Execute("SELECT PK_LEAD_STATUS, LEAD_STATUS FROM DOA_LEAD_STATUS WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LEAD_STATUS");
+$status_res = $db->Execute("SELECT PK_LEAD_STATUS, LEAD_STATUS FROM DOA_LEAD_STATUS WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND ACTIVE = 1 ORDER BY LEAD_STATUS");
 while (!$status_res->EOF) {
     $all_lead_statuses[] = array(
-        'id' => $status_res->fields['PK_LEAD_STATUS'],
+        'id'   => $status_res->fields['PK_LEAD_STATUS'],
         'name' => $status_res->fields['LEAD_STATUS']
     );
     $status_res->MoveNext();
@@ -49,130 +80,144 @@ while (!$status_res->EOF) {
 function getLocationTimezone($location_id)
 {
     global $db;
-    $tz_res = $db->Execute("SELECT TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE WHERE DOA_LOCATION.PK_LOCATION = '$location_id'");
+    $tz_res = $db->Execute("SELECT TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE WHERE DOA_LOCATION.PK_LOCATION = " . intval($location_id));
     if ($tz_res && $tz_res->RecordCount() > 0) {
         return $tz_res->fields['TIMEZONE'];
     }
-    return 'America/New_York'; // Default timezone
+    return 'America/New_York';
 }
 
+// ---------------------------------------------------------------
+// Handle POST — block the save entirely if location access denied
+// ---------------------------------------------------------------
 if (!empty($_POST)) {
-    $CAMPAIGN_DATA = array();
-    $CAMPAIGN_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $CAMPAIGN_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-    $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
-    $CAMPAIGN_DATA['SUBJECT'] = $_POST['SUBJECT'];
 
-    // Handle OPERATION - store as comma-separated values
-    if (!empty($_POST['OPERATION']) && is_array($_POST['OPERATION'])) {
-        $CAMPAIGN_DATA['OPERATION'] = implode(',', $_POST['OPERATION']);
+    // Safety: refuse to save if the user can't access this campaign's location
+    if ($location_access_denied) {
+        $save_error = "You do not have access to this campaign's location. The form is read-only.";
     } else {
-        $CAMPAIGN_DATA['OPERATION'] = '';
-    }
+        $CAMPAIGN_DATA = array();
+        $CAMPAIGN_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
-    $CAMPAIGN_DATA['REMINDER_TYPE'] = implode(',', $_POST['REMINDER_TYPE']); // Store as comma-separated
-    // Always save content in CONTENT field
-    $CAMPAIGN_DATA['CONTENT'] = $_POST['CONTENT'];
-
-    // Handle TAGS - store as comma-separated values
-    if (!empty($_POST['PK_USER_TAG']) && is_array($_POST['PK_USER_TAG'])) {
-        $CAMPAIGN_DATA['TAGS'] = implode(',', $_POST['PK_USER_TAG']);
-    } else {
-        $CAMPAIGN_DATA['TAGS'] = '';
-    }
-
-    // Handle LEADS - store as comma-separated values
-    if (!empty($_POST['PK_LEAD_STATUS']) && is_array($_POST['PK_LEAD_STATUS'])) {
-        $CAMPAIGN_DATA['LEADS'] = implode(',', $_POST['PK_LEAD_STATUS']);
-    } else {
-        $CAMPAIGN_DATA['LEADS'] = '';
-    }
-
-    // Handle schedule date and time
-    if (!empty($_POST['SCHEDULE_DATE']) && !empty($_POST['SCHEDULE_TIME'])) {
-        $schedule_datetime = $_POST['SCHEDULE_DATE'] . ' ' . $_POST['SCHEDULE_TIME'];
-        $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = $schedule_datetime;
-
-        // Store timezone from location
-        if (!empty($_POST['PK_LOCATION'])) {
-            $CAMPAIGN_DATA['TIMEZONE'] = getLocationTimezone($_POST['PK_LOCATION']);
+        // Only allow changing PK_LOCATION if the user actually changed it.
+        // In edit mode, keep the original location unless the user deliberately picked a new one.
+        if ($is_edit_mode) {
+            $submitted_location = isset($_POST['PK_LOCATION']) ? (int)$_POST['PK_LOCATION'] : 0;
+            if ($submitted_location === $campaign_location_id) {
+                // No change — keep original
+                $CAMPAIGN_DATA['PK_LOCATION'] = $campaign_location_id;
+            } else {
+                // User deliberately changed it — validate it's within their allowed list
+                $allowed_ids = array_filter(array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+                if (in_array($submitted_location, $allowed_ids, true)) {
+                    $CAMPAIGN_DATA['PK_LOCATION'] = $submitted_location;
+                } else {
+                    $CAMPAIGN_DATA['PK_LOCATION'] = $campaign_location_id; // refuse invalid change
+                }
+            }
+        } else {
+            $CAMPAIGN_DATA['PK_LOCATION'] = (int)$_POST['PK_LOCATION'];
         }
-    } else {
-        $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = null;
-        $CAMPAIGN_DATA['TIMEZONE'] = null;
-    }
 
-    // Handle ACTIVE status
-    if (isset($_POST['ACTIVE'])) {
-        $CAMPAIGN_DATA['ACTIVE'] = $_POST['ACTIVE'];
-    } else {
-        $CAMPAIGN_DATA['ACTIVE'] = 1;
-    }
+        $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
+        $CAMPAIGN_DATA['SUBJECT']       = $_POST['SUBJECT'];
 
-    if ($_GET['id'] == '') {
-        // Insert new campaign
-        $CAMPAIGN_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $CAMPAIGN_DATA['CREATED_ON'] = date("Y-m-d H:i:s");
-        $CAMPAIGN_DATA['EDITED_BY'] = 0;
-        $CAMPAIGN_DATA['EDITED_ON'] = '0000-00-00 00:00:00';
+        if (!empty($_POST['OPERATION']) && is_array($_POST['OPERATION'])) {
+            $CAMPAIGN_DATA['OPERATION'] = implode(',', $_POST['OPERATION']);
+        } else {
+            $CAMPAIGN_DATA['OPERATION'] = '';
+        }
 
-        db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'insert');
-        header("location:all_marketings.php");
-        exit;
-    } else {
-        // Update existing campaign
-        $CAMPAIGN_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $CAMPAIGN_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
+        $CAMPAIGN_DATA['REMINDER_TYPE'] = implode(',', $_POST['REMINDER_TYPE']);
+        $CAMPAIGN_DATA['CONTENT']       = $_POST['CONTENT'];
 
-        db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'update', " PK_MARKET_CAMPAIGN = '$_GET[id]'");
-        header("location:all_marketings.php");
-        exit;
+        if (!empty($_POST['PK_USER_TAG']) && is_array($_POST['PK_USER_TAG'])) {
+            $CAMPAIGN_DATA['TAGS'] = implode(',', $_POST['PK_USER_TAG']);
+        } else {
+            $CAMPAIGN_DATA['TAGS'] = '';
+        }
+
+        if (!empty($_POST['PK_LEAD_STATUS']) && is_array($_POST['PK_LEAD_STATUS'])) {
+            $CAMPAIGN_DATA['LEADS'] = implode(',', $_POST['PK_LEAD_STATUS']);
+        } else {
+            $CAMPAIGN_DATA['LEADS'] = '';
+        }
+
+        if (!empty($_POST['SCHEDULE_DATE']) && !empty($_POST['SCHEDULE_TIME'])) {
+            $schedule_datetime = $_POST['SCHEDULE_DATE'] . ' ' . $_POST['SCHEDULE_TIME'];
+            $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = $schedule_datetime;
+            if (!empty($CAMPAIGN_DATA['PK_LOCATION'])) {
+                $CAMPAIGN_DATA['TIMEZONE'] = getLocationTimezone($CAMPAIGN_DATA['PK_LOCATION']);
+            }
+        } else {
+            $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = null;
+            $CAMPAIGN_DATA['TIMEZONE']          = null;
+        }
+
+        if (isset($_POST['ACTIVE'])) {
+            $CAMPAIGN_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        } else {
+            $CAMPAIGN_DATA['ACTIVE'] = 1;
+        }
+
+        if (empty($_GET['id'])) {
+            $CAMPAIGN_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $CAMPAIGN_DATA['CREATED_ON'] = date("Y-m-d H:i:s");
+            $CAMPAIGN_DATA['EDITED_BY']  = 0;
+            $CAMPAIGN_DATA['EDITED_ON']  = '0000-00-00 00:00:00';
+            db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'insert');
+            $new_id = $db_account->Insert_ID();   // ADOdb returns the last inserted ID
+            header("location:all_marketings.php?saved=" . intval($new_id) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
+            exit;
+        } else {
+            $CAMPAIGN_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $CAMPAIGN_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
+            db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'update', " PK_MARKET_CAMPAIGN = " . intval($_GET['id']));
+            header("location:all_marketings.php?saved=" . intval($_GET['id']) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
+            exit;
+        }
     }
 }
 
 if (empty($_GET['id'])) {
     $TEMPLATE_NAME = '';
-    $PK_LOCATION = '';
-    $SUBJECT = '';
-    $OPERATION = array(); // Now an array for multi-select
-    $CONTENT = '';
-    $ACTIVE = '';
-    $REMINDER_TYPE = array('email'); // Default to email
+    $PK_LOCATION   = '';
+    $SUBJECT       = '';
+    $OPERATION     = array();
+    $CONTENT       = '';
+    $ACTIVE        = '';
+    $REMINDER_TYPE = array('email');
     $selected_lead_statuses = array();
     $SCHEDULE_DATETIME = '';
-    $SCHEDULE_DATE = '';
-    $SCHEDULE_TIME = '';
-    $TIMEZONE = '';
+    $SCHEDULE_DATE     = '';
+    $SCHEDULE_TIME     = '';
+    $TIMEZONE          = '';
 } else {
-    $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = " . intval($_GET['id']));
     if ($res->RecordCount() == 0) {
         header("location:all_marketings.php");
         exit;
     }
     $TEMPLATE_NAME = $res->fields['CAMPAIGN_NAME'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $SUBJECT = $res->fields['SUBJECT'];
-    $OPERATION = !empty($res->fields['OPERATION']) ? explode(',', $res->fields['OPERATION']) : array(); // Convert to array
+    $PK_LOCATION   = $res->fields['PK_LOCATION'];
+    $SUBJECT       = $res->fields['SUBJECT'];
+    $OPERATION     = !empty($res->fields['OPERATION']) ? explode(',', $res->fields['OPERATION']) : array();
     $REMINDER_TYPE = !empty($res->fields['REMINDER_TYPE']) ? explode(',', $res->fields['REMINDER_TYPE']) : array('email');
-    $CONTENT = $res->fields['CONTENT']; // Always get content from CONTENT field
-    $ACTIVE = $res->fields['ACTIVE'];
+    $CONTENT       = $res->fields['CONTENT'];
+    $ACTIVE        = $res->fields['ACTIVE'];
     $SCHEDULE_DATETIME = $res->fields['SCHEDULE_DATETIME'];
-    $TIMEZONE = $res->fields['TIMEZONE'];
+    $TIMEZONE          = $res->fields['TIMEZONE'];
 
-    // Split datetime for display
     if (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') {
         $datetime_parts = explode(' ', $SCHEDULE_DATETIME);
-        $SCHEDULE_DATE = $datetime_parts[0];
-        $SCHEDULE_TIME = $datetime_parts[1];
+        $SCHEDULE_DATE  = $datetime_parts[0];
+        $SCHEDULE_TIME  = $datetime_parts[1];
     } else {
         $SCHEDULE_DATE = '';
         $SCHEDULE_TIME = '';
     }
 
-    // Convert comma-separated tags to array
     $selected_tag = !empty($res->fields['TAGS']) ? explode(',', $res->fields['TAGS']) : array();
-
-    // Convert comma-separated lead statuses to array
     $selected_lead_statuses = !empty($res->fields['LEADS']) ? explode(',', $res->fields['LEADS']) : array();
 }
 ?>
@@ -347,6 +392,12 @@ if (empty($_GET['id'])) {
 
     .form-control-modern.is-invalid:focus {
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .form-control-modern:disabled {
+        background: var(--gray-100);
+        color: var(--gray-500);
+        cursor: not-allowed;
     }
 
     select.form-control-modern {
@@ -524,7 +575,11 @@ if (empty($_GET['id'])) {
         margin-top: 4px;
     }
 
-    /* Variable badge styles - matching automation page exactly */
+    .form-helper.error {
+        color: var(--danger-color);
+        font-weight: 500;
+    }
+
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -696,7 +751,6 @@ if (empty($_GET['id'])) {
         color: var(--danger-color);
     }
 
-    /* Schedule styling */
     .schedule-info {
         background: var(--gray-50);
         border-radius: var(--radius-sm);
@@ -784,7 +838,6 @@ if (empty($_GET['id'])) {
         min-width: 140px;
     }
 
-    /* Target Audience checkbox container */
     .audience-checkbox-container {
         border: 1.5px solid var(--gray-200);
         border-radius: var(--radius-sm);
@@ -833,7 +886,6 @@ if (empty($_GET['id'])) {
         user-select: none;
     }
 
-    /* Content editable area - matching follow-up page */
     .content-editable {
         width: 100%;
         min-height: 250px;
@@ -884,6 +936,59 @@ if (empty($_GET['id'])) {
     .content-editable .variable-badge:hover {
         background-color: #e0e7ff;
     }
+
+    /* Read-only banner */
+    .readonly-banner {
+        background: #FEF3C7;
+        border: 1px solid #FCD34D;
+        color: #92400E;
+        border-radius: var(--radius-sm);
+        padding: 14px 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .readonly-banner i {
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    /* Location lock badge */
+    .location-locked-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-top: 4px;
+    }
+
+    .location-locked-note i {
+        color: var(--gray-400);
+    }
+
+    /* Save-attempt errors block */
+    .save-errors {
+        background: #FEE2E2;
+        border: 1px solid #FCA5A5;
+        color: #991B1B;
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .save-errors strong {
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .save-errors ul {
+        margin: 0;
+        padding-left: 20px;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -914,151 +1019,213 @@ if (empty($_GET['id'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="card-body">
-                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+
+                                <?php if ($location_access_denied): ?>
+                                    <div class="readonly-banner">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                        <div>
+                                            <strong>Read-only campaign</strong>
+                                            This campaign belongs to <strong><?= htmlspecialchars($campaign_location_name ?: 'an unknown location') ?></strong>,
+                                            which is not part of your assigned locations.
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data" id="campaignForm" novalidate>
 
                                     <div class="form-grid">
                                         <!-- Campaign Name -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Campaign Name <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" placeholder="Enter campaign name" value="<?php echo htmlspecialchars($TEMPLATE_NAME) ?>" required>
-                                            <div class="form-helper">A unique name to identify this campaign</div>
+                                            <input type="text" class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" placeholder="Enter campaign name" value="<?php echo htmlspecialchars($TEMPLATE_NAME) ?>" required <?= $location_access_denied ? 'disabled' : '' ?>>
+                                            <div class="form-helper" id="TEMPLATE_NAME_error">A unique name to identify this campaign</div>
                                         </div>
 
                                         <!-- Location -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Location <span class="required">*</span></label>
-                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" id="PK_LOCATION" required>
-                                                <option value="">Select Location</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= htmlspecialchars($row->fields['LOCATION_NAME']) ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
+                                            <?php
+                                            // Rebuild the dropdown from the campaign's own location first,
+                                            // then add any other locations the user has access to.
+                                            $allowed_ids = array_filter(array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+
+                                            // Always include the campaign's own location (even if user can't access it,
+                                            // so the true value is shown rather than silently replaced).
+                                            $ids_for_dropdown = $allowed_ids;
+                                            if ($campaign_location_id > 0 && !in_array($campaign_location_id, $ids_for_dropdown, true)) {
+                                                $ids_for_dropdown[] = $campaign_location_id;
+                                            }
+
+                                            $dropdown_locations = array();
+                                            if (!empty($ids_for_dropdown)) {
+                                                $ids_str = implode(',', array_map('intval', $ids_for_dropdown));
+                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME, ACTIVE
+                                                                     FROM DOA_LOCATION
+                                                                     WHERE PK_LOCATION IN ($ids_str)
+                                                                       AND PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']));
+                                                while (!$row->EOF) {
+                                                    $dropdown_locations[] = array(
+                                                        'id'     => (int)$row->fields['PK_LOCATION'],
+                                                        'name'   => $row->fields['LOCATION_NAME'],
+                                                        'active' => (int)$row->fields['ACTIVE']
+                                                    );
+                                                    $row->MoveNext();
+                                                }
+                                                // Sort so the campaign's own location appears first
+                                                usort($dropdown_locations, function ($a, $b) use ($campaign_location_id) {
+                                                    if ($a['id'] === $campaign_location_id) return -1;
+                                                    if ($b['id'] === $campaign_location_id) return 1;
+                                                    return strcasecmp($a['name'], $b['name']);
+                                                });
+                                            }
+                                            ?>
+                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" id="PK_LOCATION" required <?= $location_access_denied ? 'disabled' : '' ?>>
+                                                <?php if (empty($dropdown_locations)): ?>
+                                                    <option value="">No locations available</option>
+                                                <?php else: ?>
+                                                    <option value="">Select Location</option>
+                                                    <?php foreach ($dropdown_locations as $loc): ?>
+                                                        <option value="<?= $loc['id'] ?>" <?= ($PK_LOCATION == $loc['id']) ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($loc['name']) ?><?= (!$loc['active']) ? ' (Inactive)' : '' ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
                                             </select>
-                                            <div class="form-helper">Location for this Campaign to be Active</div>
+                                            <?php if ($location_access_denied): ?>
+                                                <div class="location-locked-note">
+                                                    <i class="bi bi-lock-fill"></i>
+                                                    Location is locked because you don't have access to it.
+                                                </div>
+                                            <?php elseif ($is_edit_mode): ?>
+                                                <div class="location-locked-note">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Pre-selected from this campaign's own record. Change it only if you intend to move the campaign.
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="form-helper">Location for this Campaign to be Active</div>
+                                            <?php endif; ?>
+                                            <div class="form-helper" id="PK_LOCATION_error" style="display:none;"></div>
                                         </div>
 
-                                        <!-- Reminder Type - Checkboxes for multiple selection -->
+                                        <!-- Reminder Type -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Reminder Type <span class="required">*</span></label>
-                                            <div class="checkbox-group-modern">
+                                            <div class="checkbox-group-modern" id="reminderTypeGroup">
                                                 <label class="checkbox-item">
-                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="email" <?= in_array('email', $REMINDER_TYPE) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="email" <?= in_array('email', $REMINDER_TYPE) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     Email
                                                 </label>
                                                 <label class="checkbox-item">
-                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="text" <?= in_array('text', $REMINDER_TYPE) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="text" <?= in_array('text', $REMINDER_TYPE) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     Text Message
                                                 </label>
                                             </div>
-                                            <div class="form-helper">Select one or both reminder types</div>
+                                            <div class="form-helper" id="reminderTypeHelper">Select one or both reminder types</div>
                                         </div>
 
-                                        <!-- Subject - Made optional with conditional requirement -->
+                                        <!-- Subject -->
                                         <div class="form-group-modern">
                                             <label class="form-label">
                                                 Subject
                                                 <span class="subject-optional" id="subjectRequiredLabel">(Required for Email)</span>
                                             </label>
-                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter subject" value="<?php echo htmlspecialchars($SUBJECT) ?>">
+                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" <?= $location_access_denied ? 'disabled' : '' ?>>
                                             <div class="form-helper" id="subjectHelper">The subject line that will appear in the <?= in_array('email', $REMINDER_TYPE) ? 'email' : 'text message' ?></div>
                                         </div>
 
-                                        <!-- Target Audience - Multi-select Checkboxes -->
+                                        <!-- Target Audience -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Target Audience <span class="required">*</span></label>
                                             <div class="audience-checkbox-container" id="audienceContainer">
                                                 <div class="checkbox-item">
-                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="inactive_customers" id="audience_inactive" <?= in_array('inactive_customers', $OPERATION) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="inactive_customers" id="audience_inactive" <?= in_array('inactive_customers', $OPERATION) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="audience_inactive">All Inactive Customers</label>
                                                 </div>
                                                 <div class="checkbox-item">
-                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="active_customers" id="audience_active" <?= in_array('active_customers', $OPERATION) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="active_customers" id="audience_active" <?= in_array('active_customers', $OPERATION) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="audience_active">All Active Customers</label>
                                                 </div>
                                                 <div class="checkbox-item">
-                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="tags" id="audience_tags" <?= in_array('tags', $OPERATION) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="tags" id="audience_tags" <?= in_array('tags', $OPERATION) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="audience_tags">By Tags</label>
                                                 </div>
                                                 <div class="checkbox-item">
-                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="leads" id="audience_leads" <?= in_array('leads', $OPERATION) ? 'checked' : '' ?>>
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="leads" id="audience_leads" <?= in_array('leads', $OPERATION) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="audience_leads">Leads</label>
                                                 </div>
                                             </div>
                                             <div class="form-helper" id="audienceHelper">Select one or more target audience options. Additional configuration will appear based on your selection.</div>
                                         </div>
 
-                                        <!-- Tags - Conditional Field with Checkboxes -->
+                                        <!-- Tags -->
                                         <div class="form-group-modern conditional-field <?= in_array('tags', $OPERATION) ? 'visible' : '' ?>" id="tags_field">
                                             <label class="form-label">Select Tags <span class="required">*</span></label>
                                             <div class="checkbox-container" id="tagsCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
-                                                    <input type="checkbox" id="selectAllTags" class="form-check-input">
+                                                    <input type="checkbox" id="selectAllTags" class="form-check-input" <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="selectAllTags" class="fw-semibold">Select All Tags</label>
                                                 </div>
                                                 <?php foreach ($all_tags as $tag): ?>
                                                     <div class="checkbox-item">
-                                                        <input type="checkbox" class="form-check-input tag-checkbox" name="PK_USER_TAG[]" value="<?= $tag['id'] ?>" id="tag_<?= $tag['id'] ?>" <?= in_array($tag['id'], $selected_tag) ? 'checked' : '' ?>>
+                                                        <input type="checkbox" class="form-check-input tag-checkbox" name="PK_USER_TAG[]" value="<?= $tag['id'] ?>" id="tag_<?= $tag['id'] ?>" <?= in_array($tag['id'], $selected_tag) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                         <label for="tag_<?= $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></label>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
                                             <div class="selected-count" id="tagsSelectedCount">Selected: <span id="tagsCount"><?= count($selected_tag) ?></span></div>
-                                            <small class="text-muted">Check the boxes to select multiple tags</small>
+                                            <div class="form-helper" id="tagsHelper">Check the boxes to select multiple tags</div>
                                         </div>
 
-                                        <!-- Lead Status - Conditional Field with Checkboxes -->
+                                        <!-- Lead Status -->
                                         <div class="form-group-modern conditional-field <?= in_array('leads', $OPERATION) ? 'visible' : '' ?>" id="lead_status_field">
                                             <label class="form-label">Select Lead Statuses <span class="required">*</span></label>
                                             <div class="checkbox-container" id="leadStatusCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
-                                                    <input type="checkbox" id="selectAllLeadStatuses" class="form-check-input">
+                                                    <input type="checkbox" id="selectAllLeadStatuses" class="form-check-input" <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label for="selectAllLeadStatuses" class="fw-semibold">Select All Lead Statuses</label>
                                                 </div>
                                                 <?php foreach ($all_lead_statuses as $status): ?>
                                                     <div class="checkbox-item">
-                                                        <input type="checkbox" class="form-check-input lead-status-checkbox" name="PK_LEAD_STATUS[]" value="<?= $status['id'] ?>" id="lead_status_<?= $status['id'] ?>" <?= in_array($status['id'], $selected_lead_statuses) ? 'checked' : '' ?>>
+                                                        <input type="checkbox" class="form-check-input lead-status-checkbox" name="PK_LEAD_STATUS[]" value="<?= $status['id'] ?>" id="lead_status_<?= $status['id'] ?>" <?= in_array($status['id'], $selected_lead_statuses) ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                         <label for="lead_status_<?= $status['id'] ?>"><?= htmlspecialchars($status['name']) ?></label>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
                                             <div class="selected-count" id="leadStatusSelectedCount">Selected: <span id="leadStatusCount"><?= count($selected_lead_statuses) ?></span></div>
-                                            <small class="text-muted">Check the boxes to select multiple lead statuses</small>
+                                            <div class="form-helper" id="leadStatusHelper">Check the boxes to select multiple lead statuses</div>
                                         </div>
 
-                                        <!-- Content Section - Contenteditable div like follow-up page -->
+                                        <!-- Content -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label" id="contentLabel">Content <span class="required">*</span></label>
-                                            <div class="content-editable" contenteditable="true" id="contentEditable"><?= htmlspecialchars_decode($CONTENT) ?></div>
+                                            <div class="content-editable" contenteditable="<?= $location_access_denied ? 'false' : 'true' ?>" id="contentEditable" <?= $location_access_denied ? 'style="background:var(--gray-100);cursor:not-allowed;"' : '' ?>><?= htmlspecialchars_decode($CONTENT) ?></div>
                                             <input type="hidden" name="CONTENT" id="CONTENT" value="<?= htmlspecialchars($CONTENT) ?>">
                                             <div class="form-helper" id="contentHelper">Click variable buttons below to insert dynamic fields into your content.</div>
 
-                                            <!-- Variables Section - Same style as automation page -->
                                             <div class="variables-section">
                                                 <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                                 <div class="d-flex flex-wrap gap-1">
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID">Student ID</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name">Course Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Date">Date</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Time">Time</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Campaign Name">Campaign Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name" <?= $location_access_denied ? 'disabled' : '' ?>>Student Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location" <?= $location_access_denied ? 'disabled' : '' ?>>Location</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name" <?= $location_access_denied ? 'disabled' : '' ?>>Service Provider Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name" <?= $location_access_denied ? 'disabled' : '' ?>>Corporation Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID" <?= $location_access_denied ? 'disabled' : '' ?>>Student ID</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name" <?= $location_access_denied ? 'disabled' : '' ?>>Course Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Date" <?= $location_access_denied ? 'disabled' : '' ?>>Date</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Time" <?= $location_access_denied ? 'disabled' : '' ?>>Time</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name" <?= $location_access_denied ? 'disabled' : '' ?>>Instructor Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name" <?= $location_access_denied ? 'disabled' : '' ?>>Class Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Campaign Name" <?= $location_access_denied ? 'disabled' : '' ?>>Campaign Name</button>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Schedule Section -->
+                                        <!-- Schedule -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label">Schedule Campaign</label>
                                             <div class="schedule-toggle">
                                                 <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" id="scheduleCheckbox" <?= (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') ? 'checked' : '' ?>>
+                                                    <input type="checkbox" class="form-check-input" id="scheduleCheckbox" <?= (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <label class="form-check-label" for="scheduleCheckbox">
                                                         Schedule for later
                                                     </label>
@@ -1077,12 +1244,12 @@ if (empty($_GET['id'])) {
                                             <div class="schedule-fields <?= (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') ? 'visible' : '' ?>" id="scheduleFields">
                                                 <div class="form-group-modern">
                                                     <label class="form-label">Date <span class="required" id="scheduleDateRequired" style="display:none;">*</span></label>
-                                                    <input type="date" class="form-control-modern" id="SCHEDULE_DATE" name="SCHEDULE_DATE" value="<?= htmlspecialchars($SCHEDULE_DATE) ?>" min="<?= date('Y-m-d') ?>">
+                                                    <input type="date" class="form-control-modern" id="SCHEDULE_DATE" name="SCHEDULE_DATE" value="<?= htmlspecialchars($SCHEDULE_DATE) ?>" min="<?= date('Y-m-d') ?>" <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <div class="datetime-helper">Select the date when campaign should be sent</div>
                                                 </div>
                                                 <div class="form-group-modern">
                                                     <label class="form-label">Time <span class="required" id="scheduleTimeRequired" style="display:none;">*</span></label>
-                                                    <input type="time" class="form-control-modern" id="SCHEDULE_TIME" name="SCHEDULE_TIME" value="<?= htmlspecialchars($SCHEDULE_TIME) ?>" step="60">
+                                                    <input type="time" class="form-control-modern" id="SCHEDULE_TIME" name="SCHEDULE_TIME" value="<?= htmlspecialchars($SCHEDULE_TIME) ?>" step="60" <?= $location_access_denied ? 'disabled' : '' ?>>
                                                     <div class="datetime-helper">Select the time when campaign should be sent</div>
                                                 </div>
                                             </div>
@@ -1096,41 +1263,45 @@ if (empty($_GET['id'])) {
                                         </div>
 
                                         <!-- Active Status -->
-                                        <?php if (!empty($_GET['id'])): ?>
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Status</label>
-                                                <div class="radio-group-modern">
-                                                    <label class="radio-item">
-                                                        <input type="radio" id="ACTIVE1" name="ACTIVE" value="1" <?php echo $ACTIVE == '1' ? 'checked' : '' ?>>
-                                                        Active
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        <input type="radio" id="ACTIVE2" name="ACTIVE" value="0" <?php echo $ACTIVE == '0' ? 'checked' : '' ?>>
-                                                        Inactive
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        <?php endif; ?>
 
-                                        <!-- Hidden fields -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Status</label>
+                                            <div class="radio-group-modern">
+                                                <label class="radio-item">
+                                                    <input type="radio" id="ACTIVE1" name="ACTIVE" value="1" <?php echo $ACTIVE == '1' ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
+                                                    Active
+                                                </label>
+                                                <label class="radio-item">
+                                                    <input type="radio" id="ACTIVE2" name="ACTIVE" value="0" <?php echo $ACTIVE == '0' ? 'checked' : '' ?> <?= $location_access_denied ? 'disabled' : '' ?>>
+                                                    Inactive
+                                                </label>
+                                            </div>
+                                        </div>
+
+
                                         <?php if (!empty($_GET['id'])): ?>
-                                            <input type="hidden" name="PK_CAMPAIGN_ID" value="<?php echo $_GET['id'] ?>">
+                                            <input type="hidden" name="PK_CAMPAIGN_ID" value="<?php echo intval($_GET['id']) ?>">
                                         <?php endif; ?>
                                     </div>
 
-                                    <!-- Form Actions -->
                                     <div class="form-actions">
-                                        <button type="submit" class="btn-modern btn-modern-primary">
-                                            <i class="fas fa-save"></i>
-                                            <?php if (empty($_GET['id'])): ?>
-                                                Create Campaign
-                                            <?php else: ?>
-                                                Update Campaign
-                                            <?php endif; ?>
-                                        </button>
-                                        <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_marketings.php'">
-                                            <i class="fas fa-times"></i> Cancel
-                                        </button>
+                                        <?php if ($location_access_denied): ?>
+                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_marketings.php'">
+                                                <i class="fas fa-arrow-left"></i> Back to Campaigns
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit" class="btn-modern btn-modern-primary" id="submitBtn">
+                                                <i class="fas fa-save"></i>
+                                                <?php if (empty($_GET['id'])): ?>
+                                                    Create Campaign
+                                                <?php else: ?>
+                                                    Update Campaign
+                                                <?php endif; ?>
+                                            </button>
+                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_marketings.php'">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
 
                                 </form>
@@ -1146,15 +1317,46 @@ if (empty($_GET['id'])) {
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
-        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV (same as follow-up page) ---
+        // ---------------------------------------------------------------
+        // Field-level error helper
+        // ---------------------------------------------------------------
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('is-invalid');
+            }
+            const helper = document.getElementById(fieldId + '_error');
+            if (helper) {
+                helper.textContent = message;
+                helper.classList.add('error');
+                helper.style.display = 'block';
+            }
+        }
+
+        function clearFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) field.classList.remove('is-invalid');
+            const helper = document.getElementById(fieldId + '_error');
+            if (helper) {
+                helper.classList.remove('error');
+                helper.style.display = 'none';
+            }
+        }
+
+        function clearAllErrors() {
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.form-helper.error').forEach(el => {
+                el.classList.remove('error');
+                el.style.display = 'none';
+            });
+        }
+
+        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV ---
         function insertVariable(varName) {
             const editable = document.getElementById('contentEditable');
-            if (!editable) return;
+            if (!editable || editable.getAttribute('contenteditable') === 'false') return;
 
-            // Focus on the editable div
             editable.focus();
-
-            // Get the current selection or create one at the end
             const selection = window.getSelection();
             let range;
 
@@ -1167,32 +1369,26 @@ if (empty($_GET['id'])) {
                 selection.addRange(range);
             }
 
-            // Create the variable badge span (matching follow-up page exactly)
             const variableSpan = document.createElement('span');
             variableSpan.className = 'variable-badge';
             variableSpan.setAttribute('contenteditable', 'false');
             variableSpan.textContent = varName;
 
-            // Insert at cursor position
             range.deleteContents();
             range.insertNode(variableSpan);
 
-            // Add a space after the variable
             const spaceNode = document.createTextNode('\u00A0');
             range.setStartAfter(variableSpan);
             range.insertNode(spaceNode);
 
-            // Move cursor after the space
             range.setStartAfter(spaceNode);
             range.collapse(true);
             selection.removeAllRanges();
             selection.addRange(range);
 
-            // Update hidden input
             updateContentInput();
         }
 
-        // --- UPDATE HIDDEN INPUT WITH CONTENT ---
         function updateContentInput() {
             const editable = document.getElementById('contentEditable');
             const hiddenInput = document.getElementById('CONTENT');
@@ -1201,17 +1397,19 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- UPDATE LABELS AND VALIDATION BASED ON REMINDER TYPE ---
         function updateContentLabels() {
-            const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
-            const textChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="text"]').checked;
+            const emailEl = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]');
+            const textEl = document.querySelector('input[name="REMINDER_TYPE[]"][value="text"]');
+            if (!emailEl || !textEl) return;
+
+            const emailChecked = emailEl.checked;
+            const textChecked = textEl.checked;
             const contentLabel = document.getElementById('contentLabel');
             const contentHelper = document.getElementById('contentHelper');
             const subjectHelper = document.getElementById('subjectHelper');
             const subjectRequiredLabel = document.getElementById('subjectRequiredLabel');
             const subjectInput = document.getElementById('SUBJECT');
 
-            // Update content label
             let labelText = 'Content';
             if (emailChecked && textChecked) {
                 labelText = 'Content (Email & Text Message)';
@@ -1232,7 +1430,6 @@ if (empty($_GET['id'])) {
 
             contentLabel.innerHTML = labelText + ' <span class="required">*</span>';
 
-            // Update subject required status
             if (emailChecked) {
                 subjectInput.setAttribute('required', 'required');
                 subjectInput.classList.remove('optional');
@@ -1242,7 +1439,6 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- TOGGLE CONDITIONAL FIELDS (Tags/Leads) based on audience selections ---
         function toggleConditionalFields() {
             const tagsChecked = document.getElementById('audience_tags').checked;
             const leadsChecked = document.getElementById('audience_leads').checked;
@@ -1261,7 +1457,6 @@ if (empty($_GET['id'])) {
                 updateLeadStatusCount();
             }
 
-            // Update helper text
             const audienceHelper = document.getElementById('audienceHelper');
             const selected = document.querySelectorAll('.audience-checkbox:checked');
             if (selected.length === 0) {
@@ -1273,153 +1468,34 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- UPDATE SELECTED COUNT FOR TAGS ---
         function updateTagsCount() {
             const checked = document.querySelectorAll('.tag-checkbox:checked').length;
             document.getElementById('tagsCount').textContent = checked;
         }
 
-        // --- UPDATE SELECTED COUNT FOR LEAD STATUSES ---
         function updateLeadStatusCount() {
             const checked = document.querySelectorAll('.lead-status-checkbox:checked').length;
             document.getElementById('leadStatusCount').textContent = checked;
         }
 
-        // --- SELECT ALL TAGS ---
-        document.getElementById('selectAllTags').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.tag-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            updateTagsCount();
-        });
+        // ---------------------------------------------------------------
+        // Event bindings — only attach if the elements exist and aren't disabled
+        // ---------------------------------------------------------------
+        const isReadOnly = <?= $location_access_denied ? 'true' : 'false' ?>;
 
-        // --- SELECT ALL LEAD STATUSES ---
-        document.getElementById('selectAllLeadStatuses').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.lead-status-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            updateLeadStatusCount();
-        });
-
-        // --- SCHEDULE TOGGLE ---
-        document.getElementById('scheduleCheckbox').addEventListener('change', function() {
-            const scheduleFields = document.getElementById('scheduleFields');
-            const dateInput = document.getElementById('SCHEDULE_DATE');
-            const timeInput = document.getElementById('SCHEDULE_TIME');
-            const dateRequired = document.getElementById('scheduleDateRequired');
-            const timeRequired = document.getElementById('scheduleTimeRequired');
-
-            if (this.checked) {
-                scheduleFields.classList.add('visible');
-                dateInput.setAttribute('required', 'required');
-                timeInput.setAttribute('required', 'required');
-                dateRequired.style.display = 'inline';
-                timeRequired.style.display = 'inline';
-
-                // Set default date to tomorrow if empty
-                if (!dateInput.value) {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    dateInput.value = tomorrow.toISOString().split('T')[0];
-                }
-                // Set default time to 9:00 AM if empty
-                if (!timeInput.value) {
-                    timeInput.value = '09:00';
-                }
-            } else {
-                scheduleFields.classList.remove('visible');
-                dateInput.removeAttribute('required');
-                timeInput.removeAttribute('required');
-                dateRequired.style.display = 'none';
-                timeRequired.style.display = 'none';
-                dateInput.value = '';
-                timeInput.value = '';
-            }
-        });
-
-        // --- UPDATE TIMEZONE ON LOCATION CHANGE ---
-        function updateTimezoneInfo() {
-            const locationSelect = document.getElementById('PK_LOCATION');
-            const scheduleHelper = document.getElementById('scheduleHelper');
-
-            if (locationSelect && locationSelect.value) {
-                scheduleHelper.innerHTML = 'Timezone will be determined by the selected location';
-            }
-        }
-
-        // Attach location change event
-        document.getElementById('PK_LOCATION').addEventListener('change', updateTimezoneInfo);
-
-        // --- EVENT LISTENERS ---
-        // Attach change event to audience checkboxes
-        document.querySelectorAll('.audience-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                toggleConditionalFields();
-                // Ensure at least one is checked
-                const checked = document.querySelectorAll('.audience-checkbox:checked');
-                if (checked.length === 0) {
-                    this.checked = true; // Prevent unchecking the last one
-                }
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            });
-        });
-
-        // Attach change event to reminder type checkboxes
-        document.querySelectorAll('input[name="REMINDER_TYPE[]"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                updateContentLabels();
-                // At least one must be checked
-                const checked = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
-                if (checked.length === 0) {
-                    this.checked = true; // Prevent unchecking the last one
-                    alert('Please select at least one reminder type');
-                }
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            });
-        });
-
-        // --- VARIABLE BUTTON HANDLERS (same as follow-up page) ---
-        // Use event delegation for variable buttons
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.var-btn');
-            if (btn) {
-                e.preventDefault();
-                const varName = btn.getAttribute('data-var');
-                insertVariable(varName);
-            }
-        });
-
-        // Individual checkbox events for tags and lead statuses
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('tag-checkbox')) {
-                updateTagsCount();
-                const allTags = document.querySelectorAll('.tag-checkbox');
-                const checkedTags = document.querySelectorAll('.tag-checkbox:checked');
-                document.getElementById('selectAllTags').checked = allTags.length === checkedTags.length;
-            }
-            if (e.target.classList.contains('lead-status-checkbox')) {
-                updateLeadStatusCount();
-                const allStatuses = document.querySelectorAll('.lead-status-checkbox');
-                const checkedStatuses = document.querySelectorAll('.lead-status-checkbox:checked');
-                document.getElementById('selectAllLeadStatuses').checked = allStatuses.length === checkedStatuses.length;
-            }
-        });
-
-        // Update hidden input when content changes
-        document.getElementById('contentEditable').addEventListener('input', updateContentInput);
-
-        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', function() {
+
+            // Initial state
             updateContentLabels();
             toggleConditionalFields();
             updateTagsCount();
             updateLeadStatusCount();
 
-            // Trigger schedule toggle if there's a schedule
             const scheduleCheckbox = document.getElementById('scheduleCheckbox');
-            if (scheduleCheckbox.checked) {
+            if (scheduleCheckbox && scheduleCheckbox.checked) {
                 scheduleCheckbox.dispatchEvent(new Event('change'));
             }
 
-            // Initialize content from hidden input
             const editable = document.getElementById('contentEditable');
             const hiddenInput = document.getElementById('CONTENT');
             if (editable && hiddenInput && !editable.innerHTML.trim()) {
@@ -1428,191 +1504,301 @@ if (empty($_GET['id'])) {
                     editable.innerHTML = content;
                 }
             }
+
+            // --- SELECT ALL TAGS ---
+            const selectAllTags = document.getElementById('selectAllTags');
+            if (selectAllTags) {
+                selectAllTags.addEventListener('change', function() {
+                    document.querySelectorAll('.tag-checkbox').forEach(cb => cb.checked = this.checked);
+                    updateTagsCount();
+                });
+            }
+
+            // --- SELECT ALL LEAD STATUSES ---
+            const selectAllLeadStatuses = document.getElementById('selectAllLeadStatuses');
+            if (selectAllLeadStatuses) {
+                selectAllLeadStatuses.addEventListener('change', function() {
+                    document.querySelectorAll('.lead-status-checkbox').forEach(cb => cb.checked = this.checked);
+                    updateLeadStatusCount();
+                });
+            }
+
+            // --- SCHEDULE TOGGLE ---
+            if (scheduleCheckbox) {
+                scheduleCheckbox.addEventListener('change', function() {
+                    const scheduleFields = document.getElementById('scheduleFields');
+                    const dateInput = document.getElementById('SCHEDULE_DATE');
+                    const timeInput = document.getElementById('SCHEDULE_TIME');
+                    const dateRequired = document.getElementById('scheduleDateRequired');
+                    const timeRequired = document.getElementById('scheduleTimeRequired');
+
+                    if (this.checked) {
+                        scheduleFields.classList.add('visible');
+                        dateInput.setAttribute('required', 'required');
+                        timeInput.setAttribute('required', 'required');
+                        dateRequired.style.display = 'inline';
+                        timeRequired.style.display = 'inline';
+
+                        if (!dateInput.value) {
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            dateInput.value = tomorrow.toISOString().split('T')[0];
+                        }
+                        if (!timeInput.value) {
+                            timeInput.value = '09:00';
+                        }
+                    } else {
+                        scheduleFields.classList.remove('visible');
+                        dateInput.removeAttribute('required');
+                        timeInput.removeAttribute('required');
+                        dateRequired.style.display = 'none';
+                        timeRequired.style.display = 'none';
+                        dateInput.value = '';
+                        timeInput.value = '';
+                    }
+                });
+            }
+
+            // --- AUDIENCE CHECKBOXES ---
+            document.querySelectorAll('.audience-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    toggleConditionalFields();
+                    const checked = document.querySelectorAll('.audience-checkbox:checked');
+                    if (checked.length === 0) {
+                        this.checked = true;
+                    }
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                });
+            });
+
+            // --- REMINDER TYPE CHECKBOXES ---
+            document.querySelectorAll('input[name="REMINDER_TYPE[]"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateContentLabels();
+                    const checked = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
+                    if (checked.length === 0) {
+                        this.checked = true;
+                        alert('Please select at least one reminder type');
+                    }
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                });
+            });
+
+            // --- VARIABLE BUTTONS ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.var-btn');
+                if (btn && !btn.disabled) {
+                    e.preventDefault();
+                    const varName = btn.getAttribute('data-var');
+                    insertVariable(varName);
+                }
+            });
+
+            // --- TAGS / LEAD STATUS CHANGES ---
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('tag-checkbox')) {
+                    updateTagsCount();
+                    const allTags = document.querySelectorAll('.tag-checkbox');
+                    const checkedTags = document.querySelectorAll('.tag-checkbox:checked');
+                    if (selectAllTags) selectAllTags.checked = allTags.length === checkedTags.length;
+                }
+                if (e.target.classList.contains('lead-status-checkbox')) {
+                    updateLeadStatusCount();
+                    const allStatuses = document.querySelectorAll('.lead-status-checkbox');
+                    const checkedStatuses = document.querySelectorAll('.lead-status-checkbox:checked');
+                    if (selectAllLeadStatuses) selectAllLeadStatuses.checked = allStatuses.length === checkedStatuses.length;
+                }
+            });
+
+            if (editable) {
+                editable.addEventListener('input', updateContentInput);
+            }
+
+            // --- CLEAR INVALID ON INPUT ---
+            document.querySelectorAll('.form-control-modern').forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.style.borderColor = 'var(--gray-200)';
+                        const helper = document.getElementById(this.id + '_error');
+                        if (helper) helper.style.display = 'none';
+                    }
+                });
+                input.addEventListener('change', function() {
+                    if (this.value) {
+                        this.classList.remove('is-invalid');
+                        this.style.borderColor = 'var(--gray-200)';
+                        const helper = document.getElementById(this.id + '_error');
+                        if (helper) helper.style.display = 'none';
+                    }
+                });
+            });
         });
 
-        // --- FORM VALIDATION ---
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const templateName = document.getElementById('TEMPLATE_NAME');
-            const subject = document.getElementById('SUBJECT');
-            const location = document.querySelector('.PK_LOCATION');
-            const audienceChecked = document.querySelectorAll('.audience-checkbox:checked');
-            const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
-            const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
-            const editable = document.getElementById('contentEditable');
-            const content = editable ? editable.innerHTML.trim() : '';
-            const reminderTypes = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
-            const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
-            const scheduleChecked = document.getElementById('scheduleCheckbox').checked;
-            const scheduleDate = document.getElementById('SCHEDULE_DATE').value;
-            const scheduleTime = document.getElementById('SCHEDULE_TIME').value;
+        // ---------------------------------------------------------------
+        // FORM VALIDATION — show inline messages next to each field
+        // ---------------------------------------------------------------
+        const campaignForm = document.getElementById('campaignForm');
+        if (campaignForm) {
+            campaignForm.addEventListener('submit', function(e) {
+                clearAllErrors();
 
-            let isValid = true;
+                const templateName = document.getElementById('TEMPLATE_NAME');
+                const subject = document.getElementById('SUBJECT');
+                const location = document.getElementById('PK_LOCATION');
+                const audienceChecked = document.querySelectorAll('.audience-checkbox:checked');
+                const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
+                const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
+                const editable = document.getElementById('contentEditable');
+                const content = editable ? editable.innerHTML.trim() : '';
+                const reminderTypes = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
+                const emailEl = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]');
+                const emailChecked = emailEl ? emailEl.checked : false;
+                const scheduleChecked = document.getElementById('scheduleCheckbox') ? document.getElementById('scheduleCheckbox').checked : false;
+                const scheduleDate = document.getElementById('SCHEDULE_DATE') ? document.getElementById('SCHEDULE_DATE').value : '';
+                const scheduleTime = document.getElementById('SCHEDULE_TIME') ? document.getElementById('SCHEDULE_TIME').value : '';
 
-            // Update hidden input before validation
-            updateContentInput();
+                let isValid = true;
+                let errors = [];
 
-            // Validate at least one reminder type is selected
-            if (reminderTypes.length === 0) {
-                document.querySelector('.checkbox-group-modern').style.borderColor = 'var(--danger-color)';
-                document.querySelector('.checkbox-group-modern').style.border = '1.5px solid var(--danger-color)';
-                document.querySelector('.checkbox-group-modern').style.borderRadius = 'var(--radius-sm)';
-                document.querySelector('.checkbox-group-modern').style.padding = '8px';
-                isValid = false;
-                const helper = document.querySelector('.checkbox-group-modern').closest('.form-group-modern').querySelector('.form-helper');
-                if (helper) {
-                    helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please select at least one reminder type';
-                    setTimeout(() => {
-                        helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Select one or both reminder types';
-                    }, 3000);
-                }
-            } else {
-                document.querySelector('.checkbox-group-modern').style.border = 'none';
-                document.querySelector('.checkbox-group-modern').style.padding = '0';
-            }
+                updateContentInput();
 
-            // Validate at least one audience is selected
-            if (audienceChecked.length === 0) {
-                document.getElementById('audienceContainer').style.borderColor = 'var(--danger-color)';
-                isValid = false;
-                const helper = document.getElementById('audienceHelper');
-                helper.style.color = 'var(--danger-color)';
-                helper.textContent = 'Please select at least one target audience';
-                setTimeout(() => {
-                    helper.style.color = 'var(--gray-400)';
-                    helper.textContent = 'Select one or more target audience options';
-                }, 3000);
-            } else {
-                document.getElementById('audienceContainer').style.borderColor = 'var(--gray-200)';
-            }
-
-            if (!templateName.value.trim()) {
-                templateName.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                templateName.classList.remove('is-invalid');
-            }
-
-            // Subject is required only if email is selected
-            if (emailChecked && !subject.value.trim()) {
-                subject.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                subject.classList.remove('is-invalid');
-            }
-
-            if (!location.value) {
-                location.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                location.classList.remove('is-invalid');
-            }
-
-            // Check content (allow <p><br></p> as empty)
-            const isEmpty = !content || content === '<p><br></p>' || content === '<br>' || content === '<div><br></div>';
-            if (isEmpty) {
-                editable.classList.add('is-invalid');
-                isValid = false;
-                const helper = document.getElementById('contentHelper');
-                if (helper) {
-                    helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please enter content';
-                    setTimeout(() => {
-                        helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Click variable buttons below to insert dynamic fields into your content.';
-                    }, 3000);
-                }
-            } else {
-                editable.classList.remove('is-invalid');
-            }
-
-            // Validate tags if audience includes "tags"
-            const tagsAudienceChecked = document.getElementById('audience_tags').checked;
-            if (tagsAudienceChecked && tagsChecked.length === 0) {
-                document.getElementById('tagsCheckboxContainer').style.borderColor = 'var(--danger-color)';
-                isValid = false;
-                const helper = document.querySelector('#tags_field .form-helper');
-                if (helper) {
-                    helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please select at least one tag';
-                    setTimeout(() => {
-                        helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Check the boxes to select multiple tags';
-                    }, 3000);
-                }
-            }
-
-            // Validate lead statuses if audience includes "leads"
-            const leadsAudienceChecked = document.getElementById('audience_leads').checked;
-            if (leadsAudienceChecked && leadStatusesChecked.length === 0) {
-                document.getElementById('leadStatusCheckboxContainer').style.borderColor = 'var(--danger-color)';
-                isValid = false;
-                const helper = document.querySelector('#lead_status_field .form-helper');
-                if (helper) {
-                    helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please select at least one lead status';
-                    setTimeout(() => {
-                        helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Check the boxes to select multiple lead statuses';
-                    }, 3000);
-                }
-            }
-
-            // Validate schedule if enabled
-            if (scheduleChecked) {
-                if (!scheduleDate) {
-                    document.getElementById('SCHEDULE_DATE').classList.add('is-invalid');
+                // Campaign name
+                if (!templateName.value.trim()) {
+                    showFieldError('TEMPLATE_NAME', 'Campaign name is required.');
+                    errors.push('Campaign name is required.');
                     isValid = false;
-                } else {
-                    document.getElementById('SCHEDULE_DATE').classList.remove('is-invalid');
-                }
-                if (!scheduleTime) {
-                    document.getElementById('SCHEDULE_TIME').classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    document.getElementById('SCHEDULE_TIME').classList.remove('is-invalid');
                 }
 
-                // Validate that schedule date is not in the past
-                if (scheduleDate) {
-                    const selectedDate = new Date(scheduleDate + ' ' + (scheduleTime || '00:00'));
-                    const now = new Date();
-                    if (selectedDate < now) {
-                        document.getElementById('SCHEDULE_DATE').classList.add('is-invalid');
-                        document.getElementById('SCHEDULE_TIME').classList.add('is-invalid');
+                // Location
+                if (!location.value) {
+                    showFieldError('PK_LOCATION', 'Please select a location.');
+                    errors.push('Please select a location.');
+                    isValid = false;
+                }
+
+                // Reminder type
+                if (reminderTypes.length === 0) {
+                    const helper = document.getElementById('reminderTypeHelper');
+                    helper.textContent = 'Please select at least one reminder type.';
+                    helper.classList.add('error');
+                    errors.push('Please select at least one reminder type.');
+                    isValid = false;
+                }
+
+                // Subject (only required for email)
+                if (emailChecked && !subject.value.trim()) {
+                    subject.classList.add('is-invalid');
+                    const helper = document.getElementById('subjectHelper');
+                    helper.classList.add('error');
+                    helper.textContent = 'Subject is required when Email is selected.';
+                    errors.push('Subject is required when Email is selected.');
+                    isValid = false;
+                }
+
+                // Target audience
+                if (audienceChecked.length === 0) {
+                    document.getElementById('audienceContainer').style.borderColor = 'var(--danger-color)';
+                    const helper = document.getElementById('audienceHelper');
+                    helper.classList.add('error');
+                    helper.textContent = 'Please select at least one target audience.';
+                    errors.push('Please select at least one target audience.');
+                    isValid = false;
+                }
+
+                // Tags
+                const tagsAudienceChecked = document.getElementById('audience_tags').checked;
+                if (tagsAudienceChecked && tagsChecked.length === 0) {
+                    document.getElementById('tagsCheckboxContainer').style.borderColor = 'var(--danger-color)';
+                    const helper = document.getElementById('tagsHelper');
+                    helper.classList.add('error');
+                    helper.textContent = 'Please select at least one tag.';
+                    errors.push('Please select at least one tag.');
+                    isValid = false;
+                }
+
+                // Lead statuses
+                const leadsAudienceChecked = document.getElementById('audience_leads').checked;
+                if (leadsAudienceChecked && leadStatusesChecked.length === 0) {
+                    document.getElementById('leadStatusCheckboxContainer').style.borderColor = 'var(--danger-color)';
+                    const helper = document.getElementById('leadStatusHelper');
+                    helper.classList.add('error');
+                    helper.textContent = 'Please select at least one lead status.';
+                    errors.push('Please select at least one lead status.');
+                    isValid = false;
+                }
+
+                // Content
+                const isEmpty = !content || content === '<p><br></p>' || content === '<br>' || content === '<div><br></div>';
+                if (isEmpty) {
+                    editable.classList.add('is-invalid');
+                    const helper = document.getElementById('contentHelper');
+                    helper.classList.add('error');
+                    helper.textContent = 'Please enter content.';
+                    errors.push('Please enter content.');
+                    isValid = false;
+                }
+
+                // Schedule
+                if (scheduleChecked) {
+                    if (!scheduleDate) {
+                        showFieldError('SCHEDULE_DATE', 'Please pick a date.');
+                        errors.push('Please pick a scheduled date.');
                         isValid = false;
-                        alert('Scheduled date and time cannot be in the past. Please select a future date and time.');
+                    }
+                    if (!scheduleTime) {
+                        showFieldError('SCHEDULE_TIME', 'Please pick a time.');
+                        errors.push('Please pick a scheduled time.');
+                        isValid = false;
+                    }
+                    if (scheduleDate && scheduleTime) {
+                        const selectedDate = new Date(scheduleDate + ' ' + scheduleTime);
+                        if (selectedDate < new Date()) {
+                            showFieldError('SCHEDULE_DATE', 'Date/time cannot be in the past.');
+                            showFieldError('SCHEDULE_TIME', 'Date/time cannot be in the past.');
+                            errors.push('Scheduled date/time cannot be in the past.');
+                            isValid = false;
+                        }
                     }
                 }
-            }
 
-            if (!isValid) {
-                e.preventDefault();
-                const firstError = document.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.focus();
-                }
-            }
-        });
+                // If anything failed, stop submit + summarise
+                if (!isValid) {
+                    e.preventDefault();
 
-        // Remove invalid class on input
-        document.querySelectorAll('.form-control-modern').forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    this.classList.remove('is-invalid');
-                    this.style.borderColor = 'var(--gray-200)';
+                    // Remove any previous summary
+                    const existing = document.getElementById('saveErrorsBlock');
+                    if (existing) existing.remove();
+
+                    const summary = document.createElement('div');
+                    summary.id = 'saveErrorsBlock';
+                    summary.className = 'save-errors';
+                    summary.innerHTML = '<strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Cannot save yet — please fix the following:</strong><ul>' +
+                        errors.map(err => '<li>' + err + '</li>').join('') +
+                        '</ul>';
+                    campaignForm.parentNode.insertBefore(summary, campaignForm);
+
+                    // Scroll to first error
+                    const firstError = campaignForm.querySelector('.is-invalid');
+                    if (firstError) {
+                        firstError.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                        try {
+                            firstError.focus({
+                                preventScroll: true
+                            });
+                        } catch (e) {}
+                    } else {
+                        summary.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }
                 }
             });
-            input.addEventListener('change', function() {
-                if (this.value) {
-                    this.classList.remove('is-invalid');
-                    this.style.borderColor = 'var(--gray-200)';
-                }
-            });
-        });
-
-        console.log('Variable insertion ready. Click any variable button to insert a styled badge into the content editor.');
+        }
     </script>
 
 </body>

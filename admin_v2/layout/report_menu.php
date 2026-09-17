@@ -79,7 +79,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 'weekly_reports' => ['reports.php'],
                 'business_reports' => ['business_reports.php'],
                 'service_provider_reports' => ['service_provider_reports.php'],
-                'student_mailing_list' => ['student_mailing_list.php'],
+                'campaign' => ['campaign.php', 'student_mailing_list.php', 'leads_report.php'],
                 'total_open_liability' => ['total_open_liability.php'],
                 'customer_reports' => ['active_account_balance_report.php', 'active_account_balance_report_details.php', 'customer_summary_report.php'],
                 'sales_report' => ['sales_report.php', 'sales_report_details.php']
@@ -98,7 +98,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 'reports.php' => ['label' => 'Weekly Reports', 'group' => 'weekly_reports'],
                 'business_reports.php' => ['label' => 'Business Reports', 'group' => 'business_reports'],
                 'service_provider_reports.php' => ['label' => 'Service Provider Reports', 'group' => 'service_provider_reports'],
-                'student_mailing_list.php' => ['label' => 'Student Mailing List', 'group' => 'student_mailing_list'],
+                'campaign.php' => ['label' => 'Campaign', 'group' => 'campaign'],
                 'total_open_liability.php' => ['label' => 'Total Open Liability', 'group' => 'total_open_liability'],
                 'active_account_balance_report.php' => ['label' => 'Customer Reports', 'group' => 'customer_reports'],
 
