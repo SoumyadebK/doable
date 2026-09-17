@@ -6,6 +6,7 @@ global $master_database;
 global $upload_path;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
     header("location:../login.php");
@@ -183,12 +184,7 @@ $enrollment_type = 'Enrollment';
 <?php include 'layout/header_script.php'; ?>
 <?php include 'layout/header.php'; ?>
 
-<link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
 <style>
     :root {
@@ -844,78 +840,7 @@ $enrollment_type = 'Enrollment';
         pointer-events: none;
     }
 
-    /* SumoSelect Override */
-    .SumoSelect {
-        width: 100% !important;
-    }
 
-    .SumoSelect>.CaptionCont {
-        border: 1.5px solid var(--gray-200) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 6px 12px !important;
-        min-height: 40px;
-        transition: all 0.2s ease;
-        background: #fff !important;
-    }
-
-    .SumoSelect>.CaptionCont:hover {
-        border-color: var(--gray-300) !important;
-    }
-
-    .SumoSelect.open>.CaptionCont {
-        border-color: var(--primary-color) !important;
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1) !important;
-    }
-
-    .SumoSelect>.CaptionCont>span {
-        color: var(--gray-700) !important;
-        font-size: 14px !important;
-    }
-
-    .SumoSelect>.CaptionCont>label>i {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
-        background-position: center !important;
-        background-repeat: no-repeat !important;
-        width: 12px !important;
-        height: 12px !important;
-    }
-
-    .SumoSelect .optWrapper {
-        border: 1.5px solid var(--gray-200) !important;
-        border-radius: var(--radius-sm) !important;
-        box-shadow: var(--shadow-md) !important;
-        z-index: 1000 !important;
-    }
-
-    .SumoSelect .optWrapper .options li.opt {
-        padding: 6px 12px !important;
-        font-size: 14px !important;
-        color: var(--gray-700) !important;
-        transition: background 0.2s;
-    }
-
-    .SumoSelect .optWrapper .options li.opt.selected {
-        background: #F0FDF4 !important;
-        color: var(--primary-color) !important;
-    }
-
-    .SumoSelect .optWrapper .options li.opt.selected::before {
-        content: "✓ ";
-        color: var(--primary-color);
-    }
-
-    .SumoSelect .search input {
-        border: 1px solid var(--gray-200) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 6px 10px !important;
-        font-size: 14px !important;
-        outline: none !important;
-    }
-
-    .SumoSelect .search input:focus {
-        border-color: var(--primary-color) !important;
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1) !important;
-    }
 
     .tab-content {
         display: none;
@@ -975,6 +900,30 @@ $enrollment_type = 'Enrollment';
 
     .form-helper.error {
         color: var(--danger-color);
+    }
+
+    .SumoSelect .CaptionCont {
+        border: 1px solid #dcdcdc;
+        height: 40px;
+        border-radius: 5px;
+    }
+
+    .SumoSelect .CaptionCont span.placeholder {
+        color: #fff;
+    }
+
+    .SumoSelect .CaptionCont span {
+        margin-top: 3px;
+    }
+
+    .SumoSelect {
+        width: 100%;
+    }
+
+    .sumo_SERVICE_PROVIDER_ID .CaptionCont {
+        border: 1px solid #dcdcdc;
+        height: 35px;
+        border-radius: 5px;
     }
 </style>
 
@@ -1885,13 +1834,11 @@ $enrollment_type = 'Enrollment';
     </div>
 
     <?php require_once('../includes/footer.php'); ?>
-    <?php include('includes/enrollment_payment.php'); ?>
+
+    <!--Payment Model-->
+    <?php include('includes/enrollment_payment_v2.php'); ?>
 
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
         // Tab switching - EXACTLY like customer page
@@ -2727,48 +2674,54 @@ $enrollment_type = 'Enrollment';
                 window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
             }
         }
+    </script>
 
-        // ========== SIGNATURE PAD ==========
-        const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas);
+    <?php if ($IS_SIGNED == 0) { ?>
+        <script>
+            // ========== SIGNATURE PAD ==========
+            const canvas = document.getElementById('signature-pad');
+            const signaturePad = new SignaturePad(canvas);
 
-        document.getElementById('clear').addEventListener('click', () => {
-            signaturePad.clear();
-        });
+            document.getElementById('clear').addEventListener('click', () => {
+                signaturePad.clear();
+            });
 
-        document.getElementById('save').addEventListener('click', () => {
-            if (signaturePad.isEmpty()) {
-                alert("Please provide signature");
-                return;
-            }
+            document.getElementById('save').addEventListener('click', () => {
+                if (signaturePad.isEmpty()) {
+                    alert("Please provide signature");
+                    return;
+                }
 
-            const dataURL = signaturePad.toDataURL();
+                const dataURL = signaturePad.toDataURL();
 
-            fetch('save_signature.php', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        PK_ENROLLMENT_MASTER: <?= empty($_GET['id']) ? "''" : $_GET['id'] ?>,
-                        image: dataURL
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        window.location.href = window.location.pathname + '?id=' + <?= empty($_GET['id']) ? "''" : $_GET['id'] ?> +
-                            '&tab=agreement';
-                    } else {
-                        alert('Failed to sign PDF');
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                    alert('Something went wrong');
-                });
-        });
+                fetch('save_signature.php', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            PK_ENROLLMENT_MASTER: <?= empty($_GET['id']) ? "''" : $_GET['id'] ?>,
+                            image: dataURL
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.href = window.location.pathname + '?id=' + <?= empty($_GET['id']) ? "''" : $_GET['id'] ?> +
+                                '&tab=agreement';
+                        } else {
+                            alert('Failed to sign PDF');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Something went wrong');
+                    });
+            });
+        </script>
+    <?php } ?>
 
+    <script>
         // ========== DOCUMENT READY ==========
         $(document).ready(function() {
             $('#PK_USER_MASTER').trigger("change");

@@ -730,6 +730,8 @@
         $('#card_list').slideUp();
         /*let form = document.getElementById(type+'_payment_form');
         form.removeEventListener('submit', listener);*/
+        $('#payment_status').html('');
+        $('#enr-payment-btn').prop('disabled', false);
         $(param).closest('.payment_modal').find('#card-element').remove();
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
 
@@ -743,40 +745,44 @@
 
         switch (paymentType) {
             case 1:
-                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
-                    stripePaymentFunction(type);
-                    $('#save_card').show();
-                    $('#SAVE_FOR_FUTURE').prop('checked', false);
-                }
+                if (<?= count($LOCATION_ARRAY) ?> === 1) {
+                    $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                    if (PAYMENT_GATEWAY == 'Stripe') {
+                        $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
+                        stripePaymentFunction(type);
+                        $('#save_card').show();
+                        $('#SAVE_FOR_FUTURE').prop('checked', false);
+                    }
 
-                if (PAYMENT_GATEWAY == 'Square') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="${type}-card-container"></div>`);
-                    $('#' + type + '-card-container').text('Loading......');
-                    squarePaymentFunction(type);
-                }
+                    if (PAYMENT_GATEWAY == 'Square') {
+                        $(param).closest('.payment_modal').find('#card_div').html(`<div id="${type}-card-container"></div>`);
+                        $('#' + type + '-card-container').text('Loading......');
+                        squarePaymentFunction(type);
+                    }
 
-                if (PAYMENT_GATEWAY == 'Authorized.net') {
-                    $(".format-card").inputmask({
-                        mask: "9999 9999 9999 9999",
-                        placeholder: ""
-                    });
-                    $('#save_card').show();
-                    $('#SAVE_FOR_FUTURE').prop('checked', false);
-                }
+                    if (PAYMENT_GATEWAY == 'Authorized.net') {
+                        $(".format-card").inputmask({
+                            mask: "9999 9999 9999 9999",
+                            placeholder: ""
+                        });
+                        $('#save_card').show();
+                        $('#SAVE_FOR_FUTURE').prop('checked', false);
+                    }
 
-                if (PAYMENT_GATEWAY == 'Clover') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div class="row">
+                    if (PAYMENT_GATEWAY == 'Clover') {
+                        $(param).closest('.payment_modal').find('#card_div').html(`<div class="row">
                                                                                     <div class="clover-input" id="card-number" style="width: 50%;"></div>
                                                                                     <div class="clover-input" id="card-date" style="width: 15%;"></div>
                                                                                     <div class="clover-input" id="card-cvv" style="width: 10%;"></div>
                                                                                     <div class="clover-input" id="card-postal-code" style="width: 15%;"></div>
                                                                                 </div>`);
-                    cloverPaymentFunction(type);
+                        cloverPaymentFunction(type);
+                    }
+                    getCreditCardList();
+                } else {
+                    $('#payment_status').html(`<p class="alert alert-danger">Select one location to take Credit Card Payment</p>`);
+                    $('#enr-payment-btn').prop('disabled', true);
                 }
-                getCreditCardList();
-
                 break;
 
             case 14:

@@ -1236,7 +1236,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                         </div>
 
                                         <!-- Chatbot Settings Tab -->
-                                        <div class="tab-pane-modern active" id="chatbot_setting" role="tabpanel">
+                                        <div class="tab-pane-modern" id="chatbot_setting" role="tabpanel">
                                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                                 <input type="hidden" name="FUNCTION_NAME" value="saveChatbotSettings">
                                                 <input type="hidden" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">

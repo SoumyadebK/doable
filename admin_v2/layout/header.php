@@ -252,7 +252,7 @@ if (count($LOCATIONS) == 1) {
                     </a>
 
                     <!-- Multi-Select Dropdown -->
-                    <div class="dropdown-menu dropdown-menu-end multi-select-dropdown" id="locationMultiSelect">
+                    <div class="dropdown-menu dropdown-menu-end multi-select-dropdown" id="locationMultiSelect" onclick="stopDropdownPropagation(event)">
                         <div class="multi-select-header">Select Locations</div>
                         <div class="multi-select-options">
 
@@ -451,7 +451,7 @@ if (count($LOCATIONS) == 1) {
 
 <script>
     // Initialize multi-select dropdown
-    document.addEventListener('DOMContentLoaded', function() {
+    function initLocationMultiSelect() {
         // Set initial checked locations
         const initialLocations = ['AMTO', 'AMWH'];
         initialLocations.forEach(loc => {
@@ -460,15 +460,15 @@ if (count($LOCATIONS) == 1) {
                 checkbox.checked = true;
             }
         });
+    }
 
-        // Prevent dropdown from closing when clicking inside the multi-select dropdown
-        const multiSelectDropdown = document.getElementById('locationMultiSelect');
-        if (multiSelectDropdown) {
-            multiSelectDropdown.addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-        }
-    });
+    // Prevent dropdown from closing when clicking inside the multi-select dropdown
+    function stopDropdownPropagation(event) {
+        event.stopPropagation();
+    }
+
+    // Call init on page load
+    window.onload = initLocationMultiSelect;
 
     function applyLocations() {
         const checkedCheckboxes = document.querySelectorAll('.location-checkbox:checked');
