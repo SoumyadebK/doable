@@ -122,7 +122,7 @@ if (isset($_SESSION['error_message'])) {
                                         <div class="col-4" style="padding-top: 28px;">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <!-- <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                             <?php } ?>
                                         </div>
                                     </div>
