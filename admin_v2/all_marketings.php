@@ -2,7 +2,7 @@
 <html lang="en">
 <?php
 require_once('../global/config.php');
-$title = "All Email Templates";
+$title = "All Marketing Campaigns";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
