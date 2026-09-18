@@ -1735,6 +1735,17 @@ if ($PK_USER_MASTER > 0) {
                         </div>
                     </div>
 
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="change_future_payments" name="change_future_payments" value="1">
+                                <label class="form-check-label" for="change_future_payments">
+                                    Change all future payments as well?
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
@@ -2991,6 +3002,7 @@ if ($PK_USER_MASTER > 0) {
         let due_date = $('#due_date').val();
         let edit_type = $('#edit_type').val();
         let due_date_verify_password = $('#due_date_verify_password').val();
+        let change_future_payments = $('#change_future_payments').is(':checked') ? 1 : 0; // Capture checkbox state
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
@@ -3001,7 +3013,8 @@ if ($PK_USER_MASTER > 0) {
                 old_due_date: old_due_date,
                 due_date: due_date,
                 edit_type: edit_type,
-                due_date_verify_password: due_date_verify_password
+                due_date_verify_password: due_date_verify_password,
+                change_future_payments: change_future_payments // Send to backend
             },
             success: function(data) {
                 $('#due_date_verify_password_error').slideUp();

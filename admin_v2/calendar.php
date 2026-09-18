@@ -842,7 +842,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             <div class="col-12">
                                 <div class="form-group">
                                     <label class="form-label">Due Date</label>
-                                    <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required onkeydown="return false;">
+                                    <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" autocomplete="off" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="change_future_payments" name="change_future_payments" value="1">
+                                    <label class="form-check-label" for="change_future_payments">
+                                        Change all future payments as well?
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -2756,6 +2767,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             let due_date = $('#edit_due_date_form #due_date').val();
             let edit_type = $('#edit_due_date_form #edit_type').val();
             let due_date_verify_password = $('#edit_due_date_form #due_date_verify_password').val();
+            let change_future_payments = $('#change_future_payments').is(':checked') ? 1 : 0; // Capture checkbox state
 
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
@@ -2766,7 +2778,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     old_due_date: old_due_date,
                     due_date: due_date,
                     edit_type: edit_type,
-                    due_date_verify_password: due_date_verify_password
+                    due_date_verify_password: due_date_verify_password,
+                    change_future_payments: change_future_payments // Send to backend
                 },
                 success: function(data) {
                     $('#due_date_verify_password_error').slideUp();

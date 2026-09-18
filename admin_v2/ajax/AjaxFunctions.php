@@ -3598,6 +3598,7 @@ function updateBillingDueDate($RESPONSE_DATA)
     $old_due_date = $RESPONSE_DATA['old_due_date'];
     $due_date = $RESPONSE_DATA['due_date'];
     $edit_type = $RESPONSE_DATA['edit_type'];
+    $change_future_payments = isset($RESPONSE_DATA['change_future_payments']) ? $RESPONSE_DATA['change_future_payments'] : 0; // Get the flag
 
     $PASSWORD = $RESPONSE_DATA['due_date_verify_password'];
     $user_data = $db->Execute("SELECT PASSWORD FROM DOA_USERS WHERE PK_USER = " . $_SESSION['PK_USER']);
@@ -3606,6 +3607,21 @@ function updateBillingDueDate($RESPONSE_DATA)
         if ($edit_type == 'billing') {
             $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($due_date));
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+            // If checkbox is checked, update all future ledgers for this enrollment
+            if ($change_future_payments == 1) {
+                // Get the enrollment master ID for this ledger
+                $ledger_info = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_LEDGER = '$PK_ENROLLMENT_LEDGER'");
+                $PK_ENROLLMENT_MASTER = $ledger_info->fields['PK_ENROLLMENT_MASTER'];
+
+                // Update all future unpaid billing entries
+                $db_account->Execute("UPDATE DOA_ENROLLMENT_LEDGER 
+                                      SET DUE_DATE = '" . date('Y-m-d', strtotime($due_date)) . "' 
+                                      WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' 
+                                      AND DUE_DATE >= '" . date('Y-m-d', strtotime($old_due_date)) . "' 
+                                      AND TRANSACTION_TYPE = 'Billing' 
+                                      AND IS_PAID = 0");
+            }
 
             $UPDATE_HISTORY_DATA['CLASS'] = 'enrollment_ledger';
             $UPDATE_HISTORY_DATA['PRIMARY_KEY'] = $PK_ENROLLMENT_LEDGER;
