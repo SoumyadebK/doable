@@ -172,14 +172,18 @@ if (!empty($_POST)) {
             $CAMPAIGN_DATA['EDITED_ON']  = '0000-00-00 00:00:00';
             db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'insert');
             $new_id = $db_account->Insert_ID();   // ADOdb returns the last inserted ID
-            triggerCampaign($new_id);
+            if ($CAMPAIGN_DATA['SCHEDULE_DATETIME'] == null) {
+                triggerCampaign($new_id);
+            }
             header("location:all_marketings.php?saved=" . intval($new_id) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
             exit;
         } else {
             $CAMPAIGN_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $CAMPAIGN_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
             db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'update', " PK_MARKET_CAMPAIGN = " . intval($_GET['id']));
-            triggerCampaign($_GET['id']);
+            if ($CAMPAIGN_DATA['SCHEDULE_DATETIME'] == null) {
+                triggerCampaign($_GET['id']);
+            }
             header("location:all_marketings.php?saved=" . intval($_GET['id']) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
             exit;
         }
@@ -307,6 +311,7 @@ function triggerCampaign($PK_MARKET_CAMPAIGN)
                 }
 
                 $all_leads->MoveNext();
+                die();
             }
         }
     }
@@ -316,45 +321,60 @@ function sendEmail($PK_LOCATION, $MESSAGE, $EMAIL_ID, $LOCATION_NAME, $SUBJECT)
 {
     $locationSmtpSetting = getLocationSmtpSetting($PK_LOCATION);
 
-    $hostname = $locationSmtpSetting['SMTP_HOST'];
-    $port = $locationSmtpSetting['SMTP_PORT'];
-    $userName = $locationSmtpSetting['SMTP_USERNAME'];
+    $hostname   = $locationSmtpSetting['SMTP_HOST'];
+    $port       = $locationSmtpSetting['SMTP_PORT'];
+    $userName   = $locationSmtpSetting['SMTP_USERNAME'];
     $SendingPwd = $locationSmtpSetting['SMTP_PASSWORD'];
 
-    $To = $EMAIL_ID;
+    $To = $EMAIL_ID; //'deb.soumya93@gmail.com'; // TODO: switch back to $EMAIL_ID after testing
 
-    $mail = new PHPMailer();
-    $mail->IsSMTP();
-    $mail->SMTPDebug = 0;
-    $mail->Debugoutput = 'html';
-    $mail->IsHTML(true);
-    $mail->Host = $hostname;
-    $mail->Port = $port;
-    $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
-    $mail->SMTPAuth = true;
-    $mail->Username = $userName;
-    $mail->Password = $SendingPwd;
-    $mail->setFrom($userName, $LOCATION_NAME);
-    $mail->addAddress($To, $LOCATION_NAME);  //Set who the message is to be sent to.
-    //Set the subject line
-    $mail->Subject = $SUBJECT;
+    // Clean the subject: decode HTML entities (e.g. &mdash; &amp;), strip tags/newlines
+    $SUBJECT = html_entity_decode(strip_tags((string)$SUBJECT), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $SUBJECT = trim(preg_replace('/\s+/', ' ', $SUBJECT));
+    if ($SUBJECT === '') {
+        error_log("sendEmail: empty subject for location $PK_LOCATION");
+        $SUBJECT = '(No subject)'; // or return false if you'd rather block it
+    }
 
-    // Tell PHPMailer this is an HTML email
-    $mail->IsHTML(true);
+    // Make sure the HTML body declares UTF-8
+    if (stripos($MESSAGE, '<html') === false) {
+        $MESSAGE = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+            . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            . '</head><body>' . $MESSAGE . '</body></html>';
+    }
 
-    $mail->Body = $MESSAGE;
-
-    // Plain-text fallback for non-HTML email clients
-    $mail->AltBody = $MESSAGE;
+    $mail = new PHPMailer(true); // true = throw exceptions
 
     try {
-        if (!$mail->send()) {
-            echo 'Mailer Error: ' . $mail->ErrorInfo;
-        } else {
-            echo 'Email sent successfully';
-        }
-    } catch (phpmailerException $e) {
-        echo 'Mailer Error: ' . $e->getMessage();
+        $mail->IsSMTP();
+        $mail->SMTPDebug  = 0;          // set to 2 while debugging
+        $mail->Debugoutput = 'html';
+        $mail->Host       = $hostname;
+        $mail->Port       = $port;
+        $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $userName;
+        $mail->Password   = $SendingPwd;
+
+        // Encoding: fixes emoji / special characters and non-ASCII subject
+        $mail->CharSet  = 'UTF-8';
+        $mail->Encoding = 'base64';
+
+        $mail->setFrom($userName, $LOCATION_NAME);
+        $mail->addAddress($To, $LOCATION_NAME);
+
+        $mail->Subject = encodeSubject($SUBJECT);
+
+        $mail->IsHTML(true);
+        $mail->Body    = $MESSAGE;
+        $mail->AltBody = htmlToPlainText($MESSAGE); // proper plain-text version
+
+        $mail->send();
+        echo 'Email sent successfully';
+        return true;
+    } catch (Exception $e) {   // use phpmailerException if you're on PHPMailer 5.x
+        echo 'Mailer Error: ' . $mail->ErrorInfo;
+        return false;
     }
 }
 

@@ -1576,3 +1576,51 @@ function generateSecureToken($length = 32)
 {
     return bin2hex(random_bytes($length));
 }
+
+function htmlToPlainText($html)
+{
+    // Drop <head>, <style> and <script> blocks completely
+    $text = preg_replace('#<(head|style|script)[^>]*>.*?</\1>#is', '', $html);
+
+    // Turn links into "text (url)", but skip tel: links so numbers aren't duplicated
+    $text = preg_replace_callback(
+        '#<a\s[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>#is',
+        function ($m) {
+            $label = trim(strip_tags($m[2]));
+            $url   = trim($m[1]);
+            if ($url === '' || stripos($url, 'tel:') === 0 || $label === $url) {
+                return $label;
+            }
+            return $label . ' (' . $url . ')';
+        },
+        $text
+    );
+
+    // Preserve line breaks and list bullets
+    $text = preg_replace('#<br\s*/?>#i', "\n", $text);
+    $text = preg_replace('#</(p|div|h[1-6]|tr|table)>#i', "\n\n", $text);
+    $text = preg_replace('#<li[^>]*>#i', "\n- ", $text);
+
+    // Strip remaining tags and decode entities
+    $text = strip_tags($text);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // Tidy whitespace
+    $text = preg_replace("/[ \t]+/", ' ', $text);
+    $text = preg_replace("/\n[ \t]+/", "\n", $text);
+    $text = preg_replace("/\n{3,}/", "\n\n", $text);
+
+    return trim($text);
+}
+
+function encodeSubject($subject)
+{
+    if (preg_match('/[^\x20-\x7E]/', $subject) === 0) {
+        return $subject; // plain ASCII, nothing to encode
+    }
+    if (function_exists('mb_encode_mimeheader')) {
+        // Splits into multiple RFC 2047 encoded words automatically
+        return mb_encode_mimeheader($subject, 'UTF-8', 'B', "\r\n");
+    }
+    return '=?UTF-8?B?' . base64_encode($subject) . '?=';
+}
