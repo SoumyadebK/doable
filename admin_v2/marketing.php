@@ -311,7 +311,6 @@ function triggerCampaign($PK_MARKET_CAMPAIGN)
                 }
 
                 $all_leads->MoveNext();
-                die();
             }
         }
     }
