@@ -3614,13 +3614,32 @@ function updateBillingDueDate($RESPONSE_DATA)
                 $ledger_info = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_LEDGER = '$PK_ENROLLMENT_LEDGER'");
                 $PK_ENROLLMENT_MASTER = $ledger_info->fields['PK_ENROLLMENT_MASTER'];
 
-                // Update all future unpaid billing entries
-                $db_account->Execute("UPDATE DOA_ENROLLMENT_LEDGER 
-                                      SET DUE_DATE = '" . date('Y-m-d', strtotime($due_date)) . "' 
+                // Fetch all future unpaid billing entries, ordered by due date
+                $future_ledgers = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER, DUE_DATE 
+                                      FROM DOA_ENROLLMENT_LEDGER 
                                       WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' 
                                       AND DUE_DATE >= '" . date('Y-m-d', strtotime($old_due_date)) . "' 
                                       AND TRANSACTION_TYPE = 'Billing' 
-                                      AND IS_PAID = 0");
+                                      AND IS_PAID = 0 
+                                      ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+
+                $month_offset = 0;
+                $base_due_date = strtotime($due_date); // The new date for the first record
+
+                while (!$future_ledgers->EOF) {
+                    $future_pk = $future_ledgers->fields['PK_ENROLLMENT_LEDGER'];
+
+                    // Calculate the new date by adding months consecutively
+                    $new_due_date = date('Y-m-d', strtotime("+$month_offset months", $base_due_date));
+
+                    // Update this specific ledger entry
+                    $db_account->Execute("UPDATE DOA_ENROLLMENT_LEDGER 
+                                          SET DUE_DATE = '$new_due_date' 
+                                          WHERE PK_ENROLLMENT_LEDGER = '$future_pk'");
+
+                    $month_offset++;
+                    $future_ledgers->MoveNext();
+                }
             }
 
             $UPDATE_HISTORY_DATA['CLASS'] = 'enrollment_ledger';
