@@ -4210,7 +4210,52 @@ function addNewCustomer($RESPONSE_DATA)
         }
 
         if (isset($RESPONSE_DATA['PK_LEADS']) && $RESPONSE_DATA['PK_LEADS'] > 0) {
-            $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
+            $PK_LEADS = $RESPONSE_DATA['PK_LEADS'];
+
+            // 1. Fetch all status logs for this lead
+            $status_logs = $db->Execute("
+                SELECT ld.*, ls.LEAD_STATUS 
+                FROM `DOA_LEAD_DATE` ld 
+                LEFT JOIN DOA_LEAD_STATUS ls ON ld.PK_LEAD_STATUS = ls.PK_LEAD_STATUS
+                WHERE ld.PK_LEADS = '$PK_LEADS' 
+                ORDER BY ld.CREATED_ON ASC
+            ");
+
+            // 2. Loop through the logs and insert them into DOA_COMMENT
+            while (!$status_logs->EOF) {
+                $COMMENT_DATA = [];
+                $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                $COMMENT_DATA['FOR_PK_USER'] = $PK_USER; // The newly created user
+                $COMMENT_DATA['BY_PK_USER'] = !empty($status_logs->fields['CREATED_BY']) ? $status_logs->fields['CREATED_BY'] : $_SESSION['PK_USER'];
+                $COMMENT_DATA['ACTIVE'] = 1;
+                $COMMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                $COMMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+
+                // Date from the lead log
+                $COMMENT_DATA['COMMENT_DATE'] = !empty($status_logs->fields['CREATED_ON']) ? $status_logs->fields['CREATED_ON'] : date('Y-m-d');
+
+                // Format the comment text
+                $status_name = !empty($status_logs->fields['LEAD_STATUS']) ? $status_logs->fields['LEAD_STATUS'] : 'Status Updated';
+                $comment_text = "Lead Status: " . $status_name;
+
+                if (!empty($status_logs->fields['COMMENT'])) {
+                    $comment_text .= "<br>Comment: " . $status_logs->fields['COMMENT'];
+                }
+
+                if (!empty($status_logs->fields['DATE'])) {
+                    $comment_text .= "<br>Follow-up Date: " . date('m-d-Y', strtotime($status_logs->fields['DATE']));
+                }
+
+                $COMMENT_DATA['COMMENT'] = $comment_text;
+
+                // Insert into DOA_COMMENT
+                db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
+
+                $status_logs->MoveNext();
+            }
+
+            // 3. Delete the lead after conversion
+            $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $PK_LEADS);
         }
 
         // Mark gift certificate as redeemed if provided
