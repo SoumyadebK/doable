@@ -427,6 +427,7 @@ $shown_to   = min($offset + $per_page, $total_records);
                                     <th>Campaign Name</th>
                                     <th style="text-align: center;">Location</th>
                                     <th style="text-align: center;">Subject</th>
+                                    <th style="text-align: center;">Scheduled Later</th> <!-- ADD THIS -->
                                     <th style="text-align: center;">Status</th>
                                     <th style="width: 130px;">Actions</th>
                                 </tr>
@@ -455,6 +456,28 @@ $shown_to   = min($offset + $per_page, $total_records);
                                             </td>
                                             <td class="text-center"><?= htmlspecialchars($location_name) ?></td>
                                             <td class="text-center"><?= htmlspecialchars($subject) ?></td>
+                                            <!-- ADD THIS BLOCK -->
+                                            <td class="text-center">
+                                                <?php
+                                                $scheduled_datetime = $marketing_campaigns->fields['SCHEDULE_DATETIME'] ?? null;
+                                                $timezone = $marketing_campaigns->fields['TIMEZONE'] ?? '';
+
+                                                if (!empty($scheduled_datetime) && $scheduled_datetime != '0000-00-00 00:00:00'):
+                                                ?>
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <span class="badge bg-light text-dark border mb-1">
+                                                            <i class="bi bi-clock me-1"></i>
+                                                            <?= date('m/d/Y h:i A', strtotime($scheduled_datetime)) ?>
+                                                        </span>
+                                                        <!-- <?php if (!empty($timezone)): ?>
+                                                            <small class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($timezone) ?></small>
+                                                        <?php endif; ?> -->
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="text-muted">No</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <!-- END ADD BLOCK -->
                                             <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
@@ -492,7 +515,7 @@ $shown_to   = min($offset + $per_page, $total_records);
                                 if ($total_records == 0):
                                     ?>
                                     <tr>
-                                        <td colspan="6" class="text-center py-5">
+                                        <td colspan="7" class="text-center py-5">
                                             <i class="bi bi-megaphone display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No marketing campaigns found for the selected filters</p>
                                         </td>
