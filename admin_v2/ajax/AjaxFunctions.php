@@ -1560,6 +1560,41 @@ function saveLocationData($RESPONSE_DATA)
         } else {
             // Update existing location
             $PK_LOCATION = !empty($_GET['id']) ? $_GET['id'] : $RESPONSE_DATA['PK_LOCATION'];
+
+            $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
+
+            $PAYMENT_GATEWAY_TYPE   = $location_data->fields['PAYMENT_GATEWAY_TYPE'];
+            $GATEWAY_MODE           = $location_data->fields['GATEWAY_MODE'];
+            $SECRET_KEY             = $location_data->fields['SECRET_KEY'];
+            $PUBLISHABLE_KEY        = $location_data->fields['PUBLISHABLE_KEY'];
+            $ACCESS_TOKEN           = $location_data->fields['ACCESS_TOKEN'];
+            $SQUARE_APP_ID          = $location_data->fields['APP_ID'];
+            $SQUARE_LOCATION_ID     = $location_data->fields['LOCATION_ID'];
+            $LOGIN_ID               = $location_data->fields['LOGIN_ID'];
+            $TRANSACTION_KEY        = $location_data->fields['TRANSACTION_KEY'];
+            $AUTHORIZE_CLIENT_KEY   = $location_data->fields['AUTHORIZE_CLIENT_KEY'];
+            $MERCHANT_ID            = $location_data->fields['MERCHANT_ID'];
+            $API_KEY                = $location_data->fields['API_KEY'];
+            $PUBLIC_API_KEY         = $location_data->fields['PUBLIC_API_KEY'];
+
+
+            if ($PAYMENT_GATEWAY_TYPE == 'Stripe') {
+                $LOCATION_DATA['SECRET_KEY'] = !empty($LOCATION_DATA['SECRET_KEY']) ? $LOCATION_DATA['SECRET_KEY'] : $SECRET_KEY;
+                $LOCATION_DATA['PUBLISHABLE_KEY'] = !empty($LOCATION_DATA['PUBLISHABLE_KEY']) ? $LOCATION_DATA['PUBLISHABLE_KEY'] : $PUBLISHABLE_KEY;
+            } elseif ($PAYMENT_GATEWAY_TYPE == 'Square') {
+                $LOCATION_DATA['ACCESS_TOKEN'] = !empty($RESPONSE_DATA['ACCESS_TOKEN']) ? $RESPONSE_DATA['ACCESS_TOKEN'] : $ACCESS_TOKEN;
+                $LOCATION_DATA['APP_ID'] = !empty($RESPONSE_DATA['APP_ID']) ? $RESPONSE_DATA['APP_ID'] : $SQUARE_APP_ID;
+                $LOCATION_DATA['LOCATION_ID'] = !empty($RESPONSE_DATA['LOCATION_ID']) ? $RESPONSE_DATA['LOCATION_ID'] : $SQUARE_LOCATION_ID;
+            } elseif ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') {
+                $LOCATION_DATA['LOGIN_ID'] = !empty($RESPONSE_DATA['LOGIN_ID']) ? $RESPONSE_DATA['LOGIN_ID'] : $LOGIN_ID;
+                $LOCATION_DATA['TRANSACTION_KEY'] = !empty($RESPONSE_DATA['TRANSACTION_KEY']) ? $RESPONSE_DATA['TRANSACTION_KEY'] : $TRANSACTION_KEY;
+                $LOCATION_DATA['AUTHORIZE_CLIENT_KEY'] = !empty($RESPONSE_DATA['AUTHORIZE_CLIENT_KEY']) ? $RESPONSE_DATA['AUTHORIZE_CLIENT_KEY'] : $AUTHORIZE_CLIENT_KEY;
+            } elseif ($PAYMENT_GATEWAY_TYPE == 'Clover') {
+                $LOCATION_DATA['MERCHANT_ID'] = !empty($RESPONSE_DATA['MERCHANT_ID']) ? $RESPONSE_DATA['MERCHANT_ID'] : $MERCHANT_ID;
+                $LOCATION_DATA['API_KEY'] = !empty($RESPONSE_DATA['API_KEY']) ? $RESPONSE_DATA['API_KEY'] : $API_KEY;
+                $LOCATION_DATA['PUBLIC_API_KEY'] = !empty($RESPONSE_DATA['PUBLIC_API_KEY']) ? $RESPONSE_DATA['PUBLIC_API_KEY'] : $PUBLIC_API_KEY;
+            }
+
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
 

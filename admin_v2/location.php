@@ -1981,11 +1981,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <div id="stripe" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>; margin-top: 12px;">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Secret Key</label>
-                                                                    <input type="password" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="SECRET_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? maskSecretKey($SECRET_KEY) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Publishable Key</label>
-                                                                    <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" value="<?= htmlspecialchars($PUBLISHABLE_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? maskSecretKey($PUBLISHABLE_KEY) : '' ?>">
                                                                 </div>
                                                             </div>
 
@@ -1993,15 +1993,15 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <div id="square" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'grid' : 'none' ?>; margin-top: 12px;">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Application ID</label>
-                                                                    <input type="text" class="form-control-modern" name="APP_ID" value="<?= htmlspecialchars($SQUARE_APP_ID) ?>">
+                                                                    <input type="text" class="form-control-modern" name="APP_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($SQUARE_APP_ID) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Location ID</label>
-                                                                    <input type="text" class="form-control-modern" name="LOCATION_ID" value="<?= htmlspecialchars($SQUARE_LOCATION_ID) ?>">
+                                                                    <input type="text" class="form-control-modern" name="LOCATION_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($SQUARE_LOCATION_ID) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Access Token</label>
-                                                                    <input type="password" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
+                                                                    <input type="text" class="form-control-modern" name="ACCESS_TOKEN" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($ACCESS_TOKEN) : '' ?>">
                                                                 </div>
                                                             </div>
 
@@ -2009,15 +2009,15 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <div id="authorized" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'grid' : 'none' ?>; margin-top: 12px;">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Login ID</label>
-                                                                    <input type="text" class="form-control-modern" name="LOGIN_ID" value="<?= htmlspecialchars($LOGIN_ID) ?>">
+                                                                    <input type="text" class="form-control-modern" name="LOGIN_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($LOGIN_ID) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Transaction Key</label>
-                                                                    <input type="password" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="TRANSACTION_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($TRANSACTION_KEY) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Authorize Client Key</label>
-                                                                    <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($AUTHORIZE_CLIENT_KEY) : '' ?>">
                                                                 </div>
                                                             </div>
 
@@ -2025,15 +2025,15 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <div id="Clover" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'grid' : 'none' ?>; margin-top: 12px;">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Merchant ID</label>
-                                                                    <input type="text" class="form-control-modern" name="MERCHANT_ID" value="<?= htmlspecialchars($MERCHANT_ID) ?>">
+                                                                    <input type="text" class="form-control-modern" name="MERCHANT_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($MERCHANT_ID) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Private Token</label>
-                                                                    <input type="password" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="API_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($API_KEY) : '' ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Public Token</label>
-                                                                    <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" value="<?= htmlspecialchars($PUBLIC_API_KEY) ?>">
+                                                                    <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($PUBLIC_API_KEY) : '' ?>">
                                                                 </div>
                                                             </div>
                                                         </div>

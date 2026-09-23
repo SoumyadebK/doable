@@ -1624,3 +1624,18 @@ function encodeSubject($subject)
     }
     return '=?UTF-8?B?' . base64_encode($subject) . '?=';
 }
+
+function maskSecretKey(string $key, int $visibleStart = 5, int $visibleEnd = 4, string $maskChar = '*', int $maskLength = 8): string
+{
+    $length = strlen($key);
+
+    if ($length <= ($visibleStart + $visibleEnd)) {
+        return str_repeat($maskChar, max($length, $maskLength));
+    }
+
+    $start = substr($key, 0, $visibleStart);
+    $end   = substr($key, -$visibleEnd);
+    $mask  = str_repeat($maskChar, $maskLength);
+
+    return $start . $mask . $end;
+}
