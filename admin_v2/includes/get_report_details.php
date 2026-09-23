@@ -20,12 +20,12 @@ $authorization = "Authorization: Bearer " . $access_token;
 
 $url = constant('ami_api_url') . '/api/v1/reports';
 
-$data_past_year = [
-    'type' => $report_type,
-    'week_year' => date('Y'),
-];
-$post_data_past_year = callArturMurrayApiGet($url, $data_past_year, $authorization);
-$return_data_past_year = json_decode($post_data_past_year, true);
+// $data_past_year = [
+//     'type' => $report_type,
+//     'week_year' => date('Y'),
+// ];
+// $post_data_past_year = callArturMurrayApiGet($url, $data_past_year, $authorization);
+// $return_data_past_year = json_decode($post_data_past_year, true);
 
 
 $data = [
@@ -40,7 +40,7 @@ if ($report_type == 'miscellaneous') { ?>
     <table class="table">
         <thead>
             <tr>
-                <th style="text-align: center;">Transmitted By</th>
+                <th style="text-align: center;">Package Name</th>
                 <th style="text-align: center;">Exported On</th>
             </tr>
         </thead>
@@ -48,7 +48,7 @@ if ($report_type == 'miscellaneous') { ?>
             <?php foreach (array_reverse($return_data) as $key => $value) { ?>
                 <tr style="text-align: center;">
                     <td>
-                        <?= $value['last_transmitted_client'] ?>
+                        <?= $value['event'] ?>
                     </td>
                     <td>
                         <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
@@ -82,7 +82,7 @@ if ($report_type == 'miscellaneous') { ?>
                 </tr>
             <?php } ?>
 
-            <?php foreach (array_reverse($return_data_past_year) as $key => $value) { ?>
+            <!-- <?php foreach (array_reverse($return_data_past_year) as $key => $value) { ?>
                 <tr style="text-align: center;">
                     <td>
                         <?= $value['week_number'] ?>
@@ -94,7 +94,7 @@ if ($report_type == 'miscellaneous') { ?>
                         <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
                     </td>
                 </tr>
-            <?php } ?>
+            <?php } ?> -->
         </tbody>
     </table>
 <?php
