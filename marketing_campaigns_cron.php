@@ -46,7 +46,6 @@ while (!$all_location->EOF) {
     $all_location->MoveNext();
 }
 
-
 function triggerCampaign($PK_MARKET_CAMPAIGN)
 {
     global $db;
