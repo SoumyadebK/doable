@@ -3243,6 +3243,7 @@ function moveToWallet($RESPONSE_DATA): void
     $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
     $PK_PAYMENT_TYPE = ($TRANSACTION_TYPE == 'Move') ? 7 : $RESPONSE_DATA['PK_PAYMENT_TYPE'];
+    $RECEIPT_NUMBER = '';
     $IS_ORIGINAL_RECEIPT = 0;
     $PK_CUSTOMER_WALLET = 0;
 
@@ -3257,6 +3258,11 @@ function moveToWallet($RESPONSE_DATA): void
         $enrollment_id = $enrollment_data->fields['MISC_ID'];
     } else {
         $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
+    }
+
+    if ($PK_ENROLLMENT_LEDGER == 0 && $PK_ENROLLMENT_PAYMENT == 0) {
+        $old_receipt_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+        $RECEIPT_NUMBER = $old_receipt_data->fields['RECEIPT_NUMBER'];
     }
 
     if ($PK_PAYMENT_TYPE == 7) {
@@ -3280,6 +3286,7 @@ function moveToWallet($RESPONSE_DATA): void
             }
             $INSERT_DATA['CUSTOMER_WALLET_PARENT'] = $CUSTOMER_WALLET_PARENT;
             $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $INSERT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
             $INSERT_DATA['CREDIT'] = $BALANCE;
             $INSERT_DATA['BALANCE_LEFT'] = 0;
             $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
@@ -3288,7 +3295,7 @@ function moveToWallet($RESPONSE_DATA): void
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-            $PAYMENT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
+            $RECEIPT_NUMBER = $wallet_data->fields['RECEIPT_NUMBER'];
         } else {
             $customer_wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             if ($customer_wallet_data->RecordCount() > 0) {
@@ -3297,15 +3304,14 @@ function moveToWallet($RESPONSE_DATA): void
                 $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
             }
             $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $INSERT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
             $INSERT_DATA['CREDIT'] = $BALANCE;
             $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
             $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-            $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+            $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-
-            $PAYMENT_DATA['RECEIPT_NUMBER'] = $INSERT_DATA['RECEIPT_NUMBER'];
         }
         $PK_CUSTOMER_WALLET = $db_account->insert_ID();
     } else {
@@ -3313,7 +3319,7 @@ function moveToWallet($RESPONSE_DATA): void
         $TYPE = 'Refund';
         $IS_ORIGINAL_RECEIPT = 1;
 
-        $PAYMENT_DATA['RECEIPT_NUMBER'] = generateReceiptNumber($PK_ENROLLMENT_MASTER);
+        $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
     }
 
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
@@ -3337,11 +3343,6 @@ function moveToWallet($RESPONSE_DATA): void
         $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
     } else {
         $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_PAYMENT = '$PK_ENROLLMENT_PAYMENT'");
-    }
-
-    if ($PK_ENROLLMENT_LEDGER == 0 && $PK_ENROLLMENT_PAYMENT == 0) {
-        $old_receipt_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
-        $PAYMENT_DATA['RECEIPT_NUMBER'] = $old_receipt_data->fields['RECEIPT_NUMBER'];
     }
 
     $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
@@ -3459,6 +3460,7 @@ function moveToWallet($RESPONSE_DATA): void
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
     $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+    $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
     $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
     $PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
