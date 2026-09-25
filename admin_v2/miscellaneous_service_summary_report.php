@@ -13,6 +13,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $PK_PACKAGE = $_GET['PK_PACKAGE'];
 $TRANSPORTATION_CHARGES = $_GET['TRANSPORTATION_CHARGES'];
 $PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
@@ -95,7 +96,9 @@ if ($type === 'export') {
         'line_items' => $line_item,
     ];
 
-    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
+    $YEAR = date('Y');
+    $week_number = $PK_PACKAGE; // Assuming $PK_PACKAGE is the week number for this example
+    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE PK_LOCATION = $DEFAULT_LOCATION_ID AND `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
     if ($report_details->RecordCount() > 0) {
         $url = constant('ami_api_url') . '/api/v1/reports/' . $report_details->fields['ID'];
         $post_data = callArturMurrayApi($url, $data, $authorization);
@@ -109,6 +112,7 @@ if ($type === 'export') {
 
         $REPORT_DATA['REPORT_TYPE'] = 'miscellaneous_service_summary_report';
         $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
+        $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
         $REPORT_DATA['WEEK_NUMBER'] = $week_number;
         $REPORT_DATA['YEAR'] = $YEAR;
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
