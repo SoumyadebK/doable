@@ -15,8 +15,8 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
 
 <script>
     function selectThisReceipt() {
-        let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-        let WALLET_BALANCE = $('#PK_CUSTOMER_WALLET').find(':selected').data('balance_left');
+        let ACTUAL_AMOUNT = parseFloat($('#enrollment_payment_form #ACTUAL_AMOUNT').val());
+        let WALLET_BALANCE = $('#enrollment_payment_form #PK_CUSTOMER_WALLET').find(':selected').data('balance_left');
 
         if (ACTUAL_AMOUNT > WALLET_BALANCE) {
             $('#AMOUNT_TO_PAY').val(WALLET_BALANCE);

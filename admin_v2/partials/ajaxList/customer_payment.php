@@ -37,7 +37,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
         </div>
 
         <div class="stat-divider"></div>
-        <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
+        <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) as CURRENT_BALANCE FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
         <div class="flex-grow-1">
             <div class="stat-label">Wallet Balance</div>
             <div class="stat-value">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>

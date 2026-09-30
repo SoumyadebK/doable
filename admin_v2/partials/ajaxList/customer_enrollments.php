@@ -141,6 +141,7 @@ while (!$enrollment_data->EOF) {
     <div class="enrollment-container enrollment_div mb-3" style="position: relative;">
 
         <?php
+        $unpaid_count = 0;
         $amount_to_pay = 0;
         $amount_to_return = 0;
         $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
@@ -235,6 +236,13 @@ while (!$enrollment_data->EOF) {
                                 <?php } ?>
                             </div>
                         <?php } ?>
+                    <?php }
+                    if (($amount_to_pay > 0 && $unpaid_count <= 0) && $enrollment_data->fields['STATUS'] != 'C') { ?>
+                        <p style="color:red; margin: 0; margin-right: 10px;">$<?= number_format($amount_to_pay, 2) ?></p>
+                        <button id="payNow" class="btn btn-secondary" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
+                    <?php } elseif ($amount_to_return > 0) { ?>
+                        <p style="color:green; margin: 0; margin-right: 10px;">$<?= number_format($amount_to_return, 2) ?></p>
+                        <button class="btn btn-secondary" onclick="moveToWallet(this, 0, <?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $PK_USER_MASTER ?>, <?= $amount_to_return ?>, 'completed', 'Move', 0)">Move to Wallet</button><br><br>
                     <?php } ?>
                 </div>
             </div>
