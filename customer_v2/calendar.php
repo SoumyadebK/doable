@@ -1,0 +1,2789 @@
+<?php
+require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+global $upload_path;
+
+// === CUSTOMER CHANGE: Detect customer role early ===
+$IS_CUSTOMER = (isset($_SESSION['PK_ROLES']) && $_SESSION['PK_ROLES'] == 4);
+
+// === CUSTOMER CHANGE: Access control ===
+// Allowed roles: 2 (Admin), 3 (Staff/Provider), 4 (Customer). Adjust per your role scheme.
+$ALLOWED_ROLES = [2, 3, 4];
+if (
+    empty($_SESSION['PK_USER']) ||
+    !in_array($_SESSION['PK_ROLES'], $ALLOWED_ROLES)
+) {
+    header("location:../login.php");
+    exit;
+}
+
+if (!isset($PERMISSION_ARRAY) || !is_array($PERMISSION_ARRAY)) {
+    $PERMISSION_ARRAY = [];
+}
+
+// === CUSTOMER CHANGE: Resolve location ID for customer if not in session ===
+if ($IS_CUSTOMER) {
+    if (!empty($_SESSION['DEFAULT_LOCATION_ID'])) {
+        $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+    } else {
+        $loc = $db->Execute("SELECT PK_LOCATION FROM DOA_USER_LOCATION WHERE PK_USER = " . intval($_SESSION['PK_USER']) . " LIMIT 1");
+        $DEFAULT_LOCATION_ID = ($loc && $loc->RecordCount() > 0) ? $loc->fields['PK_LOCATION'] : 0;
+        $_SESSION['DEFAULT_LOCATION_ID'] = $DEFAULT_LOCATION_ID;
+    }
+} else {
+    $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+}
+
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$title = "All Appointments";
+
+$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'])) : "";
+$header = 'all_schedules.php';
+
+$SERVICE_PROVIDER_ID = ' ';
+
+// === CUSTOMER CHANGE: Customers cannot filter by service provider ===
+if (!$IS_CUSTOMER && isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
+    $service_providers = implode(',', array_map('intval', $_GET['SERVICE_PROVIDER_ID']));
+    $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (" . $service_providers . ") ";
+}
+
+$appointment_type = '';
+
+$dayConfig = [];
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") GROUP BY DAY_NUMBER");
+if ($location_operational_hour->RecordCount() > 0) {
+    while (!$location_operational_hour->EOF) {
+        $dayConfig[$location_operational_hour->fields['DAY_NUMBER']] = [
+            'minTime' => $location_operational_hour->fields['OPEN_TIME'],
+            'maxTime' => $location_operational_hour->fields['CLOSE_TIME']
+        ];
+        $location_operational_hour->MoveNext();
+    }
+}
+
+if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
+    $CHOOSE_DATE = $_GET['CHOOSE_DATE'];
+} else {
+    $CHOOSE_DATE = date("Y-m-d");
+}
+
+$interval = $db->Execute("SELECT MIN(TIME_SLOT_INTERVAL) AS TIME_SLOT_INTERVAL FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
+if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
+    $INTERVAL = "00:15:00";
+} else {
+    $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
+}
+
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<?php include 'layout/header_script.php'; ?>
+<?php include 'layout/header.php'; ?>
+
+<script src='../assets/full_calendar_new/moment.min.js'></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.4.0/main.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-common@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-daygrid@4.4.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-timegrid@4.4.0/main.min.js"></script>
+
+
+<style>
+    .fc-basic-view .fc-day-number {
+        display: table-cell;
+    }
+
+    .modal-header {
+        display: block;
+    }
+
+    .modal-dialog {
+        max-width: 1200px;
+        width: 1100px;
+        margin: 2rem auto;
+    }
+
+    .fc-time-grid .fc-slats td {
+        height: 20px !important;
+    }
+
+    .fc-time-grid-event .fc-content {
+        color: #000000 !important;
+    }
+
+    .fc-event .fc-content {
+        color: #000000 !important;
+    }
+
+    .SumoSelect {
+        width: 100%;
+    }
+
+    #add_buttons {
+        z-index: 500;
+    }
+
+    .fc-more-popover .fc-event-container {
+        max-height: 550px;
+        overflow: scroll;
+    }
+
+    .fc-event {
+        position: relative;
+        border: none !important;
+        border-radius: 10px !important;
+        margin: 1px 0px 1px 2px !important;
+        text-align: left !important;
+        padding: 3px 5px !important;
+    }
+
+    .fc-event .fc-co-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #39b54a !important;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0px 3px;
+        border-radius: 10px;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .fc-resource-cell {
+        padding-bottom: 10px !important;
+    }
+
+    #calendar .fc-resource-area,
+    #calendar .fc-col-header,
+    #calendar .fc-resource-area .fc-widget-header,
+    #calendar .fc-col-header-cell {
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        background: #ffffff;
+    }
+
+    #calendar .fc-resource-area {
+        z-index: 100;
+        overflow: hidden;
+    }
+
+    #calendar .fc-scroller,
+    #calendar .fc-time-grid .fc-scroller,
+    #calendar .fc-timegrid .fc-scroller {
+        overflow-y: auto !important;
+        max-height: calc(100vh - 260px) !important;
+    }
+
+    #calendar .fc-view-harness,
+    #calendar .fc-scroller-harness {
+        height: 100% !important;
+    }
+
+    .fc-time-grid-event .fc-time {
+        font-size: 10px;
+    }
+
+    .fc-content .fc-title {
+        margin-top: 1px;
+        line-height: 13px;
+        font-size: 10px;
+    }
+
+    .fc-current-time-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ff0000, #ff6b6b);
+        z-index: 10;
+        pointer-events: none;
+        box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+    }
+
+    .fc-current-time-indicator::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: -6px;
+        background: #ff0000;
+        box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.6);
+    }
+</style>
+<style>
+    .list-select {
+        height: 30px;
+        width: 100%;
+        line-height: 2em;
+        border: 1px solid #ccc;
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .list-select li {
+        padding: 1px 10px;
+        z-index: 2;
+    }
+
+    .list-select li:not(.init) {
+        float: left;
+        width: 100%;
+        display: none;
+        *background: #ddd;
+        border-top: 1px solid #eeecec;
+    }
+
+    .list-select li:not(.init):hover,
+    .list-select li.selected:not(.init) {
+        background: #09f;
+        border-top: 1px solid #eeecec;
+    }
+
+    li.init {
+        cursor: pointer;
+    }
+</style>
+<style>
+    .search-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .search-button:hover {
+        background-color: #0056b3;
+    }
+
+    @media (max-width: 768px) {
+        .search-container {
+            gap: 8px;
+        }
+
+        .SERVICE_PROVIDER_ID {
+            width: 150px;
+        }
+
+        .btn {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<style>
+    .clearfix {
+        display: flex;
+        flex-wrap: nowrap;
+
+    }
+
+    .clearfix .box {
+        background-color: #f1f1f1;
+        height: 37px;
+        text-align: center;
+        padding-right: 10px;
+        padding-left: 0px;
+    }
+
+
+
+    .radio-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .radio-buttons input[type="radio"] {
+        display: none;
+    }
+
+    .radio-buttons label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0px 15px;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid #ccc;
+        transition: all 0.3s ease;
+        background: #f9f9f9;
+        color: #666666ff;
+    }
+
+    .radio-buttons input[type="radio"]:checked+label {
+        background: #39b54a;
+        border-color: #39b54a;
+        color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .radio-buttons label:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+
+<!-- View Appointment Css -->
+<style>
+    .calendar-header {
+        padding: 0px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .chip {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        padding: 7px 20px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .chip-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .date-chip {
+        font-weight: 600;
+    }
+
+    .staff-avatars {
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
+    }
+
+    .staff-avatar {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        font-size: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border: 2px solid #fff;
+        margin-left: -6px;
+    }
+
+    .staff-avatar-me {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border: 2px solid #fff;
+        margin-left: -6px;
+    }
+
+    .a-ce {
+        background: #ef4444
+    }
+
+    .a-rc {
+        background: #f97316
+    }
+
+    .a-mc {
+        background: #3b82f6
+    }
+
+    .a-pe {
+        background: #39b54a
+    }
+
+    .a-more {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .view-toggle {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .view-btn {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn.active {
+        color: #39b54a;
+        font-weight: 600;
+    }
+
+    .view-btn-icon {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn-icon.active {
+        color: #39b54a;
+        font-weight: 600;
+    }
+
+    .btn-new {
+        background: #39b54a;
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 20px !important;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+    }
+
+    .SumoSelect .optWrapper {
+        width: 200% !important;
+    }
+
+    #search_form {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        width: auto;
+        min-width: auto;
+    }
+
+    .sp_badge {
+        height: 25px;
+        width: 25px;
+        border-radius: 20px;
+        padding: 6px 0px;
+        font-size: 12px;
+    }
+
+    @media (max-width: 1024px) {
+        .calendar-header {
+            padding: 10px 10px;
+            gap: 6px;
+        }
+
+        .chip {
+            padding: 6px 15px;
+            font-size: 13px;
+            gap: 15px;
+        }
+
+        #CHOOSE_DATE {
+            min-width: 180px !important;
+        }
+
+        .chip.m-r-15 {
+            margin-right: 8px !important;
+        }
+
+        .chip.m-r-20 {
+            margin-right: 10px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .calendar-header {
+            padding: 8px 8px;
+            gap: 5px;
+            justify-content: flex-start;
+        }
+
+        .chip {
+            padding: 5px 12px;
+            font-size: 12px;
+            gap: 12px;
+            flex: 0 1 auto;
+        }
+
+        .chip-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        #CHOOSE_DATE {
+            min-width: 140px !important;
+            font-size: 12px;
+        }
+
+        .staff-avatar {
+            width: 18px;
+            height: 18px;
+            font-size: 7px;
+        }
+
+        .staff-avatar-me {
+            width: 32px;
+            height: 32px;
+            font-size: 11px;
+        }
+
+        .chip.m-r-15 {
+            margin-right: 5px !important;
+        }
+
+        .chip.m-r-20 {
+            margin-right: 5px !important;
+        }
+
+        select.chip {
+            min-width: 130px !important;
+            font-size: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calendar-header {
+            padding: 6px 6px;
+            gap: 4px;
+            justify-content: space-between;
+        }
+
+        .chip {
+            padding: 4px 10px;
+            font-size: 11px;
+            gap: 8px;
+            flex: 0 1 auto;
+        }
+
+        .chip-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .chip.m-r-15 {
+            margin-right: 0 !important;
+        }
+
+        .chip.m-r-20 {
+            margin-right: 0 !important;
+        }
+
+        #CHOOSE_DATE {
+            min-width: 110px !important;
+            font-size: 11px;
+            padding: 5px 10px !important;
+        }
+
+        .staff-avatars {
+            display: none;
+        }
+
+        .staff-avatar-me {
+            width: 28px;
+            height: 28px;
+            font-size: 10px;
+        }
+
+        select.chip {
+            min-width: 100px !important;
+            font-size: 11px;
+            max-width: 100px;
+            padding: 4px 8px !important;
+        }
+    }
+
+    .popover {
+        z-index: 999999 !important;
+    }
+</style>
+
+<body class="skin-default-dark fixed-layout">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <div class="calendar-header mb-2">
+
+            <div class="view-toggle m-r-15" style="height: 37px; font-weight: 600; font-size: 20px !important;">
+                <button type="button" class="view-btn-icon" style="cursor: not-allowed; font-weight: 600; font-size: 20px !important; padding: 2px 14px; background-color: #39b54a; color: white;">D</button>
+                <div id="day-count" class="timer count-title count-number" style="padding: 2px 14px; background-color: white; color: #39b54a;" data-from="0" data-to="0" data-speed="1500"></div>
+            </div>
+
+            <div class="view-toggle m-r-15" style="height: 37px;  font-weight: 600; font-size: 20px !important;">
+                <button type="button" id="week_count_btn" class="view-btn-icon" style="cursor: not-allowed; font-weight: 600; font-size: 20px !important; padding: 2px 14px; background-color: #39b54a; color: white;">W</button>
+                <div id="week-count" class="timer count-title count-number" style="padding: 2px 14px; background-color: white; color: #39b54a;" data-from="0" data-to="0" data-speed="1500"></div>
+            </div>
+
+            <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
+            <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'resourceTimeGridDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+            <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'resourceTimeGridDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+
+            <form id="search_form">
+                <input type="hidden" id="IS_SELECTED" value="0">
+                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
+
+                <?php if (!$IS_CUSTOMER): ?>
+                    <div class="chip m-r-15" style="height: 37px;">
+                        <div class="staff-avatars">
+                            <div class="staff-avatar a-ce">CE</div>
+                            <div class="staff-avatar a-rc">RC</div>
+                            <div class="staff-avatar a-mc">MC</div>
+                            <div class="staff-avatar a-pe">PE</div>
+                            <div class="staff-avatar a-pe">PE</div>
+                            <div class="staff-avatar a-pe">PE</div>
+                            <div class="staff-avatar a-more">+2</div>
+                        </div>
+
+                        <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" onchange="$('#search_form').submit();" style="border:none;" multiple>
+                            <?php
+                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                            while (!$row->EOF) { ?>
+                                <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
+                        </select>
+                    </div>
+
+                    <span class="staff-avatar-me a-pe m-r-15">RM</span>
+
+                    <select class="chip m-r-15" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 150px;">
+                        <option value="">Select Status</option>
+                        <?php
+                        $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+
+                    <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
+                        <option value="">Select Appointment Type</option>
+                        <option value="NORMAL">Appointment</option>
+                        <option value="AD-HOC">Ad-Hoc</option>
+                        <option value="GROUP">Group Class</option>
+                        <option value="TO-DO">To Dos</option>
+                        <option value="DEMO">Record Only</option>
+                    </select>
+                <?php endif; ?>
+            </form>
+
+            <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
+                <button class="view-btn active" data-view="day" onclick="changeView('resourceTimeGridDay')">Day</button>
+                <button class="view-btn" data-view="week" onclick="changeView('timeGridWeek')">Week</button>
+                <button class="view-btn" data-view="month" onclick="changeView('dayGridMonth')">Month</button>
+            </div>
+
+            <?php if (!$IS_CUSTOMER): ?>
+                <div class="view-toggle m-r-15" style="height: 37px;">
+                    <button class="view-btn-icon active">
+                        <i class="fa fa-calendar" aria-hidden="true"></i>
+                    </button>
+                    <button class="view-btn-icon" onclick="window.location.href='calendar_list_view.php'">
+                        <i class="fa fa-list" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <button class="btn-new" id="openDrawer">＋ New Appointment</button>
+            <?php endif; ?>
+        </div>
+
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
+                <div class="row">
+                    <div id="appointment_list_half" class="col-12">
+                        <div class="card" style="border-radius: 15px;">
+
+                            <div class="card-body row">
+                                <div class="col-12" id='calendar-container'>
+                                    <div id='calendar'></div>
+                                </div>
+
+                                <div class="col-2" id='external-events' style="display: none;">
+                                    <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
+                                    <h5>Copy OR Move Events</h5>
+                                    <?php if (in_array('Calendar Move/Copy', $PERMISSION_ARRAY) || in_array('Appointments Move/Copy', $PERMISSION_ARRAY) || in_array('To-Do Move/Copy', $PERMISSION_ARRAY)) { ?>
+                                        <div class="radio-buttons" style="margin-bottom: 15px;">
+                                            <input type='radio' name="copy_move" id='drop-copy' checked />
+                                            <label for='drop-copy'><i class="fa fa-copy"></i> Copy</label>
+
+                                            <input type='radio' name="copy_move" id='drop-remove' />
+                                            <label for='drop-remove'><i class="fa fa-cut"></i> Move</label>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <?php if (in_array('Calendar Edit', $PERMISSION_ARRAY)) { ?>
+                        <div id="edit_appointment_half" class="col-6" style="display: none;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <a href="javascript:;" onclick="closeEditAppointment()" style="float: right; font-size: 25px;">&times;</a>
+                                    <div class="card-body" id="appointment_details_div">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Details -->
+    <div class="overlay2"></div>
+    <div class="side-drawer" id="sideDrawer2" style="display: flex; flex-direction: column;">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0" id="edit_appointment_form_title">Appointment Details</h6>
+            <span class="close-btn" id="closeDrawer2">&times;</span>
+        </div>
+        <div class="modal-body p-3" id="edit_appointment_div" style="flex: 1; overflow-y: auto;">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+        <div class="modal-footer flex-nowrap border-top">
+            <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
+            <?php if (!$IS_CUSTOMER): ?>
+                <button type="button" class="btn-primary w-100 m-1" onclick="submitEditAppointmentForm(this)">Save</button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Add Customer to group class -->
+    <div class="overlay7"></div>
+    <div class="side-drawer" id="sideDrawer7">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Add New Customer</h6>
+            <span class="close-btn" id="closeDrawer7">&times;</span>
+        </div>
+        <div class="modal-body p-3" id="add_customer_to_group_class" style="overflow-y: auto; height: calc(100% - 130px);">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+
+    <!-- Customer Details -->
+    <div class="overlay3"></div>
+    <div class="side-drawer" id="sideDrawer3">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <svg class="close-btn" id="closeDrawer3" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                    <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z" />
+                </svg>
+                <span>Customer Details</span>
+            </h6>
+            <span class="close-btn" id="closeDrawer3">&times;</span>
+        </div>
+        <div class="modal-body p-3 drawer-body" style="overflow-y: auto; height: calc(100% - 0px);">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+
+
+    <!--Edit Billing Due Date Model-->
+    <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="edit_due_date_form" method="post">
+                <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER">
+                <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
+                <input type="hidden" name="old_due_date" id="old_due_date">
+                <input type="hidden" name="edit_type" id="edit_type">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4><b>Edit Due Date</b></h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" autocomplete="off" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="change_future_payments" name="change_future_payments" value="1">
+                                    <label class="form-check-label" for="change_future_payments">
+                                        Change all future payments as well?
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Enter your profile password</label>
+                                    <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
+                                    <p id="due_date_verify_password_error" style="color: red;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!--Follow Up Messages Model-->
+    <div class="modal fade" id="save_followup_message_model" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <form id="save_followup_message_form" method="post">
+                <input type="hidden" name="FUNCTION_NAME" value="addToInternalNote">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><b>Add Follow Up Message</b></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <input type="hidden" name="PK_AUTOMATION_LOG" id="PK_AUTOMATION_LOG">
+                                    <textarea class="form-control" rows="10" name="MESSAGE" id="MESSAGE" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+    <?php require_once('../includes/footer.php'); ?>
+
+    <?php if (!$IS_CUSTOMER) { ?>
+        <?php include 'partials/create_appointment_modal.php'; ?>
+        <?php include 'partials/create_enrollment_modal.php'; ?>
+    <?php } ?>
+
+    <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
+    <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        // === CUSTOMER CHANGE: expose role flag to JS ===
+        var IS_CUSTOMER = <?= $IS_CUSTOMER ? 1 : 0 ?>;
+
+        <?php if (!$IS_CUSTOMER) { ?>
+            $('.customer_select').SumoSelect({
+                placeholder: 'Select Customer',
+                search: true,
+                searchText: 'Search...'
+            });
+        <?php } ?>
+
+
+        function parseYMDDate(dateString) {
+            if (!dateString) return null;
+            let parts = dateString.split('-'); // "YYYY-MM-DD"
+            if (parts.length !== 3) return null;
+            let year = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1;
+            let day = parseInt(parts[2], 10);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+            return new Date(year, month, day);
+        }
+
+        $(window).on('load', function() {
+            let redirect_date = '<?= $redirect_date ?>';
+            if (redirect_date) {
+                let currentDate = parseYMDDate(redirect_date);
+                if (currentDate) {
+                    renderCalendar(currentDate);
+                }
+            }
+        });
+
+
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+
+        $('.datepicker-normal-calendar').datepicker({
+            dateFormat: "DD, M d, yy",
+            onSelect: function() {
+                $('#IS_SELECTED').val(1);
+                $("#search_form").submit();
+            }
+        });
+
+
+        function showMessage() {
+            if (<?= count($LOCATION_ARRAY) ?> === 1) {
+                let currentDate = new Date(calendar.getDate());
+                window.location.href = 'create_appointment.php?date=' + currentDate;
+            } else {
+                swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+            }
+        }
+
+        <?php if (!$IS_CUSTOMER) { ?>
+
+            function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
+                $('.partial_payment').show();
+                $('#PARTIAL_PAYMENT').prop('checked', false);
+                $('.partial_payment_div').slideUp();
+
+                $('.PAYMENT_TYPE').val('');
+                $('#remaining_amount_div').slideUp();
+
+                $('#enrollment_number').text(ENROLLMENT_ID);
+                $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+                $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+                $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
+                $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                $('.CUSTOMER_ID').val(PK_USER_MASTER);
+                $('#enrollment_payment_modal').modal('show');
+            }
+
+            function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+                $('.partial_payment').hide();
+                $('#PARTIAL_PAYMENT').prop('checked', false);
+                $('.partial_payment_div').slideUp();
+
+                $('.PAYMENT_TYPE').val('');
+                $('#remaining_amount_div').slideUp();
+
+                let BILLED_AMOUNT = [];
+                let PK_ENROLLMENT_LEDGER = [];
+
+                $(".PAYMENT_CHECKBOX_" + PK_ENROLLMENT_MASTER + ":checked").each(function() {
+                    BILLED_AMOUNT.push($(this).data('billed_amount'));
+                    PK_ENROLLMENT_LEDGER.push($(this).val());
+                });
+
+                let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+                function getSum(total, num) {
+                    return total + num;
+                }
+
+                $('#enrollment_number').text(ENROLLMENT_ID);
+                $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+                $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+                $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
+                $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+                $('#enrollment_payment_modal').modal('show');
+            }
+        <?php } ?>
+    </script>
+
+    <script>
+        // === CUSTOMER CHANGE: customers cannot edit or move/copy ===
+        var is_editable = <?= (!$IS_CUSTOMER && in_array('Calendar Edit', $PERMISSION_ARRAY)) ? 1 : 0 ?>;
+        var move_copy = <?= (!$IS_CUSTOMER && in_array('Calendar Move/Copy', $PERMISSION_ARRAY)) ? 1 : 0 ?>;
+
+        <?php if (!$IS_CUSTOMER) { ?>
+            $('.multi_sumo_select').SumoSelect({
+                placeholder: 'All Staff',
+                selectAll: true,
+                okCancelInMulti: true,
+                triggerChangeCombined: true,
+                csvDispCount: 1
+            });
+        <?php } ?>
+
+        let calendar;
+        let externalEventsDraggable = null;
+        let redirect_date = '<?= $redirect_date ?>';
+        let todayDate = redirect_date ? (parseYMDDate(redirect_date) || new Date()) : new Date();
+        const dayConfigs = <?= json_encode($dayConfig) ?>;
+
+        let activePopoverInstance = null;
+        let activePopoverEl = null;
+        let hideTimer = null;
+
+        function destroyActivePopover() {
+            if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+            }
+
+            if (activePopoverInstance) {
+                activePopoverInstance.dispose();
+                activePopoverInstance = null;
+                activePopoverEl = null;
+            }
+        }
+
+        function getCalendarHeight() {
+            let windowHeight = window.innerHeight;
+            let headerHeight = document.querySelector('.calendar-header')?.offsetHeight || 0;
+            let wrapperTop = document.getElementById('main-wrapper')?.getBoundingClientRect().top || 0;
+            let footerHeight = document.querySelector('footer')?.offsetHeight || 0;
+            let reserved = 10;
+
+            let available = windowHeight - headerHeight - wrapperTop - footerHeight - reserved;
+            return available > 400 ? available : 400;
+        }
+
+        function getExternalEventTitle(eventEl) {
+            const textNodes = Array.from(eventEl.childNodes)
+                .filter(node => node.nodeType === Node.TEXT_NODE)
+                .map(node => node.textContent.trim())
+                .filter(Boolean);
+
+            return textNodes.join(' ') || eventEl.innerText.trim();
+        }
+
+        function parseExternalEventDuration(value) {
+            if (!value) {
+                return null;
+            }
+
+            const duration = String(value).trim();
+
+            if (/^\d+$/.test(duration)) {
+                return {
+                    minutes: Number(duration)
+                };
+            }
+
+            const parts = duration.split(':');
+            if (parts.length === 2 && parts.every(part => /^\d+$/.test(part))) {
+                return {
+                    minutes: Number(parts[0]),
+                    seconds: Number(parts[1])
+                };
+            }
+
+            if (parts.length === 3 && parts.every(part => /^\d+$/.test(part))) {
+                return {
+                    hours: Number(parts[0]),
+                    minutes: Number(parts[1]),
+                    seconds: Number(parts[2])
+                };
+            }
+
+            console.warn('Ignoring invalid external event duration:', value);
+            return null;
+        }
+
+        function renderCalendar(date) {
+            const day = date.getDay();
+            const config = dayConfigs[day] || {
+                minTime: '00:00:00',
+                maxTime: '24:00:00'
+            };
+
+            if (window.currentTimeIndicatorInterval) {
+                clearInterval(window.currentTimeIndicatorInterval);
+            }
+            if (window.indicatorPositionInterval) {
+                clearInterval(window.indicatorPositionInterval);
+            }
+
+            if (calendar) {
+                calendar.destroy();
+            }
+
+            let clickCount = 0;
+
+            var containerEl = document.getElementById('external-events');
+            var calendarEl = document.getElementById('calendar');
+            var checkbox = document.getElementById('drop-remove');
+
+            // === CUSTOMER CHANGE: only initialize external draggable for staff ===
+            if (!IS_CUSTOMER && !externalEventsDraggable && containerEl) {
+                if (typeof FullCalendarInteraction === 'undefined' ||
+                    typeof FullCalendarInteraction.Draggable !== 'function') {
+                    throw new Error('FullCalendar v4 interaction plugin is not loaded.');
+                }
+
+                externalEventsDraggable = new FullCalendarInteraction.Draggable(containerEl, {
+                    itemSelector: '.fc-event[data-id]',
+                    eventData: function(eventEl) {
+                        const durationValue = eventEl.getAttribute('data-duration');
+                        const eventData = {
+                            title: getExternalEventTitle(eventEl),
+                            backgroundColor: eventEl.getAttribute('data-color') || undefined,
+                            extendedProps: {
+                                type: eventEl.getAttribute('data-type') || ''
+                            }
+                        };
+
+                        const parsedDuration = parseExternalEventDuration(durationValue);
+                        if (parsedDuration) {
+                            eventData.duration = parsedDuration;
+                        }
+
+                        return eventData;
+                    }
+                });
+            }
+
+            // === CUSTOMER CHANGE: disable all write interactions for customers ===
+            const editableFlag = !IS_CUSTOMER;
+            const selectableFlag = !IS_CUSTOMER;
+            const droppableFlag = !IS_CUSTOMER;
+
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+                editable: editableFlag,
+                selectable: selectableFlag,
+                eventLimit: true,
+                scrollTime: '00:00',
+                header: false,
+                plugins: [
+                    'interaction',
+                    'dayGrid',
+                    'timeGrid',
+                    'resourceDayGrid',
+                    'resourceTimeGrid'
+                ],
+                customButtons: {
+                    customPrev: {
+                        text: '<',
+                        click: function() {
+                            if (calendar.view.type == 'resourceTimeGridDay') {
+                                todayDate.setDate(todayDate.getDate() - 1);
+                                renderCalendar(todayDate);
+                            } else {
+                                calendar.prev();
+                            }
+                        }
+                    },
+                    customNext: {
+                        text: '>',
+                        click: function() {
+                            if (calendar.view.type == 'resourceTimeGridDay') {
+                                todayDate.setDate(todayDate.getDate() + 1);
+                                renderCalendar(todayDate);
+                            } else {
+                                calendar.next();
+                            }
+                        }
+                    },
+                    customToday: {
+                        text: 'Today',
+                        click: function() {
+                            todayDate = new Date();
+                            renderCalendar(todayDate);
+                        }
+                    }
+                },
+                views: {
+                    resourceTimeGridDay: {
+                        titleFormat: {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long'
+                        }
+                    }
+                },
+                defaultDate: date,
+                defaultView: 'resourceTimeGridDay',
+                slotDuration: '<?= $INTERVAL ?>',
+                slotLabelInterval: {
+                    minutes: 60
+                },
+                minTime: config.minTime,
+                maxTime: config.maxTime,
+                height: getCalendarHeight(),
+                contentHeight: getCalendarHeight(),
+                windowResize: function() {
+                    calendar.setOption('height', getCalendarHeight());
+                    calendar.setOption('contentHeight', getCalendarHeight());
+                },
+                droppable: droppableFlag,
+                allDaySlot: true,
+                drop: function(info) {
+                    if (IS_CUSTOMER) return;
+                    if (checkbox && checkbox.checked) {
+                        info.draggedEl.parentNode.removeChild(info.draggedEl);
+                        copyAppointment(info, 'move');
+                    } else {
+                        copyAppointment(info, 'copy');
+                    }
+                },
+                eventReceive: function(arg) {
+                    arg.event.remove();
+                },
+                resourceOrder: 'sortOrder',
+                stickyHeaderDates: true,
+                resources: function(info, successCallback, failureCallback) {
+                    // === CUSTOMER CHANGE: customers don't filter by staff; backend returns their own resource set ===
+                    let selected_service_provider = [];
+                    if (!IS_CUSTOMER) {
+                        let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                        selectedOptions.each(function() {
+                            selected_service_provider.push($(this).val());
+                        });
+                    }
+
+                    $.ajax({
+                        url: "pagination/get_resource_data.php",
+                        type: "POST",
+                        data: {
+                            selected_service_provider: selected_service_provider
+                        },
+                        dataType: 'json',
+                        success: function(result) {
+                            console.log(result);
+                            successCallback(result);
+
+                            if (!IS_CUSTOMER) {
+                                if ((selected_service_provider.length > 1) && (calendar.view.type === 'timeGridWeek')) {
+                                    calendar.setOption('editable', false);
+                                } else {
+                                    if (selected_service_provider.length === 1) {
+                                        calendar.setOption('editable', true);
+                                    }
+                                }
+                            }
+
+                            if (calendar.view.type === 'dayGridMonth') {
+                                calendar.changeView('dayGridMonth');
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            console.log(xhr.status);
+                            console.log(thrownError);
+                        }
+                    });
+                },
+                events: function(info, successCallback, failureCallback) {
+                    $('#day-count').html('...');
+                    $('#week-count').html('...');
+
+                    // === CUSTOMER CHANGE: no filters for customers; backend enforces their scope ===
+                    let STATUS_CODE = IS_CUSTOMER ? '' : $('#STATUS_CODE').val();
+                    let APPOINTMENT_TYPE = IS_CUSTOMER ? '' : $('#APPOINTMENT_TYPE').val();
+
+                    let START_DATE = moment(info.start).format();
+                    let END_DATE = moment(info.end).format();
+
+                    let selected_service_provider = [];
+                    if (!IS_CUSTOMER) {
+                        let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                        selectedOptions.each(function() {
+                            selected_service_provider.push($(this).val());
+                        });
+                    }
+
+                    $.ajax({
+                        url: "pagination/get_calendar_data.php",
+                        type: "POST",
+                        data: {
+                            START_DATE: START_DATE,
+                            END_DATE: END_DATE,
+                            STATUS_CODE: STATUS_CODE,
+                            APPOINTMENT_TYPE: APPOINTMENT_TYPE,
+                            SERVICE_PROVIDER_ID: selected_service_provider
+                        },
+                        dataType: 'json',
+                        success: function(result) {
+                            console.log(result);
+                            successCallback(result);
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            console.log(xhr.status);
+                            console.log(thrownError);
+                        }
+                    });
+                },
+                eventRender: function(info) {
+                    let event_data = info.event.extendedProps;
+                    let element = info.el;
+
+                    if (event_data.customerName) {
+                        $(element).find(".fc-title").append('<br><strong style="font-size: 10px; font-weight: bold;">' + event_data.customerName + '</strong> ');
+                    }
+
+                    if (event_data.comment || event_data.internal_comment) {
+                        if ($(element).find(".fc-title").length) {
+                            $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 11px"></i> ');
+                        } else {
+                            $(element).find(".fc-time").append('<br><i class="fa fa-comment" style="font-size: 11px"></i> ');
+                        }
+                    }
+
+                    if (event_data.paid_status) {
+                        if (event_data.paid_status === ' (Unpaid)') {
+                            $(element).find(".fc-title").append('<br><span style="color: #ff0000; font-weight: bold;">' + event_data.paid_status + '</span>');
+                        } else {
+                            $(element).find(".fc-title").append('<br><span style="font-weight: bold;">' + event_data.paid_status + '</span>');
+                        }
+                    }
+
+                    if (event_data.status == 'CO') {
+                        if (!$(element).find('.fc-co-badge').length) {
+                            $(element).append('<span class="fc-co-badge"><i class="fa fa-circle" aria-hidden="true" style="color: #39b54a;"></i></span>');
+                        }
+                    }
+
+                    const el = info.el;
+
+                    if (el.dataset.tooltipBound) return;
+                    el.dataset.tooltipBound = '1';
+
+                    function showPopover(html) {
+                        destroyActivePopover();
+
+                        if (!document.body.contains(el)) return;
+
+                        activePopoverEl = el;
+                        activePopoverInstance = new bootstrap.Popover(el, {
+                            content: html,
+                            html: true,
+                            placement: 'top',
+                            trigger: 'manual',
+                            container: 'body',
+                            sanitize: false
+                        });
+
+                        activePopoverInstance.show();
+
+                        document.querySelectorAll('.popover').forEach(pop => {
+                            pop.onmouseenter = () => {
+                                if (hideTimer) clearTimeout(hideTimer);
+                            };
+                            pop.onmouseleave = () => {
+                                hideTimer = setTimeout(destroyActivePopover, 150);
+                            };
+                        });
+                    }
+
+                    el.addEventListener('mouseenter', () => {
+                        if (hideTimer) clearTimeout(hideTimer);
+
+                        if (el.dataset.tooltipHtml) {
+                            showPopover(el.dataset.tooltipHtml);
+                            return;
+                        }
+
+                        showPopover('<div style="padding:8px">Loading…</div>');
+
+                        $.ajax({
+                            url: 'ajax/get_session_details.php',
+                            type: 'POST',
+                            data: {
+                                id: info.event.id,
+                                type: info.event.extendedProps.type || ''
+                            },
+                            success: function(html) {
+                                if (!document.body.contains(el)) return;
+                                el.dataset.tooltipHtml = html;
+                                showPopover(html);
+                            },
+                            error: function() {
+                                const html = '<div style="padding:8px">Unable to load details</div>';
+                                el.dataset.tooltipHtml = html;
+                                showPopover(html);
+                            }
+                        });
+                    });
+
+                    el.addEventListener('mouseleave', () => {
+                        hideTimer = setTimeout(destroyActivePopover, 150);
+                    });
+                },
+                eventClick: function(info) {
+                    // === CUSTOMER CHANGE: customers only get single-click view, no double-click edit ===
+                    if (IS_CUSTOMER) {
+                        let event_data = info.event;
+                        let event_data_ext_prop = info.event.extendedProps;
+                        let TYPE = event_data_ext_prop.type;
+                        loadViewAppointmentModal(event_data.id, TYPE);
+                        return;
+                    }
+
+                    clickCount++;
+                    let singleClickTimer;
+                    if (clickCount === 1 && is_editable) {
+                        singleClickTimer = setTimeout(function() {
+                            if (clickCount === 1) {
+                                let event_data = info.event;
+                                let event_data_ext_prop = info.event.extendedProps;
+                                let TYPE = event_data_ext_prop.type;
+                                loadViewAppointmentModal(event_data.id, TYPE);
+                            }
+                            clickCount = 0;
+                        }, 500);
+                    } else if (clickCount === 2) {
+                        clearTimeout(singleClickTimer);
+                        clickCount = 0;
+
+                        let selected_service_provider = [];
+                        let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                        selectedOptions.each(function() {
+                            selected_service_provider.push($(this).val());
+                        });
+                        let appointment_type = info.event.extendedProps.type;
+                        if (appointment_type !== 'not_available') {
+                            if (calendar.view.type === 'timeGridWeek' && move_copy) {
+                                if (selected_service_provider.length === 1) {
+                                    $('#calendar-container').removeClass('col-12').addClass('col-10');
+                                    let event_data = info.event;
+                                    let event_data_ext_prop = info.event.extendedProps;
+                                    let TYPE = event_data_ext_prop.type;
+
+                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='cursor: pointer; background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                                }
+                            } else {
+                                if (calendar.view.type === 'resourceTimeGridDay') {
+                                    $('#calendar-container').removeClass('col-12').addClass('col-10');
+                                    let event_data = info.event;
+                                    let event_data_ext_prop = info.event.extendedProps;
+                                    let TYPE = event_data_ext_prop.type;
+
+                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='cursor: pointer; background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                                }
+                            }
+                        }
+                    }
+                },
+                eventDrop: function(info) {
+                    // === CUSTOMER CHANGE: revert any accidental drop for customers ===
+                    if (IS_CUSTOMER) {
+                        info.revert();
+                        return;
+                    }
+                    modifyAppointment(info);
+                },
+                dateClick: function(data) {
+                    // === CUSTOMER CHANGE: block new appointments ===
+                    if (IS_CUSTOMER) {
+                        return;
+                    }
+
+                    let date = data.date;
+                    let resource_id = (data.resource) ? data.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
+                    console.log(resource_id);
+                    clickCount++;
+                    let singleClickTimer;
+                    if (clickCount === 1) {
+                        singleClickTimer = setTimeout(function() {
+                            clickCount = 0;
+                        }, 400);
+                    } else if (clickCount === 2) {
+                        clearTimeout(singleClickTimer);
+                        clickCount = 0;
+                        if (resource_id) {
+                            if (<?= count($LOCATION_ARRAY) ?> === 1) {
+                                $.ajax({
+                                    url: "ajax/check_service_provider_slot.php",
+                                    type: "POST",
+                                    data: {
+                                        PK_USER: resource_id,
+                                        DATE_TIME: date
+                                    },
+                                    success: function(result) {
+                                        if (result == 1) {
+                                            let currentDate = calendar.getDate();
+
+                                            let year = currentDate.getFullYear();
+                                            let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                                            let day = String(currentDate.getDate()).padStart(2, '0');
+                                            let formattedDate = `${year}-${month}-${day}`;
+
+                                            let selectedServiceProvider = $('#SERVICE_PROVIDER_ID').val();
+                                            let serviceProviderId = selectedServiceProvider && selectedServiceProvider.length > 0 ? selectedServiceProvider[0] : '';
+
+                                            $('#sideDrawer, .overlay').addClass('active');
+                                            $('.group_class_tab').show();
+                                            $('.to_do_tab').show();
+                                            setDateOnAppointment();
+
+                                            let formatted_time = formatTime12(date);
+                                            $('#GROUP_CLASS_START_TIME').val(formatted_time);
+                                            $('#TO_DO_START_TIME').val(formatted_time);
+                                            $('#slot_time').val(date);
+
+                                            $('.PK_SERVICE_PROVIDER').val(resource_id);
+                                            $('.PK_SERVICE_PROVIDER').trigger('change');
+
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER').SumoSelect();
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER').val(resource_id);
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER')[0].sumo.reload();
+
+                                            $('#TO_DO_SERVICE_PROVIDER').SumoSelect();
+                                            $('#TO_DO_SERVICE_PROVIDER').val(resource_id);
+                                            $('#TO_DO_SERVICE_PROVIDER')[0].sumo.reload();
+
+                                            calculateEndTime();
+                                        } else {
+                                            swal("No slot available!", result, "error");
+                                        }
+                                    },
+                                });
+                            } else {
+                                swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+                            }
+                        } else {
+                            swal("Select One Service Provider!", "Please select any one Service Provider to continue", "error");
+                        }
+                    }
+                },
+                loading: function(isLoading) {
+                    if (isLoading === true) {
+                        // loading
+                    } else {
+                        getServiceProviderCount();
+                    }
+                },
+                datesSet: function(info) {
+                    updateChooseDateInput(todayDate);
+                    destroyActivePopover();
+                },
+                eventLeave: function() {
+                    destroyActivePopover();
+                }
+            });
+
+            calendar.render();
+
+            setTimeout(() => {
+                updateCurrentTimeIndicator();
+                if (window.currentTimeIndicatorInterval) {
+                    clearInterval(window.currentTimeIndicatorInterval);
+                }
+                window.currentTimeIndicatorInterval = setInterval(updateCurrentTimeIndicator, 60000);
+            }, 500);
+
+            updateChooseDateInput(date);
+        }
+
+        function updateCurrentTimeIndicator() {
+            if (calendar.view.type !== 'resourceTimeGridDay') {
+                const existingIndicator = document.querySelector('.fc-current-time-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                return;
+            }
+
+            const timeGrid = document.querySelector('.fc-time-grid');
+            if (!timeGrid) return;
+
+            let indicator = document.querySelector('.fc-current-time-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+
+            indicator = document.createElement('div');
+            indicator.className = 'fc-current-time-indicator';
+            timeGrid.appendChild(indicator);
+
+            updateIndicatorPosition(indicator);
+
+            if (window.indicatorPositionInterval) {
+                clearInterval(window.indicatorPositionInterval);
+            }
+            window.indicatorPositionInterval = setInterval(() => {
+                updateIndicatorPosition(indicator);
+            }, 60000);
+        }
+
+        function updateIndicatorPosition(indicator) {
+            if (!indicator || !document.body.contains(indicator)) return;
+
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const currentTotalMinutes = hours * 60 + minutes;
+
+            const timeGrid = document.querySelector('.fc-time-grid');
+            if (!timeGrid) return;
+
+            const calendarDate = calendar.getDate();
+            const dayOfWeek = calendarDate.getDay();
+
+            const config = dayConfigs[dayOfWeek] || {
+                minTime: '00:00:00',
+                maxTime: '24:00:00'
+            };
+
+            const parseTime = (timeStr) => {
+                const parts = timeStr.split(':');
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            };
+
+            const minTimeMinutes = parseTime(config.minTime);
+            const maxTimeMinutes = parseTime(config.maxTime);
+            const rangeMinutes = maxTimeMinutes - minTimeMinutes;
+
+            const slots = document.querySelectorAll('.fc-time-grid .fc-slats tr');
+            if (slots.length === 0) return;
+
+            const firstSlot = slots[0];
+            const slotHeight = firstSlot.offsetHeight;
+
+            const totalHeight = slotHeight * slots.length;
+
+            let position = 0;
+            if (currentTotalMinutes >= minTimeMinutes && currentTotalMinutes <= maxTimeMinutes) {
+                const minutesFromStart = currentTotalMinutes - minTimeMinutes;
+                position = (minutesFromStart / rangeMinutes) * totalHeight;
+            } else if (currentTotalMinutes > maxTimeMinutes) {
+                position = totalHeight;
+            }
+
+            indicator.style.top = position + 'px';
+            indicator.style.display = 'block';
+
+            scrollToCurrentTimeIndicator(position);
+        }
+
+        function scrollToCurrentTimeIndicator(indicatorPosition) {
+            const scroller = document.querySelector('#calendar .fc-scroller');
+            if (!scroller) return;
+
+            const scrollerHeight = scroller.clientHeight;
+
+            const targetScrollTop = indicatorPosition - (scrollerHeight / 3);
+
+            scroller.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
+        }
+
+        function loadViewAppointmentModal(appointmentId, TYPE) {
+            if (TYPE != 'not_available') {
+                $('#sideDrawer2, .overlay2').addClass('active');
+
+                if (TYPE == 'group_class') {
+                    $('#edit_appointment_form_title').text('Edit Group Class');
+                } else if (TYPE == 'special_appointment') {
+                    $('#edit_appointment_form_title').text('Edit To-Do');
+                } else if (TYPE == 'appointment') {
+                    $('#edit_appointment_form_title').text('Edit Appointment');
+                }
+
+                $.ajax({
+                    url: "partials/view_appointment_modal.php",
+                    type: "POST",
+                    data: {
+                        PK_APPOINTMENT_MASTER: appointmentId,
+                        TYPE: TYPE
+                    },
+                    success: function(result) {
+                        $('#edit_appointment_div').html(result);
+                        initializeModalScripts();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error loading view_appointment_modal.php:", error);
+                        $('#edit_appointment_div').html('<p>Error loading appointment details.</p>');
+                    }
+                });
+            }
+        }
+
+        function loadViewCustomerModal(customerId, PK_ENROLLMENT_MASTER) {
+            $('#sideDrawer3, .overlay3').addClass('active');
+
+            $.ajax({
+                url: "partials/view_customer_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER: customerId,
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                },
+                success: function(result) {
+                    $('#sideDrawer3 .drawer-body').html(result);
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading view_customer_modal.php:", error);
+                    $('#sideDrawer3 .drawer-body').html('<p>Error loading customer details.</p>');
+                }
+            });
+        }
+
+        function loadCreateAppointmentModal(PK_USER_MASTER) {
+            if (IS_CUSTOMER) return;
+
+            $('#sideDrawer, .overlay').addClass('active');
+
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').SumoSelect();
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').trigger('change');
+            $('.group_class_tab').hide();
+            $('.to_do_tab').hide();
+
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID').SumoSelect();
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+        }
+
+        function initializeModalScripts() {
+            if ($.fn.datepicker) {
+                $('.datepicker').datepicker();
+            }
+
+            if ($.fn.SumoSelect) {
+                $('.sumoselect').SumoSelect();
+
+                if (!IS_CUSTOMER) {
+                    $('.multi_sumo_select').SumoSelect({
+                        selectAll: true,
+                        okCancelInMulti: true,
+                        triggerChangeCombined: true,
+                        csvDispCount: 1
+                    });
+                }
+            }
+
+            attachModalEventHandlers();
+        }
+
+        function attachModalEventHandlers() {
+            $(document).off('click', '.modal-save-btn').on('click', '.modal-save-btn', function() {
+                if (IS_CUSTOMER) return;
+                saveAppointmentChanges();
+            });
+
+            $(document).off('click', '.modal-cancel-btn').on('click', '.modal-cancel-btn', function() {
+                closeSideDrawer2();
+            });
+        }
+
+        function setDateOnAppointment() {
+            if (IS_CUSTOMER) return;
+
+            $('#create_appointment_form')[0].reset();
+
+            $('#create_appointment_form .enrollment_area').addClass('d-none');
+            $('#create_appointment_form .schedule_code_area').addClass('d-none');
+            $('.slot_div').html('');
+
+            $('#create_group_class_form')[0].reset();
+            $('#GROUP_CLASS_SERVICE_PROVIDER').val('');
+            $('#GROUP_CLASS_SERVICE_PROVIDER')[0].sumo.reload();
+
+            $('.custom-date-time-format').addClass('d-none');
+
+            $('#create_to_do_form')[0].reset();
+            $('#TO_DO_SERVICE_PROVIDER').val('');
+            $('#TO_DO_SERVICE_PROVIDER')[0].sumo.reload();
+
+            $('#create_record_only_form')[0].reset();
+
+            $('.customer_select').val('');
+            $('.customer_select').each(function() {
+                if (this.sumo && typeof this.sumo.reload === 'function') {
+                    this.sumo.reload();
+                }
+            });
+
+
+            let date = $('#CHOOSE_DATE').val();
+            let converted_date = new Date(date);
+            let year = converted_date.getFullYear();
+            let month = ('0' + (converted_date.getMonth() + 1)).slice(-2);
+            let day = ('0' + converted_date.getDate()).slice(-2);
+            let formatted_date = month + '/' + day + '/' + year;
+            $('#APPOINTMENT_DATE_CREATION').val(formatted_date);
+            $('#STARTING_ON').val(formatted_date);
+            $('#TO_DO_DATE').val(formatted_date);
+            $('#RECORD_ONLY_APPOINTMENT_DATE').val(formatted_date);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCalendar(todayDate);
+        });
+
+
+        $(document).on('click', '.fc-resourceTimeGridDay-button', function() {
+            window.location.reload();
+        });
+
+        $(document).on('click', '.fc-timeGridWeek-button', function() {
+            calendar.setOption('editable', !IS_CUSTOMER ? false : false);
+        });
+
+        $(document).on('click', '.fc-dayGridMonth-button', function() {
+            calendar.setOption('editable', false);
+        });
+
+        var interval = 15;
+
+        function updateChooseDateInput(date) {
+            let displayText = '';
+
+            if (calendar && calendar.view) {
+                displayText = calendar.view.title;
+            } else {
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit'
+                };
+                displayText = date.toLocaleDateString('en-US', options);
+            }
+
+            $('#CHOOSE_DATE').val(displayText);
+        }
+
+        function changeView(view) {
+            $('.view-btn').removeClass('active');
+
+            if (view === 'resourceTimeGridDay') {
+                $('[data-view="day"]').addClass('active');
+                calendar.changeView('resourceTimeGridDay');
+                updateChooseDateInput(todayDate);
+                setTimeout(() => {
+                    updateCurrentTimeIndicator();
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const currentTotalMinutes = hours * 60 + minutes;
+
+                    const slots = document.querySelectorAll('.fc-time-grid .fc-slats tr');
+                    if (slots.length > 0) {
+                        const slotHeight = slots[0].offsetHeight;
+                        const totalHeight = slotHeight * slots.length;
+
+                        const calendarDate = calendar.getDate();
+                        const dayOfWeek = calendarDate.getDay();
+                        const config = dayConfigs[dayOfWeek] || {
+                            minTime: '00:00:00',
+                            maxTime: '24:00:00'
+                        };
+
+                        const parseTime = (timeStr) => {
+                            const parts = timeStr.split(':');
+                            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                        };
+
+                        const minTimeMinutes = parseTime(config.minTime);
+                        const maxTimeMinutes = parseTime(config.maxTime);
+                        const rangeMinutes = maxTimeMinutes - minTimeMinutes;
+
+                        let position = 0;
+                        if (currentTotalMinutes >= minTimeMinutes && currentTotalMinutes <= maxTimeMinutes) {
+                            const minutesFromStart = currentTotalMinutes - minTimeMinutes;
+                            position = (minutesFromStart / rangeMinutes) * totalHeight;
+                        } else if (currentTotalMinutes > maxTimeMinutes) {
+                            position = totalHeight;
+                        }
+
+                        scrollToCurrentTimeIndicator(position);
+                    }
+                }, 300);
+            } else if (view === 'timeGridWeek') {
+                $('[data-view="week"]').addClass('active');
+                calendar.changeView('timeGridWeek');
+                setTimeout(function() {
+                    updateChooseDateInput(todayDate);
+                }, 100);
+            } else if (view === 'dayGridMonth') {
+                $('[data-view="month"]').addClass('active');
+                calendar.changeView('dayGridMonth');
+                setTimeout(function() {
+                    updateChooseDateInput(todayDate);
+                }, 100);
+            }
+        }
+
+        function closeEditAppointment() {
+            $('#edit_appointment_half').hide();
+            $('#appointment_list_half').removeClass('col-6').addClass('col-12');
+        }
+
+        function closeCopyPasteDiv() {
+            $('#calendar-container').removeClass('col-10').addClass('col-12');
+            $('#external-events').hide();
+        }
+
+        function removeFromHere(param) {
+            $(param).parent().parent().remove();
+        }
+
+        function copyAppointment(info, operation) {
+            if (IS_CUSTOMER) return;
+            let eventEl = info.draggedEl;
+            let PK_ID = eventEl.attributes["data-id"].value;
+            let TYPE = eventEl.attributes["data-type"].value;
+            let SERVICE_PROVIDER_ID = (info.resource) ? info.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
+            let START_DATE_TIME = info.dateStr;
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    FUNCTION_NAME: 'copyAppointment',
+                    OPERATION: operation,
+                    PK_ID: PK_ID,
+                    TYPE: TYPE,
+                    SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
+                    START_DATE_TIME: START_DATE_TIME
+                },
+                async: false,
+                cache: false,
+                success: function(data) {
+                    calendar.refetchEvents();
+                }
+            });
+        }
+
+        function modifyAppointment(info) {
+            if (IS_CUSTOMER) {
+                info.revert();
+                return;
+            }
+            let OLD_SERVICE_PROVIDER_ID = (info.oldResource) ? info.oldResource.id : 0;
+            let event_data = info.event.extendedProps;
+            let TYPE = event_data.type;
+            let PK_ID = info.event.id;
+            let SERVICE_PROVIDER_ID = (info.newResource) ? info.newResource.id : 0;
+            let START_DATE_TIME = moment.utc(info.event._instance.range.start).format();
+            let END_DATE_TIME = moment.utc(info.event._instance.range.end).format();
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    FUNCTION_NAME: 'modifyAppointment',
+                    PK_ID: PK_ID,
+                    TYPE: TYPE,
+                    OLD_SERVICE_PROVIDER_ID: OLD_SERVICE_PROVIDER_ID,
+                    SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
+                    START_DATE_TIME: START_DATE_TIME,
+                    END_DATE_TIME: END_DATE_TIME
+                },
+                async: false,
+                cache: false,
+                success: function(data) {
+                    calendar.refetchEvents();
+                }
+            });
+        }
+
+        function getServiceProviderCount() {
+            // === CUSTOMER CHANGE: skip the staff-count overlay for customers ===
+            if (IS_CUSTOMER) {
+                return;
+            }
+
+            let currentDate = new Date(calendar.getDate());
+            let day = currentDate.getDate();
+            let month = currentDate.getMonth() + 1;
+            let year = currentDate.getFullYear();
+
+            let selected_service_provider = [];
+            let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+            selectedOptions.each(function() {
+                selected_service_provider.push($(this).val());
+            });
+
+            let calendar_view = calendar.view.type;
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    FUNCTION_NAME: 'getServiceProviderCount',
+                    currentDate: year + '-' + month + '-' + day,
+                    selected_service_provider: selected_service_provider,
+                    calendar_view: calendar_view
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    let result_data = JSON.parse(result);
+                    let service_providers = result_data.service_provider;
+                    for (let i = 0; i < service_providers.length; i++) {
+
+                        let sp_id = service_providers[i].SERVICE_PROVIDER_ID;
+                        let sp_name = service_providers[i].SERVICE_PROVIDER_NAME.trim();
+                        let sp_initials = service_providers[i].INITIALS;
+                        let sp_color = service_providers[i].COLOR;
+                        let appointment_count = (service_providers[i].APPOINTMENT_COUNT > 0) ? service_providers[i].APPOINTMENT_COUNT : '0';
+                        let is_followup_exist = service_providers[i].IS_FOLLOWUP_EXIST;
+
+                        let avatarHTML = `<div ${(is_followup_exist >= 1) ? 'onclick="showFollowUpMessages(this)"' : ''} data-id="${sp_id}"
+                                                style="cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;width:100%;margin-top:10px;">
+
+                                                <div style="position:relative;display:inline-block;">
+
+                                                    <div style="
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:center;
+                                                        width:30px;
+                                                        height:30px;
+                                                        border-radius:50%;
+                                                        background-color:${sp_color};
+                                                        color:#fff;
+                                                        font-weight:600;
+                                                        font-size:14px;
+                                                        letter-spacing:1px;">
+                                                        ${sp_initials}
+                                                    </div>
+                                                    ${(is_followup_exist >= 1) ? `<span style="position:absolute;top:-10px;right:-15px;min-width:18px;height:18px;padding:0px 0px;background:red;border-radius:15px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;line-height:1;">${is_followup_exist}</span>` : ''}
+                                                </div>
+
+                                                <div style="
+                                                    max-width:100%;
+                                                    font-size:13px;
+                                                    white-space:nowrap;
+                                                    overflow:hidden;
+                                                    text-overflow:ellipsis;">
+                                                    ${sp_name} - ${appointment_count}
+                                                </div>
+
+                                            </div>`;
+
+                        $('th[data-resource-id="' + service_providers[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
+                    }
+
+
+                    if (calendar_view === 'dayGridMonth') {
+                        $('#week_count_btn').text('M');
+                    } else {
+                        $('#week_count_btn').text('W');
+                    }
+                    $('#day-count').attr('data-to', result_data.day_count);
+                    $('#week-count').attr('data-to', result_data.week_count);
+                    $('.count-number').countTo();
+                }
+            });
+        }
+
+
+
+        let followUpPop = null;
+
+        function showFollowUpMessages(element) {
+            if (IS_CUSTOMER) return;
+
+            if (followUpPop) {
+                followUpPop.dispose();
+            }
+
+            let service_provider_id = element.getAttribute('data-id');
+
+            $.ajax({
+                url: "ajax/get_followup_messages.php",
+                type: "POST",
+                data: {
+                    SERVICE_PROVIDER_ID: service_provider_id
+                },
+                success: function(result) {
+                    let content = `<div class="p-2" style="position: relative;">
+                                        <div class="popover-close" style="top: 0px; left: 0px; width: 0px; height: 0px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #ff4d4f; font-weight: 700; cursor: pointer; z-index: 10; font-size: 25px; float: right;" onclick="closePopover()">×</div>
+                                        ${result}
+                                   </div>`;
+
+                    followUpPop = bootstrap.Popover.getOrCreateInstance(element, {
+                        trigger: 'manual',
+                        html: true,
+                        placement: 'bottom',
+                        container: 'body',
+                        sanitize: false,
+                        content: content
+                    });
+
+                    followUpPop.show();
+                }
+            });
+        }
+
+        function closePopover() {
+            if (followUpPop) {
+                followUpPop.dispose();
+                followUpPop = null;
+            }
+        }
+
+
+
+
+        $(document).on('submit', '#search_form', function(event) {
+            event.preventDefault();
+            let IS_SELECTED = $('#IS_SELECTED').val();
+            if (IS_SELECTED == 1) {
+                let CHOOSE_DATE = $('#CHOOSE_DATE').val();
+                let currentDate = new Date(CHOOSE_DATE);
+                renderCalendar(currentDate);
+
+                todayDate = currentDate;
+
+                $('#IS_SELECTED').val(0);
+            } else {
+                calendar.refetchEvents();
+            }
+            if (!IS_CUSTOMER) {
+                calendar.refetchResources();
+                setTimeout(function() {
+                    getServiceProviderCount()
+                }, 1000);
+            }
+        });
+    </script>
+
+
+    <script>
+        function deleteAppointment(PK_APPOINTMENT_MASTER, type) {
+            if (IS_CUSTOMER) return;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (type == 'normal') {
+                        $.ajax({
+                            url: "ajax/AjaxFunctions.php",
+                            type: 'POST',
+                            data: {
+                                FUNCTION_NAME: 'deleteAppointment',
+                                type: type,
+                                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                            },
+                            success: function(data) {
+                                calendar.refetchEvents();
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            url: "ajax/AjaxFunctions.php",
+                            type: 'POST',
+                            data: {
+                                FUNCTION_NAME: 'deleteSpecialAppointment',
+                                type: type,
+                                PK_SPECIAL_APPOINTMENT: PK_APPOINTMENT_MASTER
+                            },
+                            success: function(data) {
+                                calendar.refetchEvents();
+                            }
+                        });
+
+                    }
+                }
+            });
+        }
+    </script>
+
+    <!-- JavaScript for Popup -->
+    <script>
+        function showPopup(type, src) {
+            let popup = document.getElementById("mediaPopup");
+            let image = document.getElementById("popupImage");
+            let video = document.getElementById("popupVideo");
+            let videoSource = document.getElementById("popupVideoSource");
+
+            if (type === 'image') {
+                image.src = src;
+                image.style.display = "block";
+                video.style.display = "none";
+            } else if (type === 'video') {
+                videoSource.src = src;
+                video.load();
+                video.style.display = "block";
+                image.style.display = "none";
+            }
+
+            popup.style.display = "flex";
+
+            document.addEventListener("keydown", escClose);
+        }
+
+        function closePopup() {
+            document.getElementById("mediaPopup").style.display = "none";
+            document.removeEventListener("keydown", escClose);
+        }
+
+        function escClose(event) {
+            if (event.key === "Escape") {
+                closePopup();
+            }
+        }
+
+        document.addEventListener("contextmenu", function(event) {
+            let target = event.target;
+            if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+                event.preventDefault();
+            }
+        });
+
+        function ConfirmDeleteImage(PK_APPOINTMENT_MASTER, imageNumber) {
+            if (IS_CUSTOMER) return;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteImage',
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                            imageNumber: imageNumber
+                        },
+                        success: function(data) {
+                            window.location.reload();
+                        }
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    Swal.fire("Cancelled", "Your image is safe.", "info");
+                }
+            });
+        }
+
+        function ConfirmDeleteVideo(PK_APPOINTMENT_MASTER, videoNumber) {
+            if (IS_CUSTOMER) return;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteVideo',
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                            videoNumber: videoNumber
+                        },
+                        success: function(data) {
+                            window.location.reload();
+                        }
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    Swal.fire("Cancelled", "Your video is safe.", "info");
+                }
+            });
+        }
+    </script>
+
+    <script>
+        (function($) {
+            $.fn.countTo = function(options) {
+                return this.each(function() {
+                    var $this = $(this);
+
+                    var settings = $.extend({}, $.fn.countTo.defaults, {
+                        from: parseFloat($this.attr('data-from')) || 0,
+                        to: parseFloat($this.attr('data-to')) || 0,
+                        speed: parseInt($this.attr('data-speed')) || 1000,
+                        refreshInterval: parseInt($this.attr('data-refresh-interval')) || 100,
+                        decimals: parseInt($this.attr('data-decimals')) || 0
+                    }, options);
+
+                    if ($this.data('countToInterval')) {
+                        clearInterval($this.data('countToInterval'));
+                    }
+
+                    var loops = Math.ceil(settings.speed / settings.refreshInterval),
+                        increment = (settings.to - settings.from) / loops,
+                        value = settings.from,
+                        loopCount = 0;
+
+                    function render(val) {
+                        var formatted = settings.formatter.call($this, val, settings);
+                        $this.html(formatted);
+                    }
+
+                    function updateTimer() {
+                        value += increment;
+                        loopCount++;
+                        render(value);
+
+                        if (typeof settings.onUpdate === 'function') {
+                            settings.onUpdate.call($this, value);
+                        }
+
+                        if (loopCount >= loops) {
+                            clearInterval(interval);
+                            render(settings.to);
+                            $this.removeData('countToInterval');
+
+                            if (typeof settings.onComplete === 'function') {
+                                settings.onComplete.call($this, settings.to);
+                            }
+                        }
+                    }
+
+                    render(value);
+                    var interval = setInterval(updateTimer, settings.refreshInterval);
+                    $this.data('countToInterval', interval);
+                });
+            };
+
+            $.fn.countTo.defaults = {
+                from: 0,
+                to: 0,
+                speed: 1000,
+                refreshInterval: 100,
+                decimals: 0,
+                formatter: function(value, settings) {
+                    return value.toFixed(settings.decimals);
+                },
+                onUpdate: null,
+                onComplete: null
+            };
+        })(jQuery);
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            $(".btn-available").click(function() {
+                $(this).toggleClass("active");
+                $(".slot_div").toggle();
+            });
+
+            $('#openDrawer').click(function() {
+                if (IS_CUSTOMER) return;
+                $('#sideDrawer, .overlay').addClass('active');
+                $('.group_class_tab').show();
+                $('.to_do_tab').show();
+                $('#slot_time').val('');
+                setDateOnAppointment();
+            });
+
+            $('#closeDrawer, .overlay').click(function() {
+                $('#sideDrawer, .overlay').removeClass('active');
+            });
+
+            $('#openDrawer2').click(function() {
+                $('#sideDrawer2, .overlay2').addClass('active');
+            });
+
+            $('#closeDrawer2, .overlay2').click(function() {
+                $('#sideDrawer2, .overlay2').removeClass('active');
+            });
+
+            $('#openDrawer3').click(function() {
+                $('#sideDrawer3, .overlay3').addClass('active');
+            });
+
+            $('#closeDrawer3, .overlay3').click(function() {
+                $('#sideDrawer3, .overlay3').removeClass('active');
+            });
+
+            $('#openDrawer4').click(function() {
+                $('#sideDrawer4, .overlay4').addClass('active');
+            });
+
+            $('#closeDrawer4, .overlay4').click(function() {
+                $('#sideDrawer4, .overlay4').removeClass('active');
+            });
+
+            $('#openDrawer5').click(function() {
+                $('#sideDrawer5, .overlay5').addClass('active');
+            });
+
+            $('#closeDrawer5, .overlay5').click(function() {
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer6').click(function() {
+                $('#sideDrawer6, .overlay6').addClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#closeDrawer6, .overlay6').click(function() {
+                $('#sideDrawer6, .overlay6').removeClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer7').click(function() {
+                if (IS_CUSTOMER) return;
+                $('#sideDrawer7, .overlay7').addClass('active');
+            });
+
+            $('#closeDrawer7, .overlay7').click(function() {
+                $('#sideDrawer7, .overlay7').removeClass('active');
+            });
+        });
+
+        $('.DAYS').on('change', function() {
+            var $row = $(this).closest('.custom-date-time-format');
+            if ($row.find('.DAYS').is(':checked')) {
+                $row.find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+                $row.find("input[name='OCCURRENCE'][value='DAYS']").prop('checked', false);
+                $row.find('.occurrence_div').addClass('disabled_div');
+            } else {
+                $row.find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+                $row.find("input[name='OCCURRENCE'][value='DAYS']").prop('checked', true);
+                $row.find('.occurrence_div').removeClass('disabled_div');
+            }
+        });
+
+        $(document).ready(function() {
+            $('.ends input[type="radio"]').on('change', function() {
+                let value = $(this).val();
+
+                var $row = $(this).closest('.custom-date-time-format');
+
+                $row.find('.ends .form-control').prop('disabled', true);
+                $row.find('.ends .form-control').val('').prop('disabled', true);
+
+                if (value === 'AFTER_DATE') {
+                    $row.find('.datepicker-normal').prop('disabled', false).focus();
+                } else if (value === 'AFTER_OCCURRENCE') {
+                    $row.find('.OCCURRENCE_AFTER').prop('disabled', false).focus();
+                }
+            });
+        });
+    </script>
+
+
+    <script>
+        function submitEditAppointmentForm() {
+            if (IS_CUSTOMER) return;
+
+            let form = $('.edit_appointment_form');
+
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return false;
+            }
+
+            form.submit();
+        }
+
+        function formatTime12(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+
+            return `${formattedHours}:${formattedMinutes} ${ampm}`;
+        }
+    </script>
+
+    <script>
+        $('#edit_due_date_form').on('submit', function(event) {
+            event.preventDefault();
+
+            if (IS_CUSTOMER) return;
+
+            let PK_USER_MASTER = $('#edit_due_date_form #PK_USER_MASTER').val();
+            let PK_ENROLLMENT_LEDGER = $('#edit_due_date_form #PK_ENROLLMENT_LEDGER').val();
+            let old_due_date = $('#edit_due_date_form #old_due_date').val();
+            let due_date = $('#edit_due_date_form #due_date').val();
+            let edit_type = $('#edit_due_date_form #edit_type').val();
+            let due_date_verify_password = $('#edit_due_date_form #due_date_verify_password').val();
+            let change_future_payments = $('#change_future_payments').is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'updateBillingDueDate',
+                    PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                    old_due_date: old_due_date,
+                    due_date: due_date,
+                    edit_type: edit_type,
+                    due_date_verify_password: due_date_verify_password,
+                    change_future_payments: change_future_payments
+                },
+                success: function(data) {
+                    $('#due_date_verify_password_error').slideUp();
+                    if (data == 1) {
+                        Swal.fire({
+                            title: "Updated!",
+                            text: "Due Date is Updated.",
+                            icon: "success",
+                            timer: 3000,
+                        }).then((result) => {
+                            $('#billing_due_date_model').modal('hide');
+                            getPaymentDueList();
+                            getPaymentDueCount(PK_USER_MASTER);
+                        });
+                    } else {
+                        $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
+                    }
+                }
+            });
+        });
+
+        function getPaymentDueCount(PK_USER_MASTER) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'getPaymentDueCount',
+                    PK_USER_MASTER: PK_USER_MASTER
+                },
+                success: function(data) {
+                    $('#payment_due_count').text(data);
+                }
+            });
+        }
+    </script>
+
+    <script>
+        function sendReminder(reminder_type, appointmentId, customerId) {
+            if (IS_CUSTOMER) return;
+
+            closePopover();
+
+            Swal.fire({
+                title: (reminder_type == 'sms') ? "Send SMS Reminder?" : "Send Email Reminder?",
+                text: "Enter your message below:",
+                icon: "warning",
+                input: "textarea",
+                inputPlaceholder: "Type your message here...",
+                inputAttributes: {
+                    id: "reminder_message"
+                },
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+                confirmButtonText: "Yes, Send",
+                preConfirm: (message) => {
+                    if (!message || !message.trim()) {
+                        Swal.showValidationMessage("Please enter a message.");
+                        return false;
+                    }
+                    return message;
+                }
+            }).then((result) => {
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                const message = result.value;
+
+                Swal.fire({
+                    title: "Sending...",
+                    text: "Please wait",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: 'send_sms_manual.php',
+                    type: 'POST',
+                    data: {
+                        manual: 1,
+                        appointment_id: appointmentId,
+                        customer_id: customerId,
+                        reminder_type: reminder_type,
+                        message: message
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: response.message,
+                                icon: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Failed!",
+                                text: response.message,
+                                icon: "error"
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire({
+                            title: "Error!",
+                            text: error,
+                            icon: "error"
+                        });
+                    }
+                });
+
+            });
+        }
+    </script>
+
+    <script>
+        function addToInternalNote(PK_AUTOMATION_LOG) {
+            if (IS_CUSTOMER) return;
+
+            closePopover();
+            $('#save_followup_message_model').modal('show');
+            $('#PK_AUTOMATION_LOG').val(PK_AUTOMATION_LOG);
+            $('#MESSAGE').val('');
+            $('#save_followup_message_form #MESSAGE').focus();
+        }
+
+        function markAsArchived(PK_AUTOMATION_LOG) {
+            if (IS_CUSTOMER) return;
+
+            closePopover();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You want to mark this message as archived?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, archive it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'markAsArchived',
+                            PK_AUTOMATION_LOG: PK_AUTOMATION_LOG
+                        },
+                        success: function(data) {
+                            calendar.refetchEvents();
+                        }
+                    });
+                }
+            });
+        }
+
+        $(document).on('submit', '#save_followup_message_form', function(event) {
+            event.preventDefault();
+
+            if (IS_CUSTOMER) return;
+
+            let form_data = new FormData($('#save_followup_message_form')[0]);
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    Swal.fire({
+                        title: "Added!",
+                        text: "Added to Internal Note.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        $('#save_followup_message_model').modal('hide');
+                        calendar.refetchEvents();
+                    });
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .page-wrapper {
+            min-height: calc(100vh - 200px) !important;
+        }
+
+        .card-body.row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        #calendar-container {
+            flex: 1 1 auto;
+            width: auto !important;
+            min-width: 0;
+        }
+
+        #external-events {
+            flex: 0 0 260px;
+            max-width: 260px;
+            min-width: 260px;
+            min-height: calc(100vh - 182px);
+            overflow-y: auto;
+            display: block;
+        }
+
+        #calendar,
+        .fc-view-container {
+            width: 100%;
+            min-height: calc(100vh - 182px) !important;
+            height: calc(100vh - 182px) !important;
+            overflow: hidden;
+        }
+
+        #calendar .fc-view-harness,
+        #calendar .fc-scroller-harness {
+            max-height: calc(100vh - 50px) !important;
+            min-height: calc(100vh - 50px) !important;
+            height: calc(100vh - 50px) !important;
+        }
+    </style>
+
+</body>
+
+</html>

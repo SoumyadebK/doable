@@ -137,251 +137,920 @@ $page_first_result = ($page - 1) * $results_per_page;
 
 ?>
 
-
 <!DOCTYPE html>
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<html lang="en">
+<?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
 <style>
-    table th {
-        font-weight: bold;
+    :root {
+        --primary-color: #39B54A;
+        --primary-light: #5DCB6E;
+        --primary-dark: #2D8F3B;
+        --primary-rgb: 57, 181, 74;
+        --success-color: #39B54A;
+        --warning-color: #F59E0B;
+        --danger-color: #EF4444;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-400: #9CA3AF;
+        --gray-500: #6B7280;
+        --gray-600: #4B5563;
+        --gray-700: #374151;
+        --gray-800: #1F2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+        --radius-pill: 50px;
     }
 
-    .sortable.asc::after {
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--gray-50);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .page-wrapper {
+        padding-top: 0px !important;
+        background: var(--gray-50);
+    }
+
+    .container-fluid {
+        padding: 24px 32px !important;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Breadcrumb / Page Title */
+    .breadcrumb-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .breadcrumb-wrapper h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+
+    .breadcrumb-wrapper h4 i {
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-500);
+    }
+
+    .breadcrumb-nav a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--primary-dark);
+    }
+
+    .breadcrumb-nav .separator {
+        color: var(--gray-300);
+    }
+
+    .breadcrumb-nav .current {
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+
+    .filter-bar .filter-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-bar .filter-row .filter-item {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-bar .filter-row .filter-item.search-item {
+        flex: 2;
+        min-width: 250px;
+    }
+
+    @media (max-width: 768px) {
+        .filter-bar .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-bar .filter-row .filter-item {
+            min-width: 100%;
+        }
+    }
+
+    .quick-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .quick-buttons {
+            width: 100%;
+        }
+
+        .quick-buttons .btn-modern {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    /* Form Controls */
+    .form-control-modern {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .form-control-modern::placeholder {
+        color: var(--gray-400);
+        font-size: 13px;
+    }
+
+    select.form-control-modern {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-family: inherit;
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+
+    .btn-modern-primary {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-modern-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-modern-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .btn-modern-secondary:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    .btn-modern-outline {
+        background: #fff;
+        color: var(--gray-600);
+        border: 1.5px solid var(--gray-200);
+    }
+
+    .btn-modern-outline:hover {
+        background: var(--gray-50);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .btn-modern-sm {
+        padding: 6px 16px;
+        font-size: 13px;
+    }
+
+    /* Card / Table */
+    .card-modern {
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-modern .card-header {
+        padding: 20px 24px;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .card-modern .card-header h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-modern .card-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .card-modern .card-body {
+        padding: 0;
+    }
+
+    /* Table */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-modern {
+        width: 100% !important;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .table-modern thead th {
+        background: var(--gray-50);
+        padding: 12px 14px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray-600);
+        border-bottom: 2px solid var(--gray-200);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+
+    .table-modern thead th:hover {
+        background: var(--gray-100);
+        color: var(--gray-800);
+    }
+
+    .table-modern thead th.sortable.asc::after {
         content: " ▲";
+        font-size: 10px;
+        color: var(--primary-color);
     }
 
-    .sortable.desc::after {
+    .table-modern thead th.sortable.desc::after {
         content: " ▼";
+        font-size: 10px;
+        color: var(--primary-color);
+    }
+
+    .table-modern tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
+    }
+
+    .table-modern tbody tr.main-row {
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .table-modern tbody tr.main-row:hover {
+        background: #F0FDF4;
+    }
+
+    .table-modern tbody tr.detail-row {
+        background: var(--gray-50);
+    }
+
+    .table-modern tbody tr.detail-row td {
+        padding: 16px 20px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .table-modern tbody tr.header {
+        cursor: pointer;
+        background: #ffffff;
+    }
+
+    .table-modern tbody tr.header:hover {
+        background: #F0FDF4;
+    }
+
+    /* Status Badge */
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .appointment-type-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    .appointment-type-badge.private {
+        background: #E0F2FE;
+        color: #0369A1;
+    }
+
+    .appointment-type-badge.group {
+        background: #F3E8FF;
+        color: #7E22CE;
+    }
+
+    .appointment-type-badge.adhoc {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .standing-indicator {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--primary-color);
+        background: #D1FAE5;
+        padding: 1px 6px;
+        border-radius: 4px;
+        margin-left: 4px;
+    }
+
+    .paid-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .paid-badge.paid {
+        color: #065F46;
+    }
+
+    .paid-badge.unpaid {
+        color: #92400E;
+    }
+
+    .view-btn {
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        border: none;
+        border-radius: 50px;
+        background: var(--primary-color);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .view-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    /* Comment detail section */
+    .detail-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .detail-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .detail-section .detail-item {
+        background: #fff;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+        padding: 14px 16px;
+    }
+
+    .detail-section .detail-item label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .detail-section .detail-item .comment-text {
+        font-size: 14px;
+        color: var(--gray-700);
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .detail-section .detail-item .history-text {
+        font-size: 12px;
+        color: var(--gray-500);
+        line-height: 1.8;
+        margin-top: 8px;
+    }
+
+    .detail-section .detail-item .history-text span {
+        display: block;
+    }
+
+    .media-preview {
+        max-width: 150px;
+        height: auto;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    /* Pagination */
+    .pagination-modern {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        padding: 20px 24px;
+        border-top: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+
+    .pagination-modern .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        color: var(--gray-600);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        background: #fff;
+    }
+
+    .pagination-modern .page-link:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: #F0FDF4;
+    }
+
+    .pagination-modern .page-link.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+    }
+
+    .pagination-modern .page-link.active:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: #fff;
+    }
+
+    .pagination-modern .page-link.dots {
+        border: none;
+        cursor: default;
+        background: transparent;
+    }
+
+    .pagination-modern .page-link.dots:hover {
+        background: transparent;
+        border-color: transparent;
+        color: var(--gray-500);
+    }
+
+    .pagination-modern .page-link.hidden {
+        display: none;
+    }
+
+    /* Floating Action Buttons */
+    .floating-actions {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+        .floating-actions {
+            bottom: 16px;
+            right: 16px;
+            left: 16px;
+            justify-content: center;
+        }
+
+        .floating-actions .btn-modern {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--gray-400);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--gray-300);
+    }
+
+    .empty-state h5 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        color: var(--gray-400);
     }
 </style>
-<html lang="en">
-<?php require_once('../includes/header.php'); ?>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="row">
-                    <div id="add_buttons" class="d-flex justify-content-center align-items-center" style="position: fixed; bottom: 0">
-                        <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
-                    <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
-                    <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
-                    <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
-                    <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
-                        <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
-                        <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?= $operation_tab_title ?></button>
-                    </div>
+        <?php require_once('../includes/header.php'); ?>
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid body_content" style="margin-top: 0px !important;">
+
+                <!-- Page Title -->
+                <div class="breadcrumb-wrapper">
+                    <h4>
+                        <i class="fas fa-calendar-check"></i>
+                        <?php if ($status_check == 'previous') { ?>
+                            Previous Appointments
+                        <?php } elseif ($status_check == 'future') { ?>
+                            Future Appointments
+                        <?php } else { ?>
+                            <?= $title ?>
+                        <?php } ?>
+                    </h4>
+                    <nav class="breadcrumb-nav">
+                        <span class="current">Appointments</span>
+                    </nav>
                 </div>
 
-                <form class="form-material form-horizontal" id="search_form" action="" method="get">
-                    <div class="row page-titles">
-                        <div class="col-md-2 align-self-center">
-                            <?php if ($status_check == 'previous') { ?>
-                                <h4 class="text-themecolor">Previous Appointments</h4>
-                            <?php } elseif ($status_check == 'future') { ?>
-                                <h4 class="text-themecolor">Future Appointments</h4>
-                            <?php } else { ?>
-                                <h4 class="text-themecolor"><?= $title ?></h4>
-                            <?php } ?>
-                        </div>
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <!-- Quick Filter Buttons -->
+                    <div class="quick-buttons">
+                        <a href="appointment_list.php?status=previous" class="btn-modern btn-modern-outline btn-modern-sm">
+                            <i class="fas fa-history"></i> Previous
+                        </a>
+                        <a href="appointment_list.php?status=future" class="btn-modern btn-modern-outline btn-modern-sm">
+                            <i class="fas fa-calendar-plus"></i> Future
+                        </a>
+                        <?php if ($standing == 0) { ?>
+                            <a href="appointment_list.php?standing=1" class="btn-modern btn-modern-outline btn-modern-sm">
+                                <i class="fas fa-redo"></i> Standing
+                            </a>
+                        <?php } else { ?>
+                            <a href="appointment_list.php" class="btn-modern btn-modern-outline btn-modern-sm">
+                                <i class="fas fa-list"></i> Normal
+                            </a>
+                        <?php } ?>
+                    </div>
 
-
-                        <div class="col-md-1 align-self-center">
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous</button>
-                        </div>
-
-                        <div class="col-md-1 align-self-center">
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future</button>
-                        </div>
-
-
-                        <div class="col-md-1 align-self-center">
-                            <?php if ($standing == 0) { ?>
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Standing</button>
-                            <?php } else { ?>
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Normal</button>
-                            <?php } ?>
-                        </div>
-
-                        <div class="col-2">
-                            <div class="form-material form-horizontal">
-                                <select class="form-control" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
-                                    <option value="">Select Status</option>
+                    <!-- Search Form -->
+                    <form id="search_form" action="" method="get">
+                        <div class="filter-row">
+                            <div class="filter-item">
+                                <select class="form-control-modern" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
+                                    <option value="">All Statuses</option>
                                     <?php
                                     $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                                     while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status) ? "selected" : "" ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['APPOINTMENT_STATUS']) ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-5">
-                            <div class="input-group">
-                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px"><i class="fa fa-search"></i></button>
+                            <div class="filter-item">
+                                <input type="text" id="START_DATE" name="START_DATE" class="form-control-modern datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? htmlspecialchars($_GET['START_DATE']) : '' ?>">
                             </div>
-                        </div>
-                    </div>
-                </form>
-
-                <div class="row">
-                    <div id="appointments" class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table <?= ($standing == 0) ? 'table-striped' : '' ?> border" data-page-length='50'>
-                                        <thead>
-                                            <tr>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">No</th>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">Class Name</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer"><?= $service_provider_title ?></th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
-                                                <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
-                                                <th>Paid</th>
-                                                <th style="width: 8%;">Status</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            <?php
-                                            $i = $page_first_result + 1;
-                                            $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
-                                            while (!$appointment_data->EOF) {
-                                                if ($standing == 0) {
-                                                    $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER']);
-                                                    $CHANGED_BY = '';
-                                                    while (!$status_data->EOF) {
-                                                        $CHANGED_BY .= "(" . $status_data->fields['APPOINTMENT_STATUS'] . " by " . $status_data->fields['NAME'] . " at " . date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])) . ")<br>";
-                                                        $status_data->MoveNext();
-                                                    }
-                                                    $IMAGE_LINK = $appointment_data->fields['IMAGE'];
-                                                    $VIDEO_LINK = $appointment_data->fields['VIDEO'];
-                                            ?>
-                                                    <tr onclick="$(this).next().slideToggle();">
-                                                    <?php } else { ?>
-                                                    <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $appointment_data->fields['STANDING_ID'] ?>, <?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>)" style="cursor: pointer;">
-                                                    <?php } ?>
-                                                    <td><?= $i; ?></td>
-                                                    <td><?= (($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class')) ?>
-                                                        <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
-                                                            <span style="font-weight: bold; color: #1B72B8">(S)</span>
-                                                        <?php } ?>
-                                                    </td>
-                                                    <td><?= $appointment_data->fields['GROUP_NAME'] ?></td>
-                                                    <td><?= $appointment_data->fields['CUSTOMER_NAME'] ?></td>
-                                                    <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
-                                                        <td><?= (($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'] . ' - ' : '') . $appointment_data->fields['ENROLLMENT_ID'] . " || " . $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
-                                                    <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
-                                                        <td><?= $appointment_data->fields['SERVICE_NAME'] . "  " . $appointment_data->fields['SERVICE_CODE'] ?></td>
-                                                    <?php } else { ?>
-                                                        <td><?= $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
-                                                    <?php } ?>
-                                                    <td><?= $appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
-                                                    <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
-
-                                                    <?php if ($standing == 0) { ?>
-                                                        <td><?= date('m/d/Y', strtotime($appointment_data->fields['DATE'])) ?></td>
-                                                    <?php } else { ?>
-                                                        <td><?= date('m/d/Y', strtotime($appointment_data->fields['BEGINNING_DATE'])) ?> - <?= date('m/d/Y', strtotime($appointment_data->fields['END_DATE'])) ?></td>&nbsp;&nbsp;&nbsp;
-                                                    <?php } ?>
-
-                                                    <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
-                                                    <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if ($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
-                                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button> <?php } ?>
-                                                    </td>
-                                                    <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
-                                                    <td style="text-align: left; color: <?= $appointment_data->fields['APPOINTMENT_COLOR'] ?>">
-                                                        <?= $appointment_data->fields['APPOINTMENT_STATUS'] ?>&nbsp;
-                                                        <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
-                                                            <i class="ti-money"></i>
-                                                        <?php } ?>
-                                                    </td>
-                                                    </tr>
-
-                                                    <tr style="display: none">
-                                                        <td style="vertical-align: middle; text-align: center;" colspan="13">
-                                                            <div class="col-12">
-                                                                <div class="form-group">
-                                                                    <textarea class="form-control" name="COMMENT" rows="3"><?= $appointment_data->fields['COMMENT'] ?></textarea><span><?= $CHANGED_BY ?></span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <a href="<?= $IMAGE_LINK ?>" target="_blank">
-                                                                            <img src="<?= $IMAGE_LINK ?>" style="margin-top: 15px; max-width: 150px; height: auto;">
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <a href="<?= $VIDEO_LINK ?>" target="_blank">
-                                                                            <?php if ($VIDEO_LINK != '') { ?>
-                                                                                <video width="240" height="135" controls>
-                                                                                    <source src="<?= $VIDEO_LINK ?>" type="video/mp4">
-                                                                                </video>
-                                                                            <?php } ?>
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-
-                                                            <?php /*=$appointment_data->fields['COMMENT']*/ ?><!--
-                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */ ?>
-                        (<a href="<?php /*=$IMAGE_LINK*/ ?>" target="_blank">View Image</a>)
-                    <?php /*} */ ?>
-                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */ ?>
-                        (<a href="<?php /*=$VIDEO_LINK*/ ?>" target="_blank">View Video</a>)
-                    <?php /*} */ ?>
-                    <br><span><?php /*=$CHANGED_BY*/ ?></span>-->
-                                                        </td>
-                                                    </tr>
-                                                <?php $appointment_data->MoveNext();
-                                                $i++;
-                                            } ?>
-                                        </tbody>
-                                    </table>
-
-                                    <div class="center">
-                                        <div class="pagination outer">
-                                            <ul>
-                                                <?php if ($page > 1) { ?>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=1">&laquo;</a></li>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page - 1) ?>">&lsaquo;</a></li>
-                                                <?php }
-                                                for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
-                                                    if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="appointment_list.php?status=' . $status_check . '&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    } elseif ($page_count == ($number_of_page - 1)) {
-                                                        echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
-                                                    } else {
-                                                        echo '<li><a class="hidden" href="appointment_list.php?status=' . $status_check . 'appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    }
-                                                }
-                                                if ($page < $number_of_page) { ?>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page + 1) ?>">&rsaquo;</a></li>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= $number_of_page ?>">&raquo;</a></li>
-                                                <?php } ?>
-                                            </ul>
-                                        </div>
-                                    </div>
+                            <div class="filter-item">
+                                <input type="text" id="END_DATE" name="END_DATE" class="form-control-modern datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? htmlspecialchars($_GET['END_DATE']) : '' ?>">
+                            </div>
+                            <div class="filter-item search-item">
+                                <input class="form-control-modern" type="text" id="search_text" name="search_text" placeholder="Search by name, email, phone, enrollment ID..." value="<?= htmlspecialchars($search_text) ?>">
+                            </div>
+                            <div class="filter-item" style="flex: 0;">
+                                <button type="submit" class="btn-modern btn-modern-primary">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <?php if (!empty($search_text) || !empty($_GET['START_DATE']) || !empty($_GET['END_DATE'])): ?>
+                                <div class="filter-item" style="flex: 0;">
+                                    <a href="appointment_list.php" class="btn-modern btn-modern-secondary">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
+                    </form>
+                </div>
+
+                <!-- Appointments Table -->
+                <div class="card-modern">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-list"></i>
+                            <?= $title ?>
+                            <span style="background: var(--gray-200); color: var(--gray-600); padding: 2px 12px; border-radius: 50px; font-size: 13px; font-weight: 500;"><?= $number_of_result ?> total</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrapper">
+                            <?php if ($number_of_result > 0): ?>
+                                <table class="table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th data-type="number" class="sortable" style="width: 50px;">No</th>
+                                            <th data-type="string" class="sortable">Service Name</th>
+                                            <th data-type="string" class="sortable">Class Name</th>
+                                            <th data-type="string" class="sortable">Customer</th>
+                                            <th data-type="string" class="sortable">Enrollment ID</th>
+                                            <th data-type="string" class="sortable"><?= htmlspecialchars($service_provider_title) ?></th>
+                                            <th data-type="string" class="sortable">Day</th>
+                                            <th data-date class="sortable">Date</th>
+                                            <th data-type="string" class="sortable">Time</th>
+                                            <th data-type="string" class="sortable">Comment &amp; Uploads</th>
+                                            <th>Paid</th>
+                                            <th style="width: 10%;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $i = $page_first_result + 1;
+                                        $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
+                                        while (!$appointment_data->EOF) {
+                                            $IMAGE_LINK = $appointment_data->fields['IMAGE'];
+                                            $VIDEO_LINK = $appointment_data->fields['VIDEO'];
+                                            $CHANGED_BY = '';
+
+                                            if ($standing == 0) {
+                                                $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER']);
+                                                while (!$status_data->EOF) {
+                                                    $CHANGED_BY .= "(" . $status_data->fields['APPOINTMENT_STATUS'] . " by " . $status_data->fields['NAME'] . " at " . date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])) . ")<br>";
+                                                    $status_data->MoveNext();
+                                                }
+                                            }
+
+                                            // Determine appointment type badge
+                                            $type_label = '';
+                                            $type_class = '';
+                                            if ($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') {
+                                                $type_label = 'Private Session';
+                                                $type_class = 'private';
+                                            } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') {
+                                                $type_label = 'Ad-Hoc';
+                                                $type_class = 'adhoc';
+                                            } else {
+                                                $type_label = 'Group Class';
+                                                $type_class = 'group';
+                                            }
+                                        ?>
+                                            <tr class="main-row" onclick="$(this).next().slideToggle();">
+                                                <td><?= $i; ?></td>
+                                                <td>
+                                                    <span class="appointment-type-badge <?= $type_class ?>"><?= $type_label ?></span>
+                                                    <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
+                                                        <span class="standing-indicator">S</span>
+                                                    <?php } ?>
+                                                </td>
+                                                <td><?= htmlspecialchars($appointment_data->fields['GROUP_NAME'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($appointment_data->fields['CUSTOMER_NAME'] ?? '') ?></td>
+                                                <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
+                                                    <td><?= (($appointment_data->fields['ENROLLMENT_NAME']) ? htmlspecialchars($appointment_data->fields['ENROLLMENT_NAME']) . ' - ' : '') . htmlspecialchars($appointment_data->fields['ENROLLMENT_ID']) . " || " . htmlspecialchars($appointment_data->fields['SERVICE_NAME']) . " || " . htmlspecialchars($appointment_data->fields['SERVICE_CODE']) ?></td>
+                                                <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
+                                                    <td><?= htmlspecialchars($appointment_data->fields['SERVICE_NAME'] . "  " . $appointment_data->fields['SERVICE_CODE']) ?></td>
+                                                <?php } else { ?>
+                                                    <td><?= htmlspecialchars($appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE']) ?></td>
+                                                <?php } ?>
+                                                <td><?= htmlspecialchars($appointment_data->fields['SERVICE_PROVIDER_NAME'] ?? '') ?></td>
+                                                <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
+                                                <td><?= date('m/d/Y', strtotime($appointment_data->fields['DATE'])) ?></td>
+                                                <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
+                                                <td style="text-align: center;">
+                                                    <?php if ($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
+                                                        <button class="view-btn">View</button>
+                                                    <?php } ?>
+                                                </td>
+                                                <td>
+                                                    <?php if ($appointment_data->fields['IS_PAID'] == 1) { ?>
+                                                        <span class="paid-badge paid"><i class="fas fa-check-circle"></i> Paid</span>
+                                                    <?php } else { ?>
+                                                        <span class="paid-badge unpaid"><i class="fas fa-clock"></i> Unpaid</span>
+                                                    <?php } ?>
+                                                </td>
+                                                <td>
+                                                    <span style="color: <?= $appointment_data->fields['APPOINTMENT_COLOR'] ?>; font-weight: 500;">
+                                                        <?= htmlspecialchars($appointment_data->fields['APPOINTMENT_STATUS'] ?? '') ?>
+                                                    </span>
+                                                    <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                                                        <i class="fas fa-dollar-sign" style="color: var(--primary-color); margin-left: 4px;" title="Charged"></i>
+                                                    <?php } ?>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="detail-row" style="display: none;">
+                                                <td colspan="12">
+                                                    <div class="detail-section">
+                                                        <!-- Comment -->
+                                                        <div class="detail-item">
+                                                            <label><i class="fas fa-comment"></i> Comment</label>
+                                                            <div class="comment-text"><?= !empty($appointment_data->fields['COMMENT']) ? nl2br(htmlspecialchars($appointment_data->fields['COMMENT'])) : '<span style="color: var(--gray-400);">No comment</span>' ?></div>
+                                                            <?php if ($CHANGED_BY != '') { ?>
+                                                                <div class="history-text">
+                                                                    <strong style="display: block; margin-bottom: 4px; color: var(--gray-600);">Status History:</strong>
+                                                                    <?= $CHANGED_BY ?>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </div>
+
+                                                        <!-- Uploads -->
+                                                        <div class="detail-item">
+                                                            <label><i class="fas fa-paperclip"></i> Uploads</label>
+                                                            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                                                <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
+                                                                    <a href="<?= htmlspecialchars($IMAGE_LINK) ?>" target="_blank">
+                                                                        <img src="<?= htmlspecialchars($IMAGE_LINK) ?>" class="media-preview" alt="Appointment Image">
+                                                                    </a>
+                                                                <?php } ?>
+                                                                <?php if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { ?>
+                                                                    <a href="<?= htmlspecialchars($VIDEO_LINK) ?>" target="_blank">
+                                                                        <video width="240" height="135" controls style="border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+                                                                            <source src="<?= htmlspecialchars($VIDEO_LINK) ?>" type="video/mp4">
+                                                                        </video>
+                                                                    </a>
+                                                                <?php } ?>
+                                                                <?php if (($IMAGE_LINK == '' || $IMAGE_LINK == null) && ($VIDEO_LINK == '' || $VIDEO_LINK == null)) { ?>
+                                                                    <span style="color: var(--gray-400);">No uploads</span>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php $appointment_data->MoveNext();
+                                            $i++;
+                                        } ?>
+                                    </tbody>
+                                </table>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <h5>No Appointments Found</h5>
+                                    <p>There are no appointments matching your criteria.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Pagination -->
+                        <?php if ($number_of_page > 1) { ?>
+                            <div class="pagination-modern">
+                                <?php if ($page > 1) { ?>
+                                    <a class="page-link" href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=1">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                    <a class="page-link" href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page - 1) ?>">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                <?php }
+                                for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
+                                    if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
+                                        $active_class = ($page_count == $page) ? 'active' : '';
+                                        echo '<a class="page-link ' . $active_class . '" href="appointment_list.php?status=' . $status_check . '&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . urlencode($search_text)) . '">' . $page_count . '</a>';
+                                    } elseif ($page_count == ($number_of_page - 1)) {
+                                        echo '<span class="page-link dots">...</span>';
+                                    } else {
+                                        echo '<a class="page-link hidden" href="appointment_list.php?status=' . $status_check . '&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . urlencode($search_text)) . '">' . $page_count . '</a>';
+                                    }
+                                }
+                                if ($page < $number_of_page) { ?>
+                                    <a class="page-link" href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page + 1) ?>">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                    <a class="page-link" href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= $number_of_page ?>">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
                     </div>
                 </div>
+
             </div>
+        </div>
+
+        <!-- Floating Action Buttons -->
+        <div class="floating-actions">
+            <button type="button" id="appointments" class="btn-modern btn-modern-primary" onclick="showMessage()">
+                <i class="fas fa-plus-circle"></i> Appointments
+            </button>
+            <button type="button" id="operations" class="btn-modern btn-modern-secondary" onclick="window.location.href='operations.php'">
+                <i class="fas fa-layer-group"></i> <?= htmlspecialchars($operation_tab_title) ?>
+            </button>
         </div>
     </div>
 
@@ -390,8 +1059,9 @@ $page_first_result = ($page - 1) * $results_per_page;
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <script>
+        // Date picker range
         $(function() {
-            startDate = $("#START_DATE").datepicker({
+            $("#START_DATE").datepicker({
                 numberOfMonths: 1,
                 onSelect: function(selected) {
                     $("#END_DATE").datepicker("option", "minDate", selected);
@@ -401,16 +1071,17 @@ $page_first_result = ($page - 1) * $results_per_page;
             $("#END_DATE").datepicker({
                 numberOfMonths: 1,
                 onSelect: function(selected) {
-                    $("#START_DATE").datepicker("option", "maxDate", selected)
+                    $("#START_DATE").datepicker("option", "maxDate", selected);
                 }
             });
         });
 
+        // Sortable table
         $(document).ready(function() {
             $(".sortable").on("click", function() {
                 var table = $(this).closest("table");
                 var tbody = table.find("tbody");
-                var rows = tbody.find("tr").toArray();
+                var rows = tbody.find("tr.main-row").toArray();
                 var index = $(this).index();
                 var asc = !$(this).hasClass("asc");
                 var isDate = $(this).is("[data-date]");
@@ -424,7 +1095,6 @@ $page_first_result = ($page - 1) * $results_per_page;
                     var A = $(a).children("td").eq(index).text().trim();
                     var B = $(b).children("td").eq(index).text().trim();
 
-                    // Handle data type
                     if (isDate) {
                         A = new Date(A);
                         B = new Date(B);
@@ -441,13 +1111,15 @@ $page_first_result = ($page - 1) * $results_per_page;
                     return 0;
                 });
 
-                // Append sorted rows
+                // Append sorted rows (also move their detail rows)
                 $.each(rows, function(i, row) {
                     tbody.append(row);
+                    tbody.append($(row).next('.detail-row'));
                 });
             });
         });
 
+        // Show message for multiple locations
         function showMessage() {
             if (<?= count($LOCATION_ARRAY) ?> === 1) {
                 window.location.href = 'create_appointment.php';
@@ -455,17 +1127,14 @@ $page_first_result = ($page - 1) * $results_per_page;
                 swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
             }
         }
-    </script>
 
-    <script>
+        // Show standing appointment details
         function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
             let $nextRows = $(param).nextUntil('tr.header');
 
             if ($nextRows.length) {
-                // If details are already shown, remove them
                 $nextRows.remove();
             } else {
-                // Otherwise, fetch and show details
                 $.ajax({
                     url: "pagination/get_standing_appointment.php",
                     type: 'GET',
@@ -480,13 +1149,14 @@ $page_first_result = ($page - 1) * $results_per_page;
             }
         }
 
+        // Confirm delete
         function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
+                confirmButtonColor: "#39B54A",
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Yes, delete it!"
             }).then((result) => {
@@ -502,7 +1172,6 @@ $page_first_result = ($page - 1) * $results_per_page;
                         success: function(data) {
                             let currentURL = window.location.href;
                             let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
-                            console.log(extractedPart);
                             window.location.href = extractedPart;
                         }
                     });
@@ -510,9 +1179,18 @@ $page_first_result = ($page - 1) * $results_per_page;
             });
         }
 
+        // Select status
         function selectStatus(param) {
             var status = $(param).val();
             window.location.href = "appointment_list.php?appointment_status=" + status;
+        }
 
+        // Show hidden page numbers
+        function showHiddenPageNumber(el) {
+            $(el).closest('.pagination-modern').find('.hidden').show();
+            $(el).hide();
         }
     </script>
+</body>
+
+</html>
