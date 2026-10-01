@@ -264,8 +264,16 @@
                             </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="col-12">
-                                    <div class="form-group" id="card_div">
+                                    <div class="form-group" id="card_div"></div>
+                                    <p id="clover-card-errors" role="alert" style="color:#fa755a; margin-left:13px;"></p>
 
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group d-flex align-items-center ms-2 mb-3">
+                                                <input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="me-2">
+                                                <label for="SAVE_FOR_FUTURE" class="form-check-label mb-0">Save this card details for future use</label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -579,8 +587,6 @@
 <?php } ?>
 
 
-
-
 <?php if ($PAYMENT_GATEWAY == 'Authorized.net') {
     $ACCEPT_JS_URL = ($GATEWAY_MODE == 'live')
         ? 'https://js.authorize.net/v1/Accept.js'
@@ -637,45 +643,89 @@
 <?php } ?>
 
 
-
-
-<?php if ($PAYMENT_GATEWAY == 'Clover') { ?>
-    <script src="https://checkout.clover.com/sdk.js"></script>
-    <script>
-        const clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
-            merchantId: '<?= $MERCHANT_ID ?>',
-        });
-
-        const elements = clover.elements();
+<?php if ($PAYMENT_GATEWAY == 'Clover') {
+    if ($GATEWAY_MODE == 'live')
+        $CLOVER_SDK_URL = "https://checkout.clover.com/sdk.js";
+    else
+        $CLOVER_SDK_URL = "https://checkout.sandbox.dev.clover.com/sdk.js";
+?>
+    <script src="<?= $CLOVER_SDK_URL ?>"></script>
+    <script type="text/javascript">
+        let clover;
+        let cloverElements;
+        let cloverFields = [];
 
         function cloverPaymentFunction(type) {
-            const cardNumber = elements.create('CARD_NUMBER');
-            const cardDate = elements.create('CARD_DATE');
-            const cardCvv = elements.create('CARD_CVV');
-            const cardPostalCode = elements.create('CARD_POSTAL_CODE');
+            // Destroy old fields first
+            cloverFields.forEach(f => {
+                try {
+                    f.destroy();
+                } catch (e) {}
+            });
+            cloverFields = [];
+
+            // Fresh instance + elements every time the card form is shown
+            clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
+                merchantId: '<?= $MERCHANT_ID ?>',
+            });
+            cloverElements = clover.elements();
+
+            const cardNumber = cloverElements.create('CARD_NUMBER');
+            const cardDate = cloverElements.create('CARD_DATE');
+            const cardCvv = cloverElements.create('CARD_CVV');
+            const cardPostalCode = cloverElements.create('CARD_POSTAL_CODE');
 
             cardNumber.mount('#card-number');
             cardDate.mount('#card-date');
             cardCvv.mount('#card-cvv');
             cardPostalCode.mount('#card-postal-code');
-            console.log('Show Clover Payment Form');
+
+            cloverFields = [cardNumber, cardDate, cardCvv, cardPostalCode];
+            $('#token').val('');
         }
 
         async function addCloverTokenOnForm() {
-            const {
-                token,
-                error
-            } = await clover.createToken();
-            console.log('Clover Token:', token, 'Error:', error);
+            const errorEl = document.getElementById('clover-card-errors');
+            errorEl.textContent = '';
 
-            if (error) {
-                console.log('Tokenization error: ' + error.message);
-            } else {
+            try {
+                if (!clover) {
+                    throw new Error('Card form is not loaded. Please re-select the payment type.');
+                }
+
+                const result = await clover.createToken();
+                console.log('Clover createToken result:', result); // <-- check this in the console
+
+                if (!result) {
+                    throw new Error('Empty response from Clover');
+                }
+                if (result.errors) {
+                    throw new Error(Object.values(result.errors).join(', ') || 'Tokenization failed');
+                }
+                if (result.error) {
+                    throw new Error(result.error.message || JSON.stringify(result.error));
+                }
+                if (result.message && !result.token) {
+                    throw new Error(result.message);
+                }
+
+                // some SDK versions nest the token
+                const token = result.token || (result.card && result.card.token) || (result.data && result.data.token);
+                if (!token) {
+                    throw new Error('No token returned from Clover. Response: ' + JSON.stringify(result));
+                }
+
                 $('#token').val(token);
+                return true;
+            } catch (e) {
+                console.error(e);
+                errorEl.textContent = e.message;
+                return false;
             }
         }
     </script>
 <?php } ?>
+
 
 <script>
     function sleep(ms) {
@@ -732,16 +782,18 @@
                         }
                     } else if (PAYMENT_GATEWAY == 'Clover') {
                         let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
-                        if (PAYMENT_METHOD_ID == '') {
-                            addCloverTokenOnForm();
-                            sleep(3000).then(() => {
-                                submitEnrollmentPaymentForm();
+                        // Only tokenize for a NEW credit card (type 1). Cash, check and saved cards skip it.
+                        if (paymentType == 1 && PAYMENT_METHOD_ID == '') {
+                            addCloverTokenOnForm().then(function(success) {
+                                if (success) {
+                                    submitEnrollmentPaymentForm();
+                                } else {
+                                    $('#enr-payment-btn').prop('disabled', false);
+                                }
                             });
                         } else {
                             submitEnrollmentPaymentForm();
                         }
-                    } else {
-                        submitEnrollmentPaymentForm();
                     }
                 }
             }
@@ -797,6 +849,17 @@
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         $('#save_card').hide();
         $('#SAVE_FOR_FUTURE').prop('checked', true);
+
+        if ($('#PAYMENT_GATEWAY').val() == 'Clover') {
+            cloverFields.forEach(f => {
+                try {
+                    f.destroy();
+                } catch (e) {}
+            });
+            cloverFields = [];
+            $(param).closest('.payment_modal').find('#card_div').empty();
+            $('#token').val('');
+        }
     }
 
     $(document).on('click', '.credit-card', function() {
@@ -853,10 +916,10 @@
 
                     if (PAYMENT_GATEWAY == 'Clover') {
                         $(param).closest('.payment_modal').find('#card_div').html(`<div class="row">
-                                                                                    <div class="clover-input" id="card-number" style="width: 50%;"></div>
-                                                                                    <div class="clover-input" id="card-date" style="width: 15%;"></div>
-                                                                                    <div class="clover-input" id="card-cvv" style="width: 10%;"></div>
-                                                                                    <div class="clover-input" id="card-postal-code" style="width: 15%;"></div>
+                                                                                    <div class="clover-input" id="card-number" style="width: 45%;"></div>
+                                                                                    <div class="clover-input" id="card-date" style="width: 18%;"></div>
+                                                                                    <div class="clover-input" id="card-cvv" style="width: 11%;"></div>
+                                                                                    <div class="clover-input" id="card-postal-code" style="width: 13%;"></div>
                                                                                 </div>`);
                         cloverPaymentFunction(type);
                     }
