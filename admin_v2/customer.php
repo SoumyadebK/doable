@@ -1375,9 +1375,15 @@
                                                             </div>
                                                         </div>
                                                         <div class="row mt-1" id="password_note" style="font-size: 12px;">
-                                                            <div class="col-12">
-                                                                <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
-                                                            </div>
+                                                            <?php if ($PASSWORD == '' || $PASSWORD == null) { ?>
+                                                                <div class="col-12">
+                                                                    <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+                                                                </div>
+                                                            <?php } else { ?>
+                                                                <div class="col-12">
+                                                                    <span style="color: green;">Password is set, you can use it to login.</span>
+                                                                </div>
+                                                            <?php } ?>
                                                         </div>
 
                                                         <div class="d-flex gap-2 align-items-right mt-3">
@@ -2638,46 +2644,62 @@
         function isGood(password) {
             let password_strength = document.getElementById("password-text");
 
-            if (password.length == 0) {
+            if (password.length === 0) {
                 password_strength.innerHTML = "";
+                $('#password_note').slideUp();
                 return;
             }
-            //Regular Expressions.
-            let regex = new Array();
-            regex.push("[A-Z]"); //Uppercase Alphabet.
-            regex.push("[a-z]"); //Lowercase Alphabet.
-            regex.push("[0-9]"); //Digit.
-            regex.push("[$@$!%*#?&]"); //Special Character.
-            let passed = 0;
-            //Validate for each Regular Expression.
-            for (let i = 0; i < regex.length; i++) {
-                if (new RegExp(regex[i]).test(password)) {
-                    passed++;
-                }
-            }
-            //Display status.
-            let strength = "";
-            switch (passed) {
-                case 0:
-                case 1:
-                case 2:
-                    strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                    $('#password_note').slideDown();
-                    $('#password_strength').val(0);
-                    break;
-                case 3:
-                    strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                    $('#password_note').slideDown();
-                    $('#password_strength').val(0);
-                    break;
-                case 4:
-                    strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                    $('#password_note').slideUp();
-                    $('#password_strength').val(1);
-                    break;
 
+            // Each rule has a regex (or length test) and a message shown when it fails.
+            const rules = [{
+                    test: password.length >= 8,
+                    message: "at least 8 characters"
+                },
+                {
+                    test: /[A-Z]/.test(password),
+                    message: "an uppercase letter (A-Z)"
+                },
+                {
+                    test: /[a-z]/.test(password),
+                    message: "a lowercase letter (a-z)"
+                },
+                {
+                    test: /[0-9]/.test(password),
+                    message: "a number (0-9)"
+                },
+                {
+                    test: /[$@!%*#?&]/.test(password),
+                    message: "a special character ($ @ ! % * # ? &)"
+                }
+            ];
+
+            // Collect the messages of every failed rule.
+            const missing = rules.filter(r => !r.test).map(r => r.message);
+            const passed = rules.length - missing.length;
+
+            let strength = "";
+
+            if (missing.length === 0) {
+                // All rules satisfied
+                strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                $('#password_note').slideUp();
+                $('#password_strength').val(1);
+            } else {
+                if (passed <= 2) {
+                    strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                } else {
+                    strength = "<small class='progress-bar bg-warning' style='width: 75%'>Medium</small>";
+                }
+
+                // Show exactly what is missing
+                const note = "<strong>Password is missing:</strong><ul class='mb-0 ps-3'>" +
+                    missing.map(m => "<li>" + m + "</li>").join("") +
+                    "</ul>";
+
+                $('#password_note').html(note).slideDown();
+                $('#password_strength').val(0);
             }
-            // alert(strength);
+
             password_strength.innerHTML = strength;
         }
 
