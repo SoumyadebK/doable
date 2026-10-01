@@ -33,9 +33,9 @@ $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
-$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID'];
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY'];
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY'];
 
 $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
 $API_KEY                = $payment_gateway_data->fields['API_KEY'];
@@ -673,49 +673,147 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     die();
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Clover') {
-                header("Access-Control-Allow-Origin: *");
-                header("Content-Type: application/json");
+                $CLOVER_API_URL = ($GATEWAY_MODE == 'live') ? "https://scl.clover.com" : "https://scl-sandbox.dev.clover.com";
 
-                $CLOVER_TOKEN = empty($_POST['token']) ? '' : $_POST['token'];
-                $charge_amount = (int)($_POST['AMOUNT_TO_PAY'] * 100); // e.g., 10.00 becomes 1000
+                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $PK_USER = $user_master->fields['PK_USER'];
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Clover' AND PK_USER = " . $PK_USER);
+                $CUSTOMER_PAYMENT_ID = ($customer_payment_info->RecordCount() > 0) ? $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'] : '';
 
-                $url = "https://scl.clover.com/v1/charges";
+                $CLOVER_TOKEN = $_POST['clover_token'] ?? ($_POST['token'] ?? '');
+                $source = '';          // what we charge: a card id (saved) or a one-time token
+                $charge_customer = ''; // only set when charging a saved card
 
-                $payload = json_encode([
-                    "merchant_id" => $MERCHANT_ID,
-                    "amount" => $charge_amount,
-                    "currency" => "usd",
-                    "source" => $CLOVER_TOKEN,
-                    "capture" => true,
-                ]);
+                if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                    // ---- Existing saved card ----
+                    if (empty($CUSTOMER_PAYMENT_ID)) {
+                        cloverFail('No saved Clover customer found for this user.');
+                    }
+                    $source = $_POST['PAYMENT_METHOD_ID'];
+                    $charge_customer = $CUSTOMER_PAYMENT_ID;
+                } else {
+                    if (empty($CLOVER_TOKEN)) {
+                        cloverFail('Missing payment token. Please re-enter your card details.');
+                    }
 
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    "Authorization: Bearer $API_KEY",
-                    "Content-Type: application/json",
-                    "Content-Length: " . strlen($payload)
-                ]);
+                    if (isset($_POST['SAVE_FOR_FUTURE'])) {
+                        // ---- New card, save for future ----
+                        if (empty($CUSTOMER_PAYMENT_ID)) {
+                            // Create customer with the card attached
+                            $customer_payload = [
+                                'firstName' => $user_master->fields['FIRST_NAME'],
+                                'lastName'  => $user_master->fields['LAST_NAME'],
+                                'name'      => trim($user_master->fields['FIRST_NAME'] . ' ' . $user_master->fields['LAST_NAME']),
+                                'source'    => $CLOVER_TOKEN,
+                            ];
 
-                $response = curl_exec($ch);
-                $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
+                            $customer_email = trim($user_master->fields['EMAIL_ID'] ?? '');
+                            if ($customer_email === '' || !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+                                cloverFail('This customer has no valid email address. Please add one to the customer profile before saving a card.', 'validate_email');
+                            }
+                            $customer_payload['email'] = $customer_email;
 
+                            $res = cloverRequest('POST', $CLOVER_API_URL . '/v1/customers', $customer_payload, $API_KEY, $MERCHANT_ID);
 
-                if ($http_code == 200 || $http_code == 201) {
+                            if (empty($res['body']->id)) {
+                                cloverFail(cloverErrorMessage($res, 'Error saving card'), 'create_customer', $res['raw']);
+                            }
+
+                            $CUSTOMER_PAYMENT_ID = $res['body']->id;
+
+                            // Store the customer first, so a failure below doesn't create duplicates on retry
+                            $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
+                            $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                            $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Clover';
+                            $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+
+                            $source = cloverExtractCardId($res['body']);
+
+                            if (empty($source)) {
+                                $get = cloverRequest('GET', $CLOVER_API_URL . '/v1/customers/' . urlencode($CUSTOMER_PAYMENT_ID), null, $API_KEY, $MERCHANT_ID);
+                                $source = cloverExtractCardId($get['body']);
+
+                                if (empty($source)) {
+                                    // TEMPORARY DEBUG: shows Clover's real responses on screen
+                                    $debug = 'CREATE (HTTP ' . $res['http_code'] . '): ' . $res['raw']
+                                        . ' ||| GET (HTTP ' . $get['http_code'] . '): ' . $get['raw'];
+                                    cloverFail($debug, 'get_customer', $debug);
+                                }
+                            }
+                        } else {
+                            // Add another card to the existing customer
+                            $res = cloverRequest('POST', $CLOVER_API_URL . '/v1/customers/' . urlencode($CUSTOMER_PAYMENT_ID) . '/sources', [
+                                'source' => $CLOVER_TOKEN,
+                            ], $API_KEY, $MERCHANT_ID);
+
+                            $source = $res['body']->id ?? cloverExtractCardId($res['body']);
+
+                            // A 404/405 means the token was not consumed, so it is safe to try the alternative
+                            if (empty($source) && in_array($res['http_code'], [404, 405])) {
+                                $res2 = cloverRequest('PUT', $CLOVER_API_URL . '/v1/customers/' . urlencode($CUSTOMER_PAYMENT_ID), [
+                                    'source' => $CLOVER_TOKEN,
+                                ], $API_KEY, $MERCHANT_ID);
+
+                                $source = cloverExtractCardId($res2['body']);
+
+                                if (empty($source)) {
+                                    // Last read of the customer to find the newest card
+                                    $get = cloverRequest('GET', $CLOVER_API_URL . '/v1/customers/' . urlencode($CUSTOMER_PAYMENT_ID), null, $API_KEY, $MERCHANT_ID);
+                                    $source = cloverExtractCardId($get['body']);
+                                }
+
+                                if (empty($source)) {
+                                    cloverFail(
+                                        cloverErrorMessage($res2, 'Error saving card'),
+                                        'add_source',
+                                        'POST sources => HTTP ' . $res['http_code'] . ' ' . $res['raw'] . ' || PUT customer => HTTP ' . $res2['http_code'] . ' ' . $res2['raw']
+                                    );
+                                }
+                            } elseif (empty($source)) {
+                                cloverFail(cloverErrorMessage($res, 'Error saving card'), 'add_source', 'HTTP ' . $res['http_code'] . ' ' . $res['raw']);
+                            }
+                        }
+
+                        if (empty($source)) {
+                            // TEMPORARY: show the raw response on screen (mask tokens before sharing)
+                            cloverFail('DEBUG create=' . $res['raw'] . ' || get=' . $get['raw'], 'get_customer', $res['raw'] . ' || ' . $get['raw']);
+                        }
+
+                        $charge_customer = $CUSTOMER_PAYMENT_ID;   // token is now consumed, so charge the saved card id
+                    } else {
+                        // ---- One-time card, not saved ----
+                        $source = $CLOVER_TOKEN;
+                    }
+                }
+
+                // ---- Charge ----
+                $charge_payload = [
+                    'amount'      => (int)round((float)$AMOUNT_TO_PAY * 100),
+                    'currency'    => 'usd',
+                    'source'      => $source,
+                    'ecomind'     => 'ecom',
+                    'capture'     => true,
+                    'description' => 'Receipt# ' . $RECEIPT_NUMBER_ORIGINAL,
+                ];
+                if (!empty($charge_customer)) {
+                    $charge_payload['customer'] = $charge_customer;
+                }
+
+                $res = cloverRequest('POST', $CLOVER_API_URL . '/v1/charges', $charge_payload, $API_KEY, $MERCHANT_ID);
+                $clover_res = $res['body'];
+
+                $is_paid = in_array($res['http_code'], [200, 201])
+                    && !empty($clover_res->id)
+                    && ((isset($clover_res->paid) && $clover_res->paid == true) || (isset($clover_res->status) && strtolower($clover_res->status) == 'succeeded'));
+
+                if ($is_paid) {
                     $PAYMENT_STATUS = 'Success';
-                    $PAYMENT_INFO_ARRAY = ['details' => json_decode($response)];
+                    $LAST4 = $clover_res->source->last4 ?? '';
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $clover_res->id, 'LAST4' => $LAST4];
                     $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                 } else {
-                    $PAYMENT_STATUS = 'Failed';
-                    $PAYMENT_INFO = $response;
-
-                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
-                    die();
+                    cloverFail(cloverErrorMessage($res, 'Clover payment failed'), 'charge', $res['raw']);
                 }
             }
         }
@@ -943,4 +1041,93 @@ function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT)
         db_perform_account('DOA_SERVICE_PROVIDER_AMOUNT', $PERCENTAGE_DATA, 'insert');
         $row->MoveNext();
     }
+}
+
+
+function cloverRequest($method, $url, $payload, $api_key, $merchant_id)
+{
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+
+    $headers = [
+        "Authorization: Bearer " . $api_key,
+        "X-Clover-Merchant-Id: " . $merchant_id,
+        "Accept: application/json",
+    ];
+    if ($payload !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        $headers[] = "Content-Type: application/json";
+        $headers[] = "Idempotency-Key: " . uniqid('clv_', true);
+    }
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    return [
+        'raw'        => $response,
+        'body'       => json_decode($response) ?: new stdClass(),
+        'http_code'  => $http_code,
+        'curl_error' => $curl_error,
+    ];
+}
+
+function cloverExtractCardId($body)
+{
+    // Clover returns sources.data as a list of card ID strings
+    if (!empty($body->sources->data) && is_array($body->sources->data)) {
+        $last = end($body->sources->data);   // newest card
+        if (is_string($last)) return $last;
+        if (is_object($last)) return $last->id ?? '';
+    }
+
+    // Fallback: search for a card-like object
+    $card = cloverFindCard($body, true);
+    return $card->id ?? '';
+}
+
+function cloverFindCard($node, $isRoot = false)
+{
+    if (is_object($node)) {
+        // A card has last4 plus an id (the root customer object is skipped)
+        if (!$isRoot && isset($node->id) && (isset($node->last4) || isset($node->brand))) {
+            return $node;
+        }
+        foreach (get_object_vars($node) as $v) {
+            $found = cloverFindCard($v);
+            if ($found) return $found;
+        }
+    } elseif (is_array($node)) {
+        // search from the end so the newest card wins
+        foreach (array_reverse($node) as $v) {
+            $found = cloverFindCard($v);
+            if ($found) return $found;
+        }
+    }
+    return null;
+}
+
+function cloverErrorMessage($res, $default)
+{
+    if ($res['raw'] === false) return "Unable to reach Clover: " . $res['curl_error'];
+    $b = $res['body'];
+    if (!empty($b->error->message)) return $b->error->message;
+    if (!empty($b->message)) return $b->message;
+    return $default . " (HTTP " . $res['http_code'] . ")";
+}
+
+function cloverFail($message, $step = '', $raw = '')
+{
+    $error['error'] = "Clover Failure [" . $step . "]: " . $message . " | RAW: " . $raw;
+    $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    db_perform('error_info', $error, 'insert');
+
+    $RETURN_DATA['STATUS'] = 'Failed';
+    $RETURN_DATA['PAYMENT_INFO'] = $message;
+    echo json_encode($RETURN_DATA);
+    die();
 }
