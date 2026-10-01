@@ -87,7 +87,7 @@ if ($page == 1) { ?>
                 <p class="text-muted mb-2 small">Optional settings section description</p>
             </div>
 
-            <div class="col-3 d-flex justify-content-end align-items-center">
+            <!-- <div class="col-3 d-flex justify-content-end align-items-center">
                 <div class="view-toggle m-r-15" style="height: 37px;">
                     <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
                         Active
@@ -96,15 +96,15 @@ if ($page == 1) { ?>
                         Complete
                     </button>
                 </div>
-            </div>
+            </div> -->
 
-            <div class="col-2 text-end">
+            <!-- <div class="col-2 text-end">
                 <a class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2"
                     style="background-color: #39b54a !important; width: max-content; height: 36px;"
                     href="adjust_customer_enrollment_and_appointment.php?PK_USER=<?= $PK_USER ?>&PK_USER_MASTER=<?= $PK_USER_MASTER ?>">
                     <i class="bi bi-repeat"></i> Adjust Everything
                 </a>
-            </div>
+            </div> -->
 
             <div class="col-2 text-end">
                 <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2"
@@ -288,7 +288,7 @@ if ($enrollment_data) {
                             </span>
                         <?php } ?>
                     </div>
-                    <div class="col-auto ms-auto">
+                    <!-- <div class="col-auto ms-auto">
                         <?php if ((safe_field($enrollment_data, 'PAYMENT_METHOD', '') == 'Payment Plans' || safe_field($enrollment_data, 'PAYMENT_METHOD', '') == 'Flexible Payments') && safe_field($enrollment_data, 'STATUS', '') == 'A') { ?>
                             <div class="d-flex justify-content-end align-items-center">
                                 <div class="form-check form-switch d-flex align-items-center">
@@ -302,7 +302,7 @@ if ($enrollment_data) {
                                 </div>
                             </div>
                         <?php } ?>
-                    </div>
+                    </div> -->
                     <div class="col-auto d-flex justify-content-end align-items-center text-end">
                         <?php
                         $payment_data     = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER));
@@ -323,9 +323,9 @@ if ($enrollment_data) {
                         <?php } ?>
                         <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
                             <?php if (safe_field($enrollment_data, 'STATUS', '') == 'A') { ?>
-                                <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= safe_field($enrollment_data, 'PK_USER_MASTER', 0) ?>, '<?= htmlspecialchars($enrollment_title, ENT_QUOTES) ?>')" title="Cancel" style="color: red; font-size: 21px; margin-left: 10px;">
+                                <!-- <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= safe_field($enrollment_data, 'PK_USER_MASTER', 0) ?>, '<?= htmlspecialchars($enrollment_title, ENT_QUOTES) ?>')" title="Cancel" style="color: red; font-size: 21px; margin-left: 10px;">
                                     <i class="bi bi-ban"></i>
-                                </a>
+                                </a> -->
                             <?php } elseif (safe_field($enrollment_data, 'STATUS', '') == 'C' || safe_field($enrollment_data, 'STATUS', '') == 'CA') { ?>
                                 <div class="d-flex flex-column align-items-end">
                                     <p style="color: red; margin: 0;">Cancelled</p>

@@ -235,9 +235,9 @@ if (count($LOCATIONS) == 1) {
                     $selected_location_names = [];
                     $DEFAULT_LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
                     foreach ($DEFAULT_LOCATION_ARRAY as $loc_id) {
-                        $loc_row = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = " . $loc_id);
+                        $loc_row = $db->Execute("SELECT LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION = " . $loc_id);
                         if (!$loc_row->EOF) {
-                            $selected_location_names[] = $loc_row->fields['LOCATION_CODE'];
+                            $selected_location_names[] = $loc_row->fields['LOCATION_NAME'];
                         }
                     }
                     ?>
@@ -246,13 +246,13 @@ if (count($LOCATIONS) == 1) {
                         <!-- <img src="assets/images/logo.jpg" width="40" class="me-2 d-flex" alt="user-image" /> -->
                         <div class="d-flex align-items-center gap-1">
                             <span>
-                                <h6 class="my-0 f14 lh-1 pro-username text-white location-display-name"><?= implode(', ', $selected_location_names) ?> <i class="fa fa-angle-down" style="font-size: 20px; margin: 0px 3px 0px 10px;"></i></h6>
+                                <h6 class="my-0 f14 lh-1 pro-username text-white location-display-name"><?= implode(', ', $selected_location_names) ?> </h6>
                             </span>
                         </div>
                     </a>
 
                     <!-- Multi-Select Dropdown -->
-                    <div class="dropdown-menu dropdown-menu-end multi-select-dropdown" id="locationMultiSelect" onclick="stopDropdownPropagation(event)">
+                    <!-- <div class="dropdown-menu dropdown-menu-end multi-select-dropdown" id="locationMultiSelect" onclick="stopDropdownPropagation(event)">
                         <div class="multi-select-header">Select Locations</div>
                         <div class="multi-select-options">
 
@@ -275,7 +275,7 @@ if (count($LOCATIONS) == 1) {
                             <button class="clear-btn" onclick="clearLocations()">Clear All</button>
                             <button class="apply-btn" onclick="selectViewingLocation()">Apply</button>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- <div class="dropdown-menu dropdown-menu-end">
                         <a href="#!" class="dropdown-item">
@@ -325,7 +325,11 @@ if (count($LOCATIONS) == 1) {
                                 <a class="nav-link <?= (('appointment_list.php' === $current_address) ? 'active' : '') ?>" href="appointment_list.php">Appointments</a>
                             </li>
                             <li class="">
-                                <a class="nav-link <?= (('enrollment_list.php' === $current_address) ? 'active' : '') ?>" href="enrollment_list.php">Enrollments</a>
+                                <?php $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+                                $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
+                                $selected_user_id = $customer_data->fields['PK_USER'];
+                                ?>
+                                <a class="nav-link <?= (('enrollment_list.php' === $current_address) ? 'active' : '') ?>" href="enrollment_list.php?id=<?= $selected_user_id ?>&master_id=<?= $selected_customer_id ?>&tab=profile">Enrollments</a>
                             </li>
                             <!-- <li class="">
                                 <a class="nav-link <?= (('all_events.php' === $current_address || 'events_list.php' === $current_address) ? 'active' : '') ?>" href="events_list.php">Events</a>
@@ -426,7 +430,7 @@ if (count($LOCATIONS) == 1) {
                         </div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <a href="../admin_v2/my_profile.php" class="dropdown-item">
+                        <a href="../customer_v2/my_profile.php" class="dropdown-item">
                             <span class="align-middle">Profile</span>
                         </a>
                         <!-- <a href="javascript:void(0);" class="dropdown-item">

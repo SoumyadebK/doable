@@ -81,10 +81,10 @@ while (!$serviceCodeData->EOF) {
             <th style="text-align: center;">Payment Type</th>
             <th style="text-align: center;">Balance</th>
             <th style="text-align: right;">
-                <?php if ($paid_count > 0) { ?>
+                <!-- <?php if ($paid_count > 0) { ?>
                     <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?= $PK_ENROLLMENT_MASTER ?>" onclick="toggleEnrollmentCheckboxes(<?= $PK_ENROLLMENT_MASTER ?>); event.stopPropagation();" style="margin-right: 10px;" />
                     <button type="button" class="btn btn-secondary pay_selected_btn" onclick="event.stopPropagation(); paySelected(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $ENROLLMENT_ID ?>')" disabled style="margin-right: 10px;"> Pay Selected</button>
-                <?php } ?>
+                <?php } ?> -->
             </th>
         </tr>
     </thead>
@@ -115,14 +115,14 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: center;"></td>
                 <td style="text-align: right; padding-right: 45px;"></td>
                 <td style="text-align: right; padding-right: 45px;">
-                    <?php if ($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
-                        if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
+                    <!-- <?php if ($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
+                                if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
                             <button id="payNow" class="pay_now_button btn btn-secondary" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $billing_details->fields['AMOUNT_REMAIN'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                         <?php } else { ?>
                             <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?= $PK_ENROLLMENT_MASTER ?>" data-billed_amount="<?= $billing_details->fields['BILLED_AMOUNT'] ?>" value="<?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>" style="margin-right: 10px;"></label>
                             <button id="payNow" class="pay_now_button btn btn-secondary" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $billing_details->fields['BILLED_AMOUNT'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                     <?php }
-                    } ?>
+                            } ?> -->
                 </td>
             </tr>
             <?php
@@ -199,7 +199,8 @@ while (!$serviceCodeData->EOF) {
                                 <a class="btn btn-secondary <?= ($payment_details->fields['IS_EXPORTED_TO_AMI'] == 1) ? 'disabled' : '' ?>" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Move', <?= $p ?>)">Move</a>
                                 <a class="btn btn-secondary" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Refund', <?= $p ?>)">Refund</a>
                             <?php } */ ?>
-                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')"></i>
+                            <!-- <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')"></i> -->
+                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
                             <?php if ($payment_details->fields['IS_EXPORTED_TO_AMI'] == 1) { ?>
                                 <p style="color: #fb8138; font-size: 10px; margin: auto;">Exported to AMI</p>
                             <?php } ?>
@@ -223,11 +224,11 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: center;"><?= $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] ?></td>
                 <td style="text-align: right; padding-right: 45px;"><?= number_format((float)$cancelled_enrollment_ledger->fields['BALANCE'], 2, '.', '') ?></td>
                 <td style="text-align: right; padding-right: 45px;">
-                    <?php if ($cancelled_enrollment_ledger->fields['IS_PAID'] == 0) { ?>
+                    <!-- <?php if ($cancelled_enrollment_ledger->fields['IS_PAID'] == 0) { ?>
                         <button id="payNow" class="pay_now_button btn btn-secondary" onclick="payNow(<?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?>, '');" style="color: red; border: 2px solid red; font-weight: bold;">Pay Now</button>
                     <?php } elseif ($cancelled_enrollment_ledger->fields['IS_PAID'] == 2) { ?>
                         <button class="btn btn-secondary" onclick="moveToWallet(this, 0, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= $cancelled_enrollment_ledger->fields['BALANCE'] ?>, 'cancelled', 'Refund', 0)" style="color: #39b54a; border: 2px solid #39b54a; font-weight: bold;">Refund</button>
-                    <?php } ?>
+                    <?php } ?> -->
                 </td>
             </tr>
 
