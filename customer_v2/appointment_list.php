@@ -66,7 +66,13 @@ if ($standing == 1) {
     $title = "Standing Appointments";
     $appointment_time = ' ';
 } else {
-    $title = "Today's Appointments";
+    if ($status_check == 'previous') {
+        $title = "Previous Appointments";
+    } elseif ($status_check == 'future') {
+        $title = "Future Appointments";
+    } else {
+        $title = "Today's Appointments";
+    }
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -186,12 +192,6 @@ $page_first_result = ($page - 1) * $results_per_page;
     .page-wrapper {
         padding-top: 0px !important;
         background: var(--gray-50);
-    }
-
-    .container-fluid {
-        padding: 24px 32px !important;
-        max-width: 1600px;
-        margin: 0 auto;
     }
 
     /* Breadcrumb / Page Title */
@@ -771,24 +771,7 @@ $page_first_result = ($page - 1) * $results_per_page;
         <?php require_once('../includes/header.php'); ?>
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid body_content" style="margin-top: 0px !important;">
-
-                <!-- Page Title -->
-                <div class="breadcrumb-wrapper">
-                    <h4>
-                        <i class="fas fa-calendar-check"></i>
-                        <?php if ($status_check == 'previous') { ?>
-                            Previous Appointments
-                        <?php } elseif ($status_check == 'future') { ?>
-                            Future Appointments
-                        <?php } else { ?>
-                            <?= $title ?>
-                        <?php } ?>
-                    </h4>
-                    <nav class="breadcrumb-nav">
-                        <span class="current">Appointments</span>
-                    </nav>
-                </div>
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
                 <!-- Filter Bar -->
                 <div class="filter-bar">

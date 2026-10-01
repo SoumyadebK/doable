@@ -396,23 +396,25 @@ if (count($LOCATIONS) == 1) {
                 </div>
             <?php } ?>
 
-            <div class="topbar-item d-none d-sm-flex">
-                <a class="top-bar-icon" href="to_do_list.php">
-                    <i class="fa fa-tasks" aria-hidden="true" style="font-size: 18px;"></i>
-                </a>
-            </div>
+            <?php if ($_SESSION["PK_ROLES"] != 4) { ?>
+                <div class="topbar-item d-none d-sm-flex">
+                    <a class="top-bar-icon" href="to_do_list.php">
+                        <i class="fa fa-tasks" aria-hidden="true" style="font-size: 18px;"></i>
+                    </a>
+                </div>
 
-            <div class="topbar-item d-none d-sm-flex">
-                <a class="top-bar-icon" href="#">
-                    <i class="fa fa-bell" aria-hidden="true" style="font-size: 18px;"></i>
-                </a>
-            </div>
+                <div class="topbar-item d-none d-sm-flex">
+                    <a class="top-bar-icon" href="#">
+                        <i class="fa fa-bell" aria-hidden="true" style="font-size: 18px;"></i>
+                    </a>
+                </div>
 
-            <div class="topbar-item d-none d-sm-flex">
-                <a class="top-bar-icon" href="all_corporations.php">
-                    <i class="fa fa-cog" aria-hidden="true" style="font-size: 18px;"></i>
-                </a>
-            </div>
+                <div class="topbar-item d-none d-sm-flex">
+                    <a class="top-bar-icon" href="all_corporations.php">
+                        <i class="fa fa-cog" aria-hidden="true" style="font-size: 18px;"></i>
+                    </a>
+                </div>
+            <?php } ?>
 
 
             <div id="user-dropdown-detailed" class="topbar-item nav-user">

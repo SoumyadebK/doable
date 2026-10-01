@@ -88,7 +88,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
                             $_SESSION['DEFAULT_LOCATION_ID'] = $account->fields['PRIMARY_LOCATION_ID'];
                         }
 
-                        header("location: customer/all_schedules.php?view=table");
+                        header("location: customer_v2/calendar.php");
                     } elseif ($_SESSION['PK_ROLES'] == 5) {
                         header("location: admin_v2/calendar.php");
                     } elseif ($_SESSION['IS_NEW'] == 1) {

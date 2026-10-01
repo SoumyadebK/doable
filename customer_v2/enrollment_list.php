@@ -284,12 +284,6 @@ $payment_types = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE
         background: var(--gray-50);
     }
 
-    .container-fluid {
-        padding: 24px 32px !important;
-        max-width: 1600px;
-        margin: 0 auto;
-    }
-
     .breadcrumb-wrapper {
         display: flex;
         justify-content: space-between;
@@ -559,17 +553,7 @@ $payment_types = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE
         <?php require_once('../includes/header.php'); ?>
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid body_content" style="margin-top: 0px !important;">
-
-                <div class="breadcrumb-wrapper">
-                    <h4>
-                        <i class="fas fa-file-signature"></i>
-                        <?= $title ?>
-                    </h4>
-                    <nav class="breadcrumb-nav">
-                        <span class="current">Enrollments</span>
-                    </nav>
-                </div>
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
                 <div class="row">
                     <div class="col-12">
