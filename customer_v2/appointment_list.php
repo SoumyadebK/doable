@@ -9,6 +9,8 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 $PK_USER_MASTER = $_SESSION['PK_USER_MASTER'];
 
+$service_provider_title = $service_provider_title ?? 'Service Provider';
+$operation_tab_title = $operation_tab_title ?? 'Operations';
 
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 $appointment_time = ' ';
@@ -385,6 +387,20 @@ $page_first_result = ($page - 1) * $results_per_page;
         color: var(--primary-color);
     }
 
+    /* Active quick filter button */
+    .btn-active {
+        background: var(--primary-color);
+        border: 1.5px solid var(--primary-color);
+        color: #fff !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-active:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: #fff !important;
+    }
+
     .btn-modern-sm {
         padding: 6px 16px;
         font-size: 13px;
@@ -715,12 +731,13 @@ $page_first_result = ($page - 1) * $results_per_page;
     .floating-actions {
         position: fixed;
         bottom: 24px;
-        right: 24px;
+        left: 50%;
+        transform: translateX(-50%);
         display: flex;
         gap: 10px;
         z-index: 100;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        justify-content: center;
     }
 
     @media (max-width: 768px) {
@@ -777,21 +794,29 @@ $page_first_result = ($page - 1) * $results_per_page;
                 <div class="filter-bar">
                     <!-- Quick Filter Buttons -->
                     <div class="quick-buttons">
-                        <a href="appointment_list.php?status=previous" class="btn-modern btn-modern-outline btn-modern-sm">
+
+                        <a href="appointment_list.php?status=previous"
+                            class="btn-modern btn-modern-sm <?= ($status_check == 'previous') ? 'btn-active' : 'btn-modern-outline' ?>">
                             <i class="fas fa-history"></i> Previous
                         </a>
-                        <a href="appointment_list.php?status=future" class="btn-modern btn-modern-outline btn-modern-sm">
+
+                        <a href="appointment_list.php?status=future"
+                            class="btn-modern btn-modern-sm <?= ($status_check == 'future') ? 'btn-active' : 'btn-modern-outline' ?>">
                             <i class="fas fa-calendar-plus"></i> Future
                         </a>
+
                         <?php if ($standing == 0) { ?>
-                            <a href="appointment_list.php?standing=1" class="btn-modern btn-modern-outline btn-modern-sm">
+                            <a href="appointment_list.php?standing=1"
+                                class="btn-modern btn-modern-sm <?= ($standing == 1) ? 'btn-active' : 'btn-modern-outline' ?>">
                                 <i class="fas fa-redo"></i> Standing
                             </a>
                         <?php } else { ?>
-                            <a href="appointment_list.php" class="btn-modern btn-modern-outline btn-modern-sm">
+                            <a href="appointment_list.php"
+                                class="btn-modern btn-modern-sm btn-active">
                                 <i class="fas fa-list"></i> Normal
                             </a>
                         <?php } ?>
+
                     </div>
 
                     <!-- Search Form -->

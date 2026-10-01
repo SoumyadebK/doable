@@ -200,7 +200,7 @@ while (!$serviceCodeData->EOF) {
                                 <a class="btn btn-secondary" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Refund', <?= $p ?>)">Refund</a>
                             <?php } */ ?>
                             <!-- <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')"></i> -->
-                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                            <a class="btn btn-secondary rounded-pill" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
                             <?php if ($payment_details->fields['IS_EXPORTED_TO_AMI'] == 1) { ?>
                                 <p style="color: #fb8138; font-size: 10px; margin: auto;">Exported to AMI</p>
                             <?php } ?>
