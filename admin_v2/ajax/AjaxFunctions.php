@@ -1241,7 +1241,6 @@ function saveLoginData($RESPONSE_DATA)
         }
 
         db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = " . $RESPONSE_DATA['PK_USER']);
-        $USER_DATA['CREATE_LOGIN'] = 1;
     }
 
     if ((!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['CONFIRM_PASSWORD'])) && ($RESPONSE_DATA['PASSWORD'] == $RESPONSE_DATA['CONFIRM_PASSWORD'])) {
@@ -1253,6 +1252,7 @@ function saveLoginData($RESPONSE_DATA)
     $USER_DATA['ACTIVE'] = isset($RESPONSE_DATA['ACTIVE']) ? $RESPONSE_DATA['ACTIVE'] : 1;
     $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    $USER_DATA['CREATE_LOGIN'] = 1;
 
     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = " . $RESPONSE_DATA['PK_USER']);
     echo $RESPONSE_DATA['PK_USER'];

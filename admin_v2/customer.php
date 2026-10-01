@@ -68,6 +68,7 @@ $PARTNER_EMAIL = '';
 $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
+$CREATE_LOGIN = '';
 $CREATED_ON = '';
 
 if (!empty($_GET['id'])) {
@@ -873,6 +874,7 @@ if ($PK_USER_MASTER > 0) {
                         <div class="col-md-2 border-right-light pt-2">
                             <nav class="flex-column left-tabs">
                                 <a class="sidebar-link profile-active active" data-toggle-target=".tab-content-1" href="#"><i class="bi bi-grid me-2"></i> Profile</a>
+                                <a class="sidebar-link login-active" href="javascript:void(0);" data-toggle-target=".tab-content-1a"><i class="bi bi-person me-2"></i> Login Info</a>
                                 <a class="sidebar-link family-active" href="javascript:void(0);" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
                                 <a class="sidebar-link enrollments-active" href="javascript:void(0);" onclick="loadEnrollment('normal')" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
                                 <a class="sidebar-link appointments-active" href="javascript:void(0);" onclick="getAppointmentList('normal')" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
@@ -1301,6 +1303,91 @@ if ($PK_USER_MASTER > 0) {
                                             } ?>
                                         </div>
                                         <a href="javascript:;" onclick="createUserComment();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="tab-content tab-content-1a row profile-section">
+
+                                <div class="col-md-8 pt-4">
+                                    <div id="user_edit_information">
+                                        <div class="profile-card">
+                                            <form id="login_form">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
+                                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                                                <input type="hidden" class="TYPE" name="TYPE" value="2">
+
+                                                <div class="d-flex justify-content-between border-bottom align-items-center">
+                                                    <div>
+                                                        <div class="section-title">Login Information</div>
+                                                        <div class="section-desc">Login details for the customer</div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-3">
+                                                    <div class="col-6">
+                                                        <label class="label">
+                                                            <input type="checkbox" class="form-check-input" id="CREATE_LOGIN" name="CREATE_LOGIN" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> onchange="createLogin(this);" required> &nbsp;Create Login
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div id="login_information" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>;">
+                                                    <div class="row mt-3">
+                                                        <div class="col-6">
+                                                            <label class="label">User Email</label>
+                                                            <div class="value">
+                                                                <input type="text" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" readonly>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-5">
+                                                            <label class="label">Password</label>
+                                                            <div class="value position-relative">
+                                                                <input type="password" class="form-control pe-5" placeholder="Password" aria-label="Password" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)" required>
+                                                                <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0" onclick="togglePasswordVisibility()">
+                                                                    <i class="bi bi-eye" id="passwordEye"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-5">
+                                                            <label class="label">Confirm Password</label>
+                                                            <div class="value position-relative">
+                                                                <input type="password" class="form-control pe-5" placeholder="Confirm Password" aria-label="Confirm Password" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)" required>
+                                                                <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0" onclick="toggleConfirmPasswordVisibility()">
+                                                                    <i class="bi bi-eye" id="confirmPasswordEye"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <p id="password_error" style="color: red; font-size: 12px;"></p>
+                                                    <div class="row" style="font-size: 12px;">
+                                                        <input type="hidden" id="password_strength" value="0">
+                                                        <div class="col-2">
+                                                            Password Strength:
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small id="password-text"></small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mt-1" id="password_note" style="font-size: 12px;">
+                                                        <div class="col-12">
+                                                            <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex gap-2 align-items-right mt-3">
+                                                        <a href="javascript:;" class="btn btn-secondary cancel">Cancel</a>
+                                                        <button class="btn btn-secondary" type="submit">Save</button>
+                                                    </div>
+                                                </div>
+
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2153,6 +2240,7 @@ if ($PK_USER_MASTER > 0) {
             var target = '';
             var callFunction = null;
             if (hash === '#profile') target = '.tab-content-1';
+            if (hash === '#login') target = '.tab-content-1a';
             else if (hash === '#family') target = '.tab-content-2';
             else if (hash === '#enrollments') {
                 target = '.tab-content-3';
@@ -2206,6 +2294,8 @@ if ($PK_USER_MASTER > 0) {
         // 3. Set hash for URL
         var hash = '';
         if (sel === '.tab-content-1') hash = '#profile';
+        if (sel === '.tab-content-1') hash = '#profile';
+        else if (sel === '.tab-content-1a') hash = '#login';
         else if (sel === '.tab-content-2') hash = '#family';
         else if (sel === '.tab-content-3') hash = '#enrollments';
         else if (sel === '.tab-content-4') hash = '#appointments';
@@ -2513,6 +2603,112 @@ if ($PK_USER_MASTER > 0) {
         });
     }
 </script>
+
+
+
+<!-- All function related to login history -->
+<script>
+    function createLogin(param) {
+        if ($(param).is(':checked')) {
+            $('#login_information').slideDown();
+        } else {
+            $('#login_information').slideUp();
+        }
+    }
+
+    function togglePasswordVisibility() {
+        let passwordInput = document.getElementById("PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+    function toggleConfirmPasswordVisibility() {
+        let passwordInput = document.getElementById("CONFIRM_PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+
+    function isGood(password) {
+        let password_strength = document.getElementById("password-text");
+
+        if (password.length == 0) {
+            password_strength.innerHTML = "";
+            return;
+        }
+        //Regular Expressions.
+        let regex = new Array();
+        regex.push("[A-Z]"); //Uppercase Alphabet.
+        regex.push("[a-z]"); //Lowercase Alphabet.
+        regex.push("[0-9]"); //Digit.
+        regex.push("[$@$!%*#?&]"); //Special Character.
+        let passed = 0;
+        //Validate for each Regular Expression.
+        for (let i = 0; i < regex.length; i++) {
+            if (new RegExp(regex[i]).test(password)) {
+                passed++;
+            }
+        }
+        //Display status.
+        let strength = "";
+        switch (passed) {
+            case 0:
+            case 1:
+            case 2:
+                strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                $('#password_note').slideDown();
+                $('#password_strength').val(0);
+                break;
+            case 3:
+                strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                $('#password_note').slideDown();
+                $('#password_strength').val(0);
+                break;
+            case 4:
+                strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                $('#password_note').slideUp();
+                $('#password_strength').val(1);
+                break;
+
+        }
+        // alert(strength);
+        password_strength.innerHTML = strength;
+    }
+
+
+    $(document).on('submit', '#login_form', function(event) {
+        event.preventDefault();
+        let PASSWORD = $('#PASSWORD').val();
+        $('#password_error').stop(true, true).hide().text('');
+        let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
+        let password_strength = $('#password_strength').val();
+        if (password_strength == 0) {
+            $('#password_error').text('Password is not strong enough').fadeIn();
+            return false;
+        } else {
+            if (PASSWORD === CONFIRM_PASSWORD) {
+                let form_data = $('#login_form').serialize();
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    success: function(data) {
+                        window.location.reload();
+                    }
+                });
+            } else {
+                $('#password_error').text('Password and Confirm Password not matched').fadeIn();
+            }
+        }
+    });
+</script>
+
 
 <!-- All function related to Family Member -->
 <script>
