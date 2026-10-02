@@ -1606,7 +1606,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                             <button class="tab-item" data-tab="billing" role="tab">
                                                 <i class="fas fa-credit-card"></i> Billing
                                             </button>
-                                            <button class="tab-item" data-tab="credit_card" role="tab">
+                                            <button class="tab-item" data-tab="credit_card" role="tab" onclick="getSavedCreditCardList('save_card');">
                                                 <i class="fas fa-credit-card"></i> Card
                                             </button>
                                             <?php if ($account_data->fields['IS_CONCIERGE'] == 1) {  ?>
@@ -1962,6 +1962,9 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                         <label class="radio-item">
                                                                             <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Clover
                                                                         </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="None" <?= ($PAYMENT_GATEWAY_TYPE == 'None') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> None
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="form-group-modern">
@@ -2034,6 +2037,12 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Public Token</label>
                                                                     <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($PUBLIC_API_KEY) : '' ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <div id="None" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'None') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern mt-2">
+                                                                    <label class="form-label" style="font-size: 14px;">No Payment Gateway Selected</label>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2919,7 +2928,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
 
             function showPaymentGateway(radio) {
                 // Hide all payment gateway divs
-                const gatewayDivs = ['stripe', 'square', 'authorized', 'Clover'];
+                const gatewayDivs = ['stripe', 'square', 'authorized', 'Clover', 'None'];
                 gatewayDivs.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
@@ -2939,6 +2948,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                     targetId = 'authorized';
                 } else if (value === 'Clover') {
                     targetId = 'Clover';
+                } else if (value === 'None') {
+                    targetId = 'None';
                 }
 
                 if (targetId) {
@@ -3158,9 +3169,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
 
         <script>
             function getPaymentMethodId(param) {
+                $('.credit-card-div').css("opacity", "1");
                 document.querySelectorAll('.credit-card-item').forEach(el => el.classList.remove('selected'));
                 param.closest('.credit-card-item')?.classList.add('selected');
                 document.getElementById('PAYMENT_METHOD_ID').value = param.getAttribute('id') || '';
+                $(param).css("opacity", "0.6");
             }
 
             $(document).on('submit', '#location_payment_form', function(event) {
@@ -3283,13 +3296,23 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                 window.location.href = 'location.php?id=' + response.PK_LOCATION;
                             }
                         } else {
-                            alert('Error: ' + (response.message || 'Failed to save location'));
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Failed to save location',
+                                confirmButtonColor: '#39B54A'
+                            });
                             btn.disabled = false;
                             btn.innerHTML = originalText;
                         }
                     },
                     error: function() {
-                        alert('An error occurred while saving the location.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while saving the location.',
+                            confirmButtonColor: '#39B54A'
+                        });
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                     }
