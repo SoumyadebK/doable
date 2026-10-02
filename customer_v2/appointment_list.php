@@ -148,7 +148,7 @@ $page_first_result = ($page - 1) * $results_per_page;
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
+
 <?php include 'layout/header.php'; ?>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -785,7 +785,7 @@ $page_first_result = ($page - 1) * $results_per_page;
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/header.php'); ?>
+
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">

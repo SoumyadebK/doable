@@ -181,7 +181,7 @@ $all_payment_types = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE =
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
+
 <?php include 'layout/header.php'; ?>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -727,17 +727,6 @@ $all_payment_types = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE =
         color: #333;
     }
 
-    /* ==================== DROPDOWN / DROPDOWN-MENU ==================== */
-    .dropdown-menu {
-        border-radius: 10px;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--gray-200);
-    }
-
-    .dropdown-item {
-        font-size: 0.9rem;
-        padding: 8px 16px;
-    }
 
     /* ==================== PAGINATION / DATATABLE ==================== */
     .pagination .page-item.active .page-link {
@@ -920,12 +909,35 @@ $all_payment_types = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE =
     .enrollment-container .table {
         width: 100% !important;
     }
+
+    /* Fix profile name vertical alignment */
+    .nav-user .topbar-link {
+        display: flex !important;
+        align-items: center !important;
+        height: 100%;
+        margin-top: 0 !important;
+    }
+
+    .nav-user .topbar-link img {
+        display: block !important;
+        flex-shrink: 0;
+    }
+
+    .nav-user .topbar-link>div {
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .nav-user .pro-username {
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-
+        <?php require_once('../includes/header.php'); ?>
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
