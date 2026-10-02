@@ -794,6 +794,8 @@
                         } else {
                             submitEnrollmentPaymentForm();
                         }
+                    } else {
+                        submitEnrollmentPaymentForm();
                     }
                 }
             }
