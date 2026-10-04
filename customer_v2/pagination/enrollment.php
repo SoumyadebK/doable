@@ -145,7 +145,7 @@ if ($page == 1) { ?>
         } ?>
 
         <div class="d-flex align-items-center border-top border-bottom py-2 mb-3">
-            <div class="flex-grow-1">
+            <!-- <div class="flex-grow-1">
                 <div class="stat-label">Total Amount Enrolled</div>
                 <div class="stat-value">$<?= number_format((float)$credit_balance, 2) ?></div>
             </div>
@@ -154,7 +154,7 @@ if ($page == 1) { ?>
                 <div class="stat-label">Miscellaneous Amount</div>
                 <div class="stat-value">$<?= number_format((float)$misc_balance, 2) ?></div>
             </div>
-            <div class="stat-divider"></div>
+            <div class="stat-divider"></div> -->
             <div class="flex-grow-1">
                 <div class="stat-label">Wallet Balance</div>
                 <div class="stat-value">$<?= number_format((float)$CURRENT_WALLET_BALANCE, 2) ?></div>
