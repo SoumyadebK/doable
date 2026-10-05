@@ -1563,8 +1563,30 @@ function saveLocationData($RESPONSE_DATA)
 
             $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
 
-            $PAYMENT_GATEWAY_TYPE   = $location_data->fields['PAYMENT_GATEWAY_TYPE'];
-            $GATEWAY_MODE           = $location_data->fields['GATEWAY_MODE'];
+            // Prefer submitted values, fall back to saved
+            $PAYMENT_GATEWAY_TYPE = $RESPONSE_DATA['PAYMENT_GATEWAY_TYPE'];
+            $GATEWAY_MODE         = $RESPONSE_DATA['GATEWAY_MODE'];
+
+            $fieldsByGateway = [
+                'Stripe'         => ['SECRET_KEY', 'PUBLISHABLE_KEY'],
+                'Square'         => ['ACCESS_TOKEN', 'APP_ID', 'LOCATION_ID'],
+                'Authorized.net' => ['LOGIN_ID', 'TRANSACTION_KEY', 'AUTHORIZE_CLIENT_KEY'],
+                'Clover'         => ['MERCHANT_ID', 'API_KEY', 'PUBLIC_API_KEY'],
+            ];
+
+            $creds = [];
+            foreach ($fieldsByGateway[$PAYMENT_GATEWAY_TYPE] ?? [] as $field) {
+                $creds[$field] = !empty($RESPONSE_DATA[$field]) ? $RESPONSE_DATA[$field] : $location_data->fields[$field];
+            }
+
+            $error = validateGatewayMode($PAYMENT_GATEWAY_TYPE, $GATEWAY_MODE, $creds);
+            if ($error !== null) {
+                echo json_encode(['success' => false, 'message' => $error]);
+                exit;
+            }
+
+            /* $PAYMENT_GATEWAY_TYPE   = $location_data->fields['PAYMENT_GATEWAY_TYPE'];
+            $GATEWAY_MODE           = $location_data->fields['GATEWAY_MODE']; */
             $SECRET_KEY             = $location_data->fields['SECRET_KEY'];
             $PUBLISHABLE_KEY        = $location_data->fields['PUBLISHABLE_KEY'];
             $ACCESS_TOKEN           = $location_data->fields['ACCESS_TOKEN'];
@@ -1577,24 +1599,53 @@ function saveLocationData($RESPONSE_DATA)
             $API_KEY                = $location_data->fields['API_KEY'];
             $PUBLIC_API_KEY         = $location_data->fields['PUBLIC_API_KEY'];
 
-
             if ($PAYMENT_GATEWAY_TYPE == 'Stripe') {
                 $LOCATION_DATA['SECRET_KEY'] = !empty($LOCATION_DATA['SECRET_KEY']) ? $LOCATION_DATA['SECRET_KEY'] : $SECRET_KEY;
                 $LOCATION_DATA['PUBLISHABLE_KEY'] = !empty($LOCATION_DATA['PUBLISHABLE_KEY']) ? $LOCATION_DATA['PUBLISHABLE_KEY'] : $PUBLISHABLE_KEY;
+                if (empty($LOCATION_DATA['SECRET_KEY']) || empty($LOCATION_DATA['PUBLISHABLE_KEY'])) {
+                    echo json_encode(['success' => false, 'message' => 'Stripe credentials are required.']);
+                    exit;
+                }
             } elseif ($PAYMENT_GATEWAY_TYPE == 'Square') {
                 $LOCATION_DATA['ACCESS_TOKEN'] = !empty($RESPONSE_DATA['ACCESS_TOKEN']) ? $RESPONSE_DATA['ACCESS_TOKEN'] : $ACCESS_TOKEN;
                 $LOCATION_DATA['APP_ID'] = !empty($RESPONSE_DATA['APP_ID']) ? $RESPONSE_DATA['APP_ID'] : $SQUARE_APP_ID;
                 $LOCATION_DATA['LOCATION_ID'] = !empty($RESPONSE_DATA['LOCATION_ID']) ? $RESPONSE_DATA['LOCATION_ID'] : $SQUARE_LOCATION_ID;
+                if (empty($LOCATION_DATA['ACCESS_TOKEN']) || empty($LOCATION_DATA['APP_ID']) || empty($LOCATION_DATA['LOCATION_ID'])) {
+                    echo json_encode(['success' => false, 'message' => 'Square credentials are required.']);
+                    exit;
+                }
             } elseif ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') {
                 $LOCATION_DATA['LOGIN_ID'] = !empty($RESPONSE_DATA['LOGIN_ID']) ? $RESPONSE_DATA['LOGIN_ID'] : $LOGIN_ID;
                 $LOCATION_DATA['TRANSACTION_KEY'] = !empty($RESPONSE_DATA['TRANSACTION_KEY']) ? $RESPONSE_DATA['TRANSACTION_KEY'] : $TRANSACTION_KEY;
                 $LOCATION_DATA['AUTHORIZE_CLIENT_KEY'] = !empty($RESPONSE_DATA['AUTHORIZE_CLIENT_KEY']) ? $RESPONSE_DATA['AUTHORIZE_CLIENT_KEY'] : $AUTHORIZE_CLIENT_KEY;
+                if (empty($LOCATION_DATA['LOGIN_ID']) || empty($LOCATION_DATA['TRANSACTION_KEY']) || empty($LOCATION_DATA['AUTHORIZE_CLIENT_KEY'])) {
+                    echo json_encode(['success' => false, 'message' => 'Authorize.net credentials are required.']);
+                    exit;
+                }
             } elseif ($PAYMENT_GATEWAY_TYPE == 'Clover') {
                 $LOCATION_DATA['MERCHANT_ID'] = !empty($RESPONSE_DATA['MERCHANT_ID']) ? $RESPONSE_DATA['MERCHANT_ID'] : $MERCHANT_ID;
                 $LOCATION_DATA['API_KEY'] = !empty($RESPONSE_DATA['API_KEY']) ? $RESPONSE_DATA['API_KEY'] : $API_KEY;
                 $LOCATION_DATA['PUBLIC_API_KEY'] = !empty($RESPONSE_DATA['PUBLIC_API_KEY']) ? $RESPONSE_DATA['PUBLIC_API_KEY'] : $PUBLIC_API_KEY;
+                if (empty($LOCATION_DATA['MERCHANT_ID']) || empty($LOCATION_DATA['API_KEY']) || empty($LOCATION_DATA['PUBLIC_API_KEY'])) {
+                    echo json_encode(['success' => false, 'message' => 'Clover credentials are required.']);
+                    exit;
+                }
+            } elseif ($PAYMENT_GATEWAY_TYPE == 'None') {
+                $LOCATION_DATA['SECRET_KEY'] = NULL;
+                $LOCATION_DATA['PUBLISHABLE_KEY'] = NULL;
+                $LOCATION_DATA['ACCESS_TOKEN'] = NULL;
+                $LOCATION_DATA['APP_ID'] = NULL;
+                $LOCATION_DATA['LOCATION_ID'] = NULL;
+                $LOCATION_DATA['LOGIN_ID'] = NULL;
+                $LOCATION_DATA['TRANSACTION_KEY'] = NULL;
+                $LOCATION_DATA['AUTHORIZE_CLIENT_KEY'] = NULL;
+                $LOCATION_DATA['MERCHANT_ID'] = NULL;
+                $LOCATION_DATA['API_KEY'] = NULL;
+                $LOCATION_DATA['PUBLIC_API_KEY'] = NULL;
             }
 
+            // Validation passed, so assign and save
+            $LOCATION_DATA = array_merge($LOCATION_DATA ?? [], $creds);
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
@@ -1611,6 +1662,123 @@ function saveLocationData($RESPONSE_DATA)
         echo json_encode($response);
     }
 }
+
+
+
+/**
+ * Returns null if OK, or an error message if credentials don't match the selected mode.
+ */
+function validateGatewayMode($gatewayType, $mode, array $c)
+{
+    $mode = strtolower(trim($mode));          // 'test' or 'live'
+    if (!in_array($mode, ['test', 'live'])) {
+        return 'Invalid gateway mode.';
+    }
+    $isLive = ($mode === 'live');
+
+    switch ($gatewayType) {
+
+        case 'Stripe':
+            foreach (['SECRET_KEY' => ['sk_', 'rk_'], 'PUBLISHABLE_KEY' => ['pk_']] as $field => $prefixes) {
+                $val = trim($c[$field] ?? '');
+                if ($val === '') continue;
+                $keyIsLive = false;
+                $keyIsTest = false;
+                foreach ($prefixes as $p) {
+                    if (strpos($val, $p . 'live_') === 0) $keyIsLive = true;
+                    if (strpos($val, $p . 'test_') === 0) $keyIsTest = true;
+                }
+                if (!$keyIsLive && !$keyIsTest) {
+                    return "Invalid Stripe $field format.";
+                }
+                if ($isLive && $keyIsTest) return "Stripe $field is a TEST key but mode is LIVE.";
+                if (!$isLive && $keyIsLive) return "Stripe $field is a LIVE key but mode is TEST.";
+            }
+            return null;
+
+        case 'Square':
+            // Application ID is the reliable indicator:
+            //   sandbox => sandbox-sq0idb-...   production => sq0idp-...
+            $appId = trim($c['APP_ID'] ?? '');
+            if ($appId !== '') {
+                $appIsSandbox = strpos($appId, 'sandbox-') === 0;
+                if ($isLive && $appIsSandbox)   return 'Square Application ID is a SANDBOX ID but mode is LIVE.';
+                if (!$isLive && !$appIsSandbox) return 'Square Application ID is a PRODUCTION ID but mode is TEST.';
+            }
+            // Access token (heuristic): sandbox tokens usually start with "EAAAE", production with "EAAAl"
+            $token = trim($c['ACCESS_TOKEN'] ?? '');
+            if ($token !== '') {
+                if ($isLive && strpos($token, 'EAAAE') === 0)   return 'Square Access Token looks like a SANDBOX token but mode is LIVE.';
+                if (!$isLive && strpos($token, 'EAAAl') === 0)  return 'Square Access Token looks like a PRODUCTION token but mode is TEST.';
+            }
+            return null;
+
+        case 'Authorized.net':
+            // No prefix difference, so verify against the actual endpoint
+            $login = trim($c['LOGIN_ID'] ?? '');
+            $key   = trim($c['TRANSACTION_KEY'] ?? '');
+            if ($login === '' || $key === '') return null;
+
+            $url = $isLive ? 'https://api.authorize.net/xml/v1/request.api'
+                : 'https://apitest.authorize.net/xml/v1/request.api';
+            $payload = json_encode(['authenticateTestRequest' => [
+                'merchantAuthentication' => ['name' => $login, 'transactionKey' => $key]
+            ]]);
+            $res = httpJson($url, $payload);
+            if ($res === null) return 'Could not verify Authorize.net credentials (connection error).';
+            $code = $res['messages']['resultCode'] ?? 'Error';
+            if ($code !== 'Ok') {
+                return 'Authorize.net credentials are not valid for ' . strtoupper($mode) . ' mode.';
+            }
+            return null;
+
+        case 'Clover':
+            $merchantId = trim($c['MERCHANT_ID'] ?? '');
+            $apiKey     = trim($c['API_KEY'] ?? '');
+            if ($merchantId === '' || $apiKey === '') return null;
+
+            $base = $isLive ? 'https://api.clover.com' : 'https://apisandbox.dev.clover.com';
+            $status = httpGetStatus("$base/v3/merchants/" . urlencode($merchantId), $apiKey);
+            if ($status !== 200) {
+                return 'Clover credentials are not valid for ' . strtoupper($mode) . ' mode.';
+            }
+            return null;
+    }
+    return null;
+}
+
+function httpJson($url, $json)
+{
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $json,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+    ]);
+    $out = curl_exec($ch);
+    curl_close($ch);
+    if ($out === false) return null;
+    $out = ltrim($out, "\xEF\xBB\xBF");      // Authorize.net returns a BOM
+    return json_decode($out, true);
+}
+
+function httpGetStatus($url, $bearer)
+{
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPHEADER => ["Authorization: Bearer $bearer"],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+    ]);
+    curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return $status;
+}
+
+
 
 function testSmtpSetting($RESPONSE_DATA)
 {
