@@ -1,0 +1,20 @@
+[05-Oct-2026 21:05:30 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:05:30 America/Los_Angeles] PHP Fatal error:  Uncaught Error: Call to undefined method queryFactory::ErrorMsg() in C:\xampp\htdocs\doable\admin_v2\data_uploader.php:70
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\doable\admin_v2\data_uploader.php on line 70
+[05-Oct-2026 21:07:23 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:07:23 America/Los_Angeles] PHP Fatal error:  Uncaught Error: Call to undefined method queryFactory::ErrorMsg() in C:\xampp\htdocs\doable\admin_v2\data_uploader.php:179
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\doable\admin_v2\data_uploader.php on line 179
+[05-Oct-2026 21:09:25 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:09:25 America/Los_Angeles] PHP Deprecated:  The each() function is deprecated. This message will be suppressed on further calls in C:\xampp\htdocs\doable\global\common_functions_account.php on line 167
+[05-Oct-2026 21:10:24 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 21:10:27 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 21:10:36 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:10:36 America/Los_Angeles] PHP Deprecated:  The each() function is deprecated. This message will be suppressed on further calls in C:\xampp\htdocs\doable\global\common_functions_account.php on line 167
+[05-Oct-2026 21:13:29 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:13:29 America/Los_Angeles] PHP Deprecated:  The each() function is deprecated. This message will be suppressed on further calls in C:\xampp\htdocs\doable\global\common_functions_account.php on line 167
+[05-Oct-2026 21:18:34 Europe/Berlin] PHP Deprecated:  Methods with the same name as their class will not be constructors in a future version of PHP; queryFactoryResult has a deprecated constructor in C:\xampp\htdocs\doable\global\query_factory.php on line 269
+[05-Oct-2026 12:18:34 America/Los_Angeles] PHP Deprecated:  The each() function is deprecated. This message will be suppressed on further calls in C:\xampp\htdocs\doable\global\common_functions.php on line 167

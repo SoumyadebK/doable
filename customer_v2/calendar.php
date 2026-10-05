@@ -2011,7 +2011,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         function getServiceProviderCount() {
             // === CUSTOMER CHANGE: skip the staff-count overlay for customers ===
-            if (IS_CUSTOMER) {
+            if (!IS_CUSTOMER) {
                 return;
             }
 
@@ -2070,7 +2070,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                         letter-spacing:1px;">
                                                         ${sp_initials}
                                                     </div>
-                                                    ${(is_followup_exist >= 1) ? `<span style="position:absolute;top:-10px;right:-15px;min-width:18px;height:18px;padding:0px 0px;background:red;border-radius:15px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;line-height:1;">${is_followup_exist}</span>` : ''}
+                                                    <!-- ${(is_followup_exist >= 1) ? `<span style="position:absolute;top:-10px;right:-15px;min-width:18px;height:18px;padding:0px 0px;background:red;border-radius:15px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;line-height:1;">${is_followup_exist}</span>` : ''} -->
                                                 </div>
 
                                                 <div style="

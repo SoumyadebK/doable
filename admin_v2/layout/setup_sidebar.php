@@ -81,6 +81,13 @@ $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOU
         </a>
     </nav>
 
+    <div class="sidebar-section-title">Operations</div>
+    <nav class="nav flex-column gap-1">
+        <a class="nav-link sidebar-link <?= $current_page == 'data_uploader.php' ? 'active' : '' ?>" href="data_uploader.php">
+            <i class="bi bi-database-up"></i> Data Uploader
+        </a>
+    </nav>
+
     <div class="sidebar-section-title">Logs</div>
     <nav class="nav flex-column gap-1">
         <a class="nav-link sidebar-link <?= $current_page == 'sms_logs.php' ? 'active' : '' ?>" href="sms_logs.php">
