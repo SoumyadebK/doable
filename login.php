@@ -27,15 +27,15 @@ if ($FUNCTION_NAME == 'loginFunction') {
                 $PK_USER = $result->fields['PK_USER'];
                 $IP_ADDRESS = getUserIP();
 
+                $selected_role = '';
+                $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
+                $selected_role = $selected_roles_row->fields['PK_ROLES'];
+                $_SESSION['PK_ROLES'] = $selected_role;
+
                 $auth_data = $db->Execute("SELECT * FROM `DOA_USER_AUTH_LOG` WHERE `PK_USER` = '$PK_USER' ORDER BY `LOGIN_TIME` DESC LIMIT 1");
 
-                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($PK_USER == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || ($result->fields['PK_ACCOUNT_MASTER'] == 1010 || $result->fields['PK_ACCOUNT_MASTER'] == 1039)) {
-                    $selected_role = '';
-                    $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
-                    $selected_role = $selected_roles_row->fields['PK_ROLES'];
-
+                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($_SESSION['PK_ROLES'] == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || ($result->fields['PK_ACCOUNT_MASTER'] == 1010 || $result->fields['PK_ACCOUNT_MASTER'] == 1039)) {
                     $_SESSION['PK_USER'] = $result->fields['PK_USER'];
-                    $_SESSION['PK_ROLES'] = $selected_role;
                     $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
 
                     if ($_SESSION['PK_ROLES'] == 4) {

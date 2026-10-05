@@ -167,7 +167,7 @@ if (empty($_GET['id'])) {
                                                                             <label class="col-md-12" for="example-text">User Name<span class="text-danger">*</span>
                                                                             </label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?= $USER_NAME ?>">
+                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?= empty($_GET['id']) ? 'DOA.' : $USER_NAME ?>">
                                                                             </div>
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
