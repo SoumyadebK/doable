@@ -104,7 +104,7 @@ if ($page == 1) { ?>
                     href="adjust_customer_enrollment_and_appointment.php?PK_USER=<?= $PK_USER ?>&PK_USER_MASTER=<?= $PK_USER_MASTER ?>">
                     <i class="bi bi-repeat"></i> Adjust Everything
                 </a>
-            </div> -->
+            </div> 
 
             <div class="col-2 text-end">
                 <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2"
@@ -112,7 +112,7 @@ if ($page == 1) { ?>
                     onclick="createCustomerEnrollment()">
                     <i class="bi bi-plus"></i> Create New Enrollment
                 </button>
-            </div>
+            </div> -->
         </div>
 
         <?php
