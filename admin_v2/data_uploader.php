@@ -179,8 +179,11 @@ if (!empty($_POST)) {
                                 $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
                                 $CUSTOMER_DATA['FIRST_NAME']     = trim($getData[0]);
                                 $CUSTOMER_DATA['LAST_NAME']      = trim($getData[1]);
-                                $CUSTOMER_DATA['EMAIL_ID']       = $getData[2];
+                                $CUSTOMER_DATA['EMAIL']       = $getData[2];
                                 $CUSTOMER_DATA['PHONE']          = $getData[3];
+                                $CUSTOMER_DATA['ATTENDING_WITH']     = !empty($getData[16]) ? 'With a Partner' : 'Solo';
+                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = trim($getData[16] ?? '');
+                                $CUSTOMER_DATA['PARTNER_LAST_NAME']  = trim($getData[17] ?? '');
                                 db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
                                 $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
                             }
