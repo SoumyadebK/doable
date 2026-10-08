@@ -477,7 +477,7 @@ function firstSundayOfYear($year)
                             <div class="card">
                                 <div class="card-body" style="padding-bottom: 0px !important;">
                                     <form class="form-material form-horizontal" action="" method="get" id="reportForm">
-                                        <input type="hidden" name="start_date" id="weekly_start_date">
+                                        <input type="hidden" name="start_date" id="weekly_start_date" value="<?= !empty($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>">
                                         <input type="hidden" name="NAME" id="NAME" value="summary_of_studio_business_report">
                                         <div class="row justify-content-start">
                                             <div class="col-2">
