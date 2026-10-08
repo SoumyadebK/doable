@@ -345,9 +345,13 @@ if ($type === 'export') {
                 $STUDENT_NAME = $payment_data->fields['STUDENT_NAME'];
                 $staff_members = [];
                 $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
-                while (!$teacher_data->EOF) {
-                    $staff_members[] = getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
-                    $teacher_data->MoveNext();
+                if ($teacher_data->RecordCount() > 0) {
+                    while (!$teacher_data->EOF) {
+                        $staff_members[] = getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
+                        $teacher_data->MoveNext();
+                    }
+                } else {
+                    $staff_members[] = $executive;
                 }
             }
 
@@ -595,7 +599,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                             <div class="card">
                                 <div class="card-body" style="padding-bottom: 0px !important;">
                                     <form class="form-material form-horizontal" action="" method="get" id="reportForm">
-                                        <input type="hidden" name="start_date" id="weekly_start_date">
+                                        <input type="hidden" name="start_date" id="weekly_start_date" value="<?= !empty($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>">
                                         <input type="hidden" name="NAME" id="NAME" value="royalty_service_report">
                                         <div class="row justify-content-start">
                                             <div class="col-2">
