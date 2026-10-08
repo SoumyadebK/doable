@@ -178,10 +178,10 @@ if ($TYPE == 'appointment') {
             <div class="theme-text-light f12 fw-medium">Public Note:</div>
             <span class="f12 lh-2 d-inline-block"><?= $COMMENT ?></span>
         </div>
-        <div class="appointment-profile theme-text-light">
+        <!-- <div class="appointment-profile theme-text-light">
             <div class="theme-text-light f12 fw-medium">Internal Note:</div>
             <span class="f12 lh-2 d-inline-block"><?= $INTERNAL_COMMENT ?></span>
-        </div>
+        </div> -->
     </div>
 <?php
 } elseif ($TYPE == 'group_class') {

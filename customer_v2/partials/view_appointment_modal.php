@@ -447,7 +447,7 @@ if ($TYPE == 'appointment') {
             </div>
         </div>
 
-        <div class="row mb-3 align-items-center staus">
+        <!-- <div class="row mb-3 align-items-center staus">
             <div class="col-4 col-md-4">
                 <div class="d-flex gap-2 align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
@@ -467,7 +467,7 @@ if ($TYPE == 'appointment') {
                     </select>
                 </div>
             </div>
-        </div>
+        </div> -->
 
 
         <hr class="mb-3">
