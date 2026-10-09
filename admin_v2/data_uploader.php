@@ -10,7 +10,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
-// Multi-token store: keep the last 5 tokens valid for 10 minutes each.
+// Multi-token store
 if (empty($_SESSION['UPLOAD_TOKENS']) || !is_array($_SESSION['UPLOAD_TOKENS'])) {
     $_SESSION['UPLOAD_TOKENS'] = [];
 }
@@ -24,7 +24,7 @@ $_SESSION['UPLOAD_TOKENS'][$upload_token] = ['ts' => time(), 'used' => false];
 
 if (!empty($_POST)) {
 
-    // ---------- Token guard ----------
+    // Token guard
     $submitted_token = $_POST['upload_token'] ?? '';
     $token_ok = $submitted_token !== ''
         && isset($_SESSION['UPLOAD_TOKENS'][$submitted_token])
@@ -96,6 +96,16 @@ if (!empty($_POST)) {
                         $duplicate_rows    = [];
                         $balance_only_rows = [];
                         $misc_rows         = [];
+
+                        // Look up a scheduling code to reuse for completed appointments.
+                        // getSessionCompletedCount() sums DOA_SCHEDULING_CODE.UNIT, so we need a real row.
+                        $sched_code_lookup = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE UNIT = 1 LIMIT 1");
+                        if (!$sched_code_lookup || $sched_code_lookup->RecordCount() == 0) {
+                            // fallback: any scheduling code
+                            $sched_code_lookup = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE LIMIT 1");
+                        }
+                        $PK_SCHEDULING_CODE_DEFAULT = ($sched_code_lookup && $sched_code_lookup->RecordCount() > 0)
+                            ? $sched_code_lookup->fields['PK_SCHEDULING_CODE'] : 0;
 
                         // ==========================================================
                         // CSV COLUMN MAP (19 columns)
@@ -228,7 +238,6 @@ if (!empty($_POST)) {
                                 continue;
                             }
 
-                            // Track whether this row created any enrollment
                             $row_created_enrollment = false;
 
                             // ==========================================================
@@ -365,6 +374,91 @@ if (!empty($_POST)) {
                                         'PAYMENT_STATUS'        => 'Success',
                                     ];
                                     db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+
+                                    // ---------------------------------------------------------
+                                    // Create COMPLETED APPOINTMENTS for Used lessons.
+                                    // getSessionCompletedCount() sums DOA_SCHEDULING_CODE.UNIT
+                                    // for appointments with IS_CHARGED = 1 linked to the
+                                    // enrollment service row. Without these the "Used" column
+                                    // stays at 0 in the customer profile.
+                                    // ---------------------------------------------------------
+                                    if ($PK_SCHEDULING_CODE_DEFAULT > 0) {
+
+                                        $used_buckets = [
+                                            ['count' => $priv_completed,  'like' => 'Private'],
+                                            ['count' => $grp_completed,   'like' => 'Group'],
+                                            ['count' => $party_completed, 'like' => 'Party'],
+                                            ['count' => $coach_completed, 'like' => 'Coach'],
+                                        ];
+
+                                        foreach ($used_buckets as $bucket) {
+                                            if ($bucket['count'] <= 0) continue;
+
+                                            // Find the service master matching this bucket
+                                            $svc_lookup = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER 
+                                                                                FROM DOA_SERVICE_MASTER 
+                                                                                WHERE SERVICE_NAME LIKE '%" . $bucket['like'] . "%' 
+                                                                                LIMIT 1");
+                                            if (!$svc_lookup || $svc_lookup->RecordCount() == 0) continue;
+                                            $PK_SVC_MASTER = $svc_lookup->fields['PK_SERVICE_MASTER'];
+
+                                            // Find the enrollment service row we just created
+                                            $enr_svc_row = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE 
+                                                                                FROM DOA_ENROLLMENT_SERVICE 
+                                                                                WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " 
+                                                                                AND PK_SERVICE_MASTER = " . $PK_SVC_MASTER . " 
+                                                                                LIMIT 1");
+                                            if (!$enr_svc_row || $enr_svc_row->RecordCount() == 0) continue;
+                                            $PK_ENROLLMENT_SERVICE = $enr_svc_row->fields['PK_ENROLLMENT_SERVICE'];
+
+                                            // Find a service code for this service master
+                                            $svc_code_lookup = $db_account->Execute("SELECT PK_SERVICE_CODE 
+                                                                                    FROM DOA_SERVICE_CODE 
+                                                                                    WHERE PK_SERVICE_MASTER = " . $PK_SVC_MASTER . " 
+                                                                                    LIMIT 1");
+                                            $PK_SVC_CODE = ($svc_code_lookup && $svc_code_lookup->RecordCount() > 0)
+                                                ? $svc_code_lookup->fields['PK_SERVICE_CODE'] : 0;
+
+                                            // Create one completed appointment per used lesson
+                                            for ($u = 0; $u < (int)$bucket['count']; $u++) {
+                                                $APPT = [
+                                                    'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
+                                                    'PK_ENROLLMENT_SERVICE' => $PK_ENROLLMENT_SERVICE,
+                                                    'PK_SERVICE_MASTER'     => $PK_SVC_MASTER,
+                                                    'PK_SERVICE_CODE'       => $PK_SVC_CODE,
+                                                    'PK_SCHEDULING_CODE'    => $PK_SCHEDULING_CODE_DEFAULT,
+                                                    'PK_LOCATION'           => $PK_LOCATION,
+                                                    'PK_APPOINTMENT_STATUS' => 2,   // 2 = Completed
+                                                    'APPOINTMENT_TYPE'      => 'NORMAL',
+                                                    'DATE'                  => date('Y-m-d', strtotime('-' . ($u + 1) . ' days')),
+                                                    'START_TIME'            => '09:00:00',
+                                                    'END_TIME'              => '10:00:00',
+                                                    'ACTIVE'                => 1,
+                                                    'STATUS'                => 'A',
+                                                    'IS_CHARGED'            => 1,
+                                                    'IS_PAID'               => 1,
+                                                    'SERIAL_NUMBER'         => 0,
+                                                    'STANDING_ID'           => 0,
+                                                    'CREATED_BY'            => $_SESSION['PK_USER'],
+                                                    'CREATED_ON'            => date('Y-m-d H:i'),
+                                                ];
+                                                db_perform_account('DOA_APPOINTMENT_MASTER', $APPT, 'insert');
+                                                $PK_APPT = $db_account->insert_ID();
+
+                                                if ($PK_APPT) {
+                                                    $APPT_CUST = [
+                                                        'PK_APPOINTMENT_MASTER' => $PK_APPT,
+                                                        'PK_USER_MASTER'        => $PK_USER_MASTER,
+                                                        'IS_PARTNER'            => 0,
+                                                    ];
+                                                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+                                                }
+                                            }
+                                        }
+                                    }
+                                    // ---------------------------------------------------------
+                                    // End completed appointments
+                                    // ---------------------------------------------------------
 
                                     $row_created_enrollment = true;
                                 }
@@ -542,14 +636,6 @@ if (!empty($_POST)) {
 
                             // ==========================================================
                             // MISC ENROLLMENT for col 15 balance
-                            // Rule:
-                            //   - If the row created ANY completed or active enrollment
-                            //     AND col 15 is non-zero → create a misc enrollment
-                            //     for the amount (positive = credit, negative = owed).
-                            //   - If the row created no enrollment (no lessons at all)
-                            //     AND col 15 is negative → create a misc enrollment
-                            //     for the owed amount (existing behavior).
-                            //   - Misc enrollments are ALWAYS created as ACTIVE (STATUS='A').
                             // ==========================================================
                             $should_create_misc = false;
                             $misc_amount = 0;
@@ -562,9 +648,7 @@ if (!empty($_POST)) {
                                 $misc_amount = abs($account_balance);
                             }
 
-                            // ==========================================================
-                            // ENSURE MISCELLANEOUS SERVICE EXISTS
-                            // ==========================================================
+                            // Ensure a Miscellaneous service exists
                             $misc_service_check = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER,
                                                    DOA_SERVICE_MASTER.DESCRIPTION,
                                                    DOA_SERVICE_CODE.PK_SERVICE_CODE
@@ -575,7 +659,6 @@ if (!empty($_POST)) {
                                             LIMIT 1");
 
                             if (!$misc_service_check || $misc_service_check->RecordCount() == 0) {
-                                // Create the service master
                                 $MISC_SERVICE_MASTER = [
                                     'SERVICE_NAME'     => 'Miscellaneous',
                                     'PK_SERVICE_CLASS' => 5,
@@ -589,7 +672,6 @@ if (!empty($_POST)) {
                                 db_perform_account('DOA_SERVICE_MASTER', $MISC_SERVICE_MASTER, 'insert');
                                 $PK_NEW_SERVICE_MASTER = $db_account->insert_ID();
 
-                                // Create the service code
                                 $MISC_SERVICE_CODE = [
                                     'PK_SERVICE_MASTER' => $PK_NEW_SERVICE_MASTER,
                                     'SERVICE_CODE'      => 'MISC',
@@ -620,7 +702,6 @@ if (!empty($_POST)) {
                                 } else {
                                     $ENROLLMENT_DATA = [];
 
-                                    // Enrollment ID
                                     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` 
                                                 WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " 
                                                 ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
@@ -631,31 +712,29 @@ if (!empty($_POST)) {
                                         $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
                                     }
 
-                                    // customer enrollment number
                                     $cen_data = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` 
                                          WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
                                          ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
                                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = ($cen_data && $cen_data->RecordCount() > 0)
                                         ? $cen_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1 : 1;
 
-                                    $ENROLLMENT_DATA['PK_USER_MASTER']     = $PK_USER_MASTER;
-                                    $ENROLLMENT_DATA['PK_LOCATION']        = $PK_LOCATION;
-                                    $ENROLLMENT_DATA['CHARGE_TYPE']        = 'Miscellaneous';
-                                    $ENROLLMENT_DATA['ENROLLMENT_BY_ID']   = $_SESSION['PK_USER'];
-                                    $ENROLLMENT_DATA['ACTIVE']             = 1;
-                                    $ENROLLMENT_DATA['STATUS']             = 'A';   // ACTIVE
-                                    $ENROLLMENT_DATA['ALL_APPOINTMENT_DONE'] = 0;   // explicit — ensure it lands in Active tab
-                                    $ENROLLMENT_DATA['COMPLETED_DATE']     = null;  // explicit — ensure it doesn't leak from reused array
-                                    $ENROLLMENT_DATA['ENROLLMENT_DATE']    = date('Y-m-d');
-                                    $ENROLLMENT_DATA['EXPIRY_DATE']        = date('Y-m-d', strtotime('+1 month'));
-                                    $ENROLLMENT_DATA['CREATED_BY']         = $_SESSION['PK_USER'];
-                                    $ENROLLMENT_DATA['CREATED_ON']         = date('Y-m-d H:i');
-                                    $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
+                                    $ENROLLMENT_DATA['PK_USER_MASTER']       = $PK_USER_MASTER;
+                                    $ENROLLMENT_DATA['PK_LOCATION']          = $PK_LOCATION;
+                                    $ENROLLMENT_DATA['CHARGE_TYPE']          = 'Miscellaneous';
+                                    $ENROLLMENT_DATA['ENROLLMENT_BY_ID']     = $_SESSION['PK_USER'];
+                                    $ENROLLMENT_DATA['ACTIVE']               = 1;
+                                    $ENROLLMENT_DATA['STATUS']               = 'A';
+                                    $ENROLLMENT_DATA['ALL_APPOINTMENT_DONE'] = 0;
+                                    $ENROLLMENT_DATA['COMPLETED_DATE']       = null;
+                                    $ENROLLMENT_DATA['ENROLLMENT_DATE']      = date('Y-m-d');
+                                    $ENROLLMENT_DATA['EXPIRY_DATE']          = date('Y-m-d', strtotime('+1 month'));
+                                    $ENROLLMENT_DATA['CREATED_BY']           = $_SESSION['PK_USER'];
+                                    $ENROLLMENT_DATA['CREATED_ON']           = date('Y-m-d H:i');
+                                    $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE']   = 5;
 
                                     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
                                     $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
 
-                                    // ---- BILLING ----
                                     $BILLING_DATA = [
                                         'PK_ENROLLMENT_MASTER' => $PK_ENROLLMENT_MASTER,
                                         'BILLING_REF'          => '',
@@ -674,9 +753,6 @@ if (!empty($_POST)) {
                                     db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
                                     $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
-                                    // ---- SERVICE ROW (the missing piece) ----
-                                    // Find a "Miscellaneous" service. Falls back to the first service with PK_SERVICE_CLASS = 5
-                                    // (miscellaneous class) if a name-based match isn't found.
                                     $misc_service = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, 
                                                      DOA_SERVICE_MASTER.DESCRIPTION, 
                                                      DOA_SERVICE_CODE.PK_SERVICE_CODE, 
@@ -687,7 +763,6 @@ if (!empty($_POST)) {
                                               LIMIT 1");
 
                                     if (!$misc_service || $misc_service->RecordCount() == 0) {
-                                        // fallback: try a name match
                                         $misc_service = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, 
                                                          DOA_SERVICE_MASTER.DESCRIPTION, 
                                                          DOA_SERVICE_CODE.PK_SERVICE_CODE, 
@@ -715,7 +790,6 @@ if (!empty($_POST)) {
                                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                                     }
 
-                                    // ---- LEDGER (active / unpaid) ----
                                     $BILLING_LEDGER_DATA = [
                                         'PK_ENROLLMENT_MASTER'     => $PK_ENROLLMENT_MASTER,
                                         'PK_ENROLLMENT_BILLING '   => $PK_ENROLLMENT_BILLING,
