@@ -54,7 +54,7 @@ if ($type === 'export') {
     $unique_id = [];
     while (!$row->EOF) {
         if ($row->fields['RECEIPT_NUMBER'] != '' || $row->fields['RECEIPT_NUMBER'] != null) {
-            $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER_NAME, DOA_USERS.ARTHUR_MURRAY_ID FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+            $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER_NAME, DOA_USERS.ARTHUR_MURRAY_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
             $partner = $db_account->Execute("SELECT CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME, ATTENDING_WITH FROM DOA_CUSTOMER_DETAILS WHERE PK_USER_MASTER = " . $row->fields['PK_USER_MASTER']);
             if (($partner->fields['ATTENDING_WITH']) == 'With a Partner') {
                 $NAME = $row->fields['NAME_OF_PARTICIPANT'] . ' & ' . $partner->fields['PARTNER_NAME'];
@@ -73,7 +73,7 @@ if ($type === 'export') {
                 "receipt_number" => $row->fields['RECEIPT_NUMBER'],
                 "date" => date('Y-m-d', strtotime($row->fields['PAYMENT_DATE'])),
                 "participant_full_name" => $NAME,
-                "teachers" => [$service_provider->fields['ARTHUR_MURRAY_ID']],
+                "teachers" => [getStaffCode($authorization, $service_provider->fields['FIRST_NAME'], $service_provider->fields['LAST_NAME'])],
                 "total_charges_due" => $row->fields['TOTAL_AMOUNT'],
                 "payment_amount" => number_format($row->fields['AMOUNT'], 2),
                 "reported_week_number" => $weekNumber,
