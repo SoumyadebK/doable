@@ -107,16 +107,18 @@ if ($type === 'export') {
     } else {
         $url = constant('ami_api_url') . '/api/v1/reports';
         $post_data = callArturMurrayApi($url, $data, $authorization);
-
         $response = json_decode($post_data);
 
-        $REPORT_DATA['REPORT_TYPE'] = 'miscellaneous_service_summary_report';
-        $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
-        $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
-        $REPORT_DATA['WEEK_NUMBER'] = $week_number;
-        $REPORT_DATA['YEAR'] = $YEAR;
-        $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
-        db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+        if (isset($response->error) || isset($response->errors)) {
+        } else {
+            $REPORT_DATA['REPORT_TYPE'] = 'miscellaneous_service_summary_report';
+            $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
+            $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
+            $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+            $REPORT_DATA['YEAR'] = $YEAR;
+            $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+            db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+        }
     }
 }
 
@@ -259,19 +261,17 @@ if (!empty($_GET['NAME'])) {
 
                 <?php
                 if ($type === 'export') {
-                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                    /*$data = json_decode($post_data);
-                if (isset($data->error)) {
-                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
-                } elseif (isset($data->errors)) {
-                    if (isset($data->errors->errors[0])) {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                    if (isset($response->error)) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->error_description . '</div>';
+                    } elseif (isset($response->errors)) {
+                        if (isset($response->errors->errors[0])) {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->errors->errors[0] . '</div>';
+                        } else {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->message . '</div>';
+                        }
                     } else {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
+                        echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
                     }
-                } else {
-                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                }*/
                 } else { ?>
                     <div class="row">
                         <div class="col-12">
