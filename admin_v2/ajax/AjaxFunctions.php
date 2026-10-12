@@ -3465,6 +3465,7 @@ function moveToWallet($RESPONSE_DATA): void
 
             $RECEIPT_NUMBER = $wallet_data->fields['RECEIPT_NUMBER'];
         } else {
+            $RECEIPT_NUMBER = $payment_data->fields['RECEIPT_NUMBER'];
             $customer_wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             if ($customer_wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $customer_wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
