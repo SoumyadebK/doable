@@ -3144,24 +3144,35 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                     }
                 }
 
+                // Returns true if a token was generated, false otherwise
                 async function addSquareTokenOnForm(type) {
                     const statusContainer = document.getElementById(type + '-status-container');
+                    if (statusContainer) statusContainer.innerHTML = '';
+
                     try {
-                        const result = await square_card.tokenize();
-                        if (result.status === 'OK') {
-                            document.querySelectorAll('.square_token').forEach(el => el.value = result.token);
-                        } else {
-                            let errorMessage = `Tokenization failed with status: ${result.status}`;
-                            if (result.errors) {
-                                errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
-                            }
-                            throw new Error(errorMessage);
+                        if (!square_card) {
+                            throw new Error('Card form is not loaded. Please refresh the page and try again.');
                         }
+
+                        const result = await square_card.tokenize();
+
+                        if (result.status === 'OK' && result.token) {
+                            document.querySelectorAll('.square_token').forEach(el => el.value = result.token);
+                            return true;
+                        }
+
+                        // Build a user-friendly message from Square's errors
+                        let message = 'Please enter valid card details.';
+                        if (result.errors && result.errors.length) {
+                            message = result.errors.map(e => e.message).join(' ');
+                        }
+                        throw new Error(message);
                     } catch (e) {
                         console.error(e);
                         if (statusContainer) {
                             statusContainer.innerHTML = `<p class="alert-modern error">Payment Failed: ${e.message}</p>`;
                         }
+                        return false;
                     }
                 }
             </script>
@@ -3176,24 +3187,35 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                 $(param).css("opacity", "0.6");
             }
 
-            $(document).on('submit', '#location_payment_form', function(event) {
+            function resetLocationPaymentButton() {
+                const btn = document.getElementById('location-payment-btn');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Process Payment';
+            }
+
+            $(document).on('submit', '#location_payment_form', async function(event) {
                 event.preventDefault();
+
                 const btn = document.getElementById('location-payment-btn');
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner"></span> Processing...';
 
                 const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+
                 if (gateway == 'Square') {
                     const methodId = document.getElementById('PAYMENT_METHOD_ID').value;
+
+                    // Only tokenize when no saved payment method is selected
                     if (!methodId) {
-                        addSquareTokenOnForm('payment');
-                        setTimeout(() => submitLocationPaymentForm(), 3000);
-                    } else {
-                        submitLocationPaymentForm();
+                        const tokenOk = await addSquareTokenOnForm('payment');
+                        if (!tokenOk) {
+                            resetLocationPaymentButton();
+                            return; // STOP: do not submit the form
+                        }
                     }
-                } else {
-                    submitLocationPaymentForm();
                 }
+
+                submitLocationPaymentForm();
             });
 
             function submitLocationPaymentForm() {
@@ -3205,32 +3227,46 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                     dataType: 'json',
                     success: function(data) {
                         const statusDiv = document.getElementById('location_payment_status');
-                        const btn = document.getElementById('location-payment-btn');
                         if (data.STATUS === 'Failed') {
                             statusDiv.innerHTML = `<p class="alert-modern error">${data.PAYMENT_INFO}</p>`;
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-check"></i> Process Payment';
+                            resetLocationPaymentButton();
                         } else {
                             statusDiv.innerHTML = `<p class="alert-modern success">Payment Successful, page will refresh automatically.</p>`;
                             setTimeout(() => location.reload(), 3000);
                         }
+                    },
+                    error: function() {
+                        const statusDiv = document.getElementById('location_payment_status');
+                        statusDiv.innerHTML = `<p class="alert-modern error">Something went wrong. Please try again.</p>`;
+                        resetLocationPaymentButton();
                     }
                 });
             }
 
-            $(document).on('submit', '#credit_card_form', function(event) {
+            function resetSaveCardButton() {
+                const btn = document.getElementById('save_card-pay-button');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Card';
+            }
+
+            $(document).on('submit', '#credit_card_form', async function(event) {
                 event.preventDefault();
+
                 const btn = document.getElementById('save_card-pay-button');
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner"></span> Processing...';
 
                 const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+
                 if (gateway == 'Square') {
-                    addSquareTokenOnForm('save_card');
-                    setTimeout(() => submitCreditCardForm(), 3000);
-                } else {
-                    submitCreditCardForm();
+                    const tokenOk = await addSquareTokenOnForm('save_card');
+                    if (!tokenOk) {
+                        resetSaveCardButton();
+                        return; // STOP: do not submit the form
+                    }
                 }
+
+                submitCreditCardForm();
             });
 
             function submitCreditCardForm() {
@@ -3242,15 +3278,18 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                     dataType: 'json',
                     success: function(data) {
                         const statusDiv = document.getElementById('save_card_payment_status');
-                        const btn = document.getElementById('save_card-pay-button');
                         if (data.STATUS == false) {
                             statusDiv.innerHTML = `<p class="alert-modern error">${data.MESSAGE}</p>`;
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-save"></i> Save Card';
+                            resetSaveCardButton();
                         } else {
                             statusDiv.innerHTML = `<p class="alert-modern success">Credit Card Successfully Saved.</p>`;
                             setTimeout(() => location.reload(), 3000);
                         }
+                    },
+                    error: function() {
+                        const statusDiv = document.getElementById('save_card_payment_status');
+                        statusDiv.innerHTML = `<p class="alert-modern error">Something went wrong. Please try again.</p>`;
+                        resetSaveCardButton();
                     }
                 });
             }
