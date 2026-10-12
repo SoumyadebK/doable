@@ -98,7 +98,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                 Active
                             </button>
                             <button class="view-btn-icon <?= ($status_check == 'inactive') ? 'active' : '' ?>" onclick="window.location.href='all_customers.php?status=inactive'">
-                                Archived
+                                Inactive
                             </button>
                         </div>
 
@@ -116,7 +116,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
 
 
 
-                    <p class="text-muted f12"><?= $number_of_result ?> <?= ($status_check == 'inactive') ? 'archived' : 'active' ?> customers</p>
+                    <p class="text-muted f12"><?= $number_of_result ?> <?= ($status_check == 'inactive') ? 'inactive' : 'active' ?> customers</p>
 
                     <!-- Table -->
                     <div class="table-responsive schedule-wrapper">
@@ -269,7 +269,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                                 <?php } ?>
                                             <?php } else { ?>
                                                 <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
-                                                    <i class="fa fa-ban" style="font-size:15px; color:#ff0000;"></i> Archived
+                                                    <i class="fa fa-ban" style="font-size:15px; color:#ff0000;"></i> Inactive
                                                 </span>
                                             <?php } ?>
                                         </td>
