@@ -97,11 +97,9 @@ if (!empty($_POST)) {
                         $balance_only_rows = [];
                         $misc_rows         = [];
 
-                        // Look up a scheduling code to reuse for completed appointments.
-                        // getSessionCompletedCount() sums DOA_SCHEDULING_CODE.UNIT, so we need a real row.
+                        // Pick a scheduling code for completed appointments
                         $sched_code_lookup = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE UNIT = 1 LIMIT 1");
                         if (!$sched_code_lookup || $sched_code_lookup->RecordCount() == 0) {
-                            // fallback: any scheduling code
                             $sched_code_lookup = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE LIMIT 1");
                         }
                         $PK_SCHEDULING_CODE_DEFAULT = ($sched_code_lookup && $sched_code_lookup->RecordCount() > 0)
@@ -315,6 +313,9 @@ if (!empty($_POST)) {
                                     db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
                                     $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
+                                    // ---------------------------------------------------
+                                    // Insert completed services
+                                    // ---------------------------------------------------
                                     $services = [
                                         ['col' => $priv_completed,  'like' => 'Private', 'price' => $PRICE_PER_SESSION, 'total' => $TOTAL_COST, 'paid' => $TOTAL_COST],
                                         ['col' => $grp_completed,   'like' => 'Group',   'price' => 0,                  'total' => 0,          'paid' => 0],
@@ -375,13 +376,9 @@ if (!empty($_POST)) {
                                     ];
                                     db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
 
-                                    // ---------------------------------------------------------
-                                    // Create COMPLETED APPOINTMENTS for Used lessons.
-                                    // getSessionCompletedCount() sums DOA_SCHEDULING_CODE.UNIT
-                                    // for appointments with IS_CHARGED = 1 linked to the
-                                    // enrollment service row. Without these the "Used" column
-                                    // stays at 0 in the customer profile.
-                                    // ---------------------------------------------------------
+                                    // ---------------------------------------------------
+                                    // Create COMPLETED APPOINTMENTS for the Used count
+                                    // ---------------------------------------------------
                                     if ($PK_SCHEDULING_CODE_DEFAULT > 0) {
 
                                         $used_buckets = [
@@ -394,7 +391,6 @@ if (!empty($_POST)) {
                                         foreach ($used_buckets as $bucket) {
                                             if ($bucket['count'] <= 0) continue;
 
-                                            // Find the service master matching this bucket
                                             $svc_lookup = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER 
                                                                                 FROM DOA_SERVICE_MASTER 
                                                                                 WHERE SERVICE_NAME LIKE '%" . $bucket['like'] . "%' 
@@ -402,7 +398,6 @@ if (!empty($_POST)) {
                                             if (!$svc_lookup || $svc_lookup->RecordCount() == 0) continue;
                                             $PK_SVC_MASTER = $svc_lookup->fields['PK_SERVICE_MASTER'];
 
-                                            // Find the enrollment service row we just created
                                             $enr_svc_row = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE 
                                                                                 FROM DOA_ENROLLMENT_SERVICE 
                                                                                 WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " 
@@ -411,15 +406,15 @@ if (!empty($_POST)) {
                                             if (!$enr_svc_row || $enr_svc_row->RecordCount() == 0) continue;
                                             $PK_ENROLLMENT_SERVICE = $enr_svc_row->fields['PK_ENROLLMENT_SERVICE'];
 
-                                            // Find a service code for this service master
-                                            $svc_code_lookup = $db_account->Execute("SELECT PK_SERVICE_CODE 
+                                            $svc_code_lookup = $db_account->Execute("SELECT PK_SERVICE_CODE, IS_GROUP 
                                                                                     FROM DOA_SERVICE_CODE 
                                                                                     WHERE PK_SERVICE_MASTER = " . $PK_SVC_MASTER . " 
                                                                                     LIMIT 1");
                                             $PK_SVC_CODE = ($svc_code_lookup && $svc_code_lookup->RecordCount() > 0)
                                                 ? $svc_code_lookup->fields['PK_SERVICE_CODE'] : 0;
+                                            $IS_GROUP_SVC = ($svc_code_lookup && $svc_code_lookup->RecordCount() > 0)
+                                                ? (int)$svc_code_lookup->fields['IS_GROUP'] : 0;
 
-                                            // Create one completed appointment per used lesson
                                             for ($u = 0; $u < (int)$bucket['count']; $u++) {
                                                 $APPT = [
                                                     'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
@@ -428,8 +423,8 @@ if (!empty($_POST)) {
                                                     'PK_SERVICE_CODE'       => $PK_SVC_CODE,
                                                     'PK_SCHEDULING_CODE'    => $PK_SCHEDULING_CODE_DEFAULT,
                                                     'PK_LOCATION'           => $PK_LOCATION,
-                                                    'PK_APPOINTMENT_STATUS' => 2,   // 2 = Completed
-                                                    'APPOINTMENT_TYPE'      => 'NORMAL',
+                                                    'PK_APPOINTMENT_STATUS' => 2,
+                                                    'APPOINTMENT_TYPE'      => ($IS_GROUP_SVC == 1) ? 'GROUP' : 'NORMAL',
                                                     'DATE'                  => date('Y-m-d', strtotime('-' . ($u + 1) . ' days')),
                                                     'START_TIME'            => '09:00:00',
                                                     'END_TIME'              => '10:00:00',
@@ -452,13 +447,24 @@ if (!empty($_POST)) {
                                                         'IS_PARTNER'            => 0,
                                                     ];
                                                     db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+
+                                                    if ($IS_GROUP_SVC == 1) {
+                                                        $APPT_ENR = [
+                                                            'PK_APPOINTMENT_MASTER' => $PK_APPT,
+                                                            'PK_USER_MASTER'        => $PK_USER_MASTER,
+                                                            'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
+                                                            'PK_ENROLLMENT_SERVICE' => $PK_ENROLLMENT_SERVICE,
+                                                            'IS_CHARGED'            => 1,
+                                                        ];
+                                                        db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPT_ENR, 'insert');
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                    // ---------------------------------------------------------
+                                    // ---------------------------------------------------
                                     // End completed appointments
-                                    // ---------------------------------------------------------
+                                    // ---------------------------------------------------
 
                                     $row_created_enrollment = true;
                                 }
