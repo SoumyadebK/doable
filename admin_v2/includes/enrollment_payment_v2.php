@@ -193,52 +193,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Card Number</label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiration Month</label>
-                                            <div class="col-md-12">
-                                                <select id="EXPIRATION_MONTH" class="form-control">
-                                                    <?php
-                                                    for ($i = 1; $i <= 12; $i++) { ?>
-                                                        <option value="<?= $i ?>"><?= $i ?></option>
-                                                    <?php } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiration Year</label>
-                                            <div class="col-md-12">
-                                                <select id="EXPIRATION_YEAR" class="form-control">
-                                                    <?php
-                                                    $year = (int)date('Y');
-                                                    for ($i = $year; $i <= $year + 25; $i++) { ?>
-                                                        <option value="<?= $i ?>"><?= $i ?></option>
-                                                    <?php } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Security Code</label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="SECURITY_CODE" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
+
+                                <div id="card_div">
+
                                 </div>
 
                                 <div class="row mb-3">
@@ -755,7 +712,7 @@
                 if (paymentType == 14 && PAYMENT_METHOD_ID == '') {
                     $('#payment_status').html(`<p class="alert alert-danger">Please Select a Card to Process</p>`);
                     $('#enr-payment-btn').prop('disabled', false);
-                } else {
+                } else if (paymentType == 1) {
                     let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
                     if (PAYMENT_GATEWAY == 'Square') {
                         let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
@@ -797,6 +754,8 @@
                     } else {
                         submitEnrollmentPaymentForm();
                     }
+                } else {
+                    submitEnrollmentPaymentForm();
                 }
             }
         }
@@ -908,6 +867,53 @@
                     }
 
                     if (PAYMENT_GATEWAY == 'Authorized.net') {
+                        $(param).closest('.payment_modal').find('#card_div').html(`<div class="row mb-3">
+                                                                                        <div class="col-12">
+                                                                                            <div class="form-group">
+                                                                                                <label class="form-label">Card Number</label>
+                                                                                                <div class="col-md-12">
+                                                                                                    <input type="text" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="row">
+                                                                                        <div class="col-4">
+                                                                                            <div class="form-group">
+                                                                                                <label class="form-label">Expiration Month</label>
+                                                                                                <div class="col-md-12">
+                                                                                                    <select id="EXPIRATION_MONTH" class="form-control">
+                                                                                                        <?php
+                                                                                                        for ($i = 1; $i <= 12; $i++) { ?>
+                                                                                                            <option value="<?= $i ?>"><?= $i ?></option>
+                                                                                                        <?php } ?>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="col-4">
+                                                                                            <div class="form-group">
+                                                                                                <label class="form-label">Expiration Year</label>
+                                                                                                <div class="col-md-12">
+                                                                                                    <select id="EXPIRATION_YEAR" class="form-control">
+                                                                                                        <?php
+                                                                                                        $year = (int)date('Y');
+                                                                                                        for ($i = $year; $i <= $year + 25; $i++) { ?>
+                                                                                                            <option value="<?= $i ?>"><?= $i ?></option>
+                                                                                                        <?php } ?>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="col-4">
+                                                                                            <div class="form-group">
+                                                                                                <label class="form-label">Security Code</label>
+                                                                                                <div class="col-md-12">
+                                                                                                    <input type="text" id="SECURITY_CODE" class="form-control">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>`);
                         $(".format-card").inputmask({
                             mask: "9999 9999 9999 9999",
                             placeholder: ""
