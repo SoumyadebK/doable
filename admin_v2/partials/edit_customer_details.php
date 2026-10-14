@@ -296,7 +296,7 @@ if ($selected_primary_location->RecordCount() > 0) {
                 </div>
             </div>
 
-            <div class="col-6">
+            <div class="col-6 mt-3">
                 <div class="label">Status</div>
                 <div class="value">
                     <select class="form-control" name="ACTIVE" id="ACTIVE" onchange="changeCustomerStatus(this, <?= $PK_USER ?>)">
