@@ -100,10 +100,19 @@ if ($type === 'export') {
     $week_number = $PK_PACKAGE; // Assuming $PK_PACKAGE is the week number for this example
     $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE PK_LOCATION = $DEFAULT_LOCATION_ID AND `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
     if ($report_details->RecordCount() > 0) {
-        $url = constant('ami_api_url') . '/api/v1/reports/' . $report_details->fields['ID'];
-        $post_data = callArturMurrayApi($url, $data, $authorization);
+        if ($report_details->fields['ID'] != '' && $report_details->fields['ID'] != null) {
+            $url = constant('ami_api_url') . '/api/v1/reports/' . $report_details->fields['ID'];
+            $post_data = callArturMurrayApi($url, $data, $authorization, 'PUT');
+            $response = json_decode($post_data);
+        } else {
+            $url = constant('ami_api_url') . '/api/v1/reports';
+            $post_data = callArturMurrayApi($url, $data, $authorization);
+            $response = json_decode($post_data);
 
-        $response = json_decode($post_data);
+            $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
+            $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+            db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA, "update", " PK_REPORT_EXPORT_DETAILS = " . $report_details->fields['PK_REPORT_EXPORT_DETAILS']);
+        }
     } else {
         $url = constant('ami_api_url') . '/api/v1/reports';
         $post_data = callArturMurrayApi($url, $data, $authorization);
