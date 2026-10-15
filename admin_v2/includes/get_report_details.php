@@ -1,6 +1,7 @@
 <?php
 require_once('../../global/config.php');
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $REPORT_TYPE = $_POST['REPORT_TYPE'];
 
 if ($REPORT_TYPE == 'royalty_service_report') {
@@ -18,21 +19,15 @@ if ($REPORT_TYPE == 'royalty_service_report') {
 $access_token = getAccessToken();
 $authorization = "Authorization: Bearer " . $access_token;
 
-$url = constant('ami_api_url') . '/api/v1/reports';
+if ($report_type != 'miscellaneous') {
+    $url = constant('ami_api_url') . '/api/v1/reports';
 
-// $data_past_year = [
-//     'type' => $report_type,
-//     'week_year' => date('Y'),
-// ];
-// $post_data_past_year = callArturMurrayApiGet($url, $data_past_year, $authorization);
-// $return_data_past_year = json_decode($post_data_past_year, true);
-
-
-$data = [
-    'type' => $report_type
-];
-$post_data = callArturMurrayApiGet($url, $data, $authorization);
-$return_data = json_decode($post_data, true);
+    $data = [
+        'type' => $report_type
+    ];
+    $post_data = callArturMurrayApiGet($url, $data, $authorization);
+    $return_data = json_decode($post_data, true);
+}
 
 //pre_r($return_data);
 
@@ -45,16 +40,31 @@ if ($report_type == 'miscellaneous') { ?>
             </tr>
         </thead>
         <tbody>
-            <?php foreach (array_reverse($return_data) as $key => $value) { ?>
+            <?php
+            $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `PK_LOCATION` = " . $DEFAULT_LOCATION_ID);
+            if ($report_details->RecordCount() <= 0) {
+                echo "<div class='alert alert-danger'>No history found</div>";
+                exit;
+            }
+            while (!$report_details->EOF) {
+                $report_id = $report_details->fields['ID'];
+                $url = constant('ami_api_url') . '/api/v1/reports/' . $report_id;
+
+                $data = [
+                    'type' => $report_type
+                ];
+                $post_data = callArturMurrayApiGet($url, $data, $authorization);
+                $return_data = json_decode($post_data, true); ?>
                 <tr style="text-align: center;">
                     <td>
-                        <?= $value['event'] ?>
+                        <?= $return_data['event'] ?>
                     </td>
                     <td>
-                        <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
+                        <?= ($return_data['revised']) ? date('m/d/Y h:i A', strtotime($return_data['updated_at']))  : date('m/d/Y h:i A', strtotime($return_data['created_at'])) ?>
                     </td>
                 </tr>
-            <?php } ?>
+            <?php $report_details->MoveNext();
+            } ?>
         </tbody>
     </table>
 <?php } else {
