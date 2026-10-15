@@ -23,7 +23,7 @@
 
                         <tbody>
                             <?php
-                            $completed_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CO' OR DOA_ENROLLMENT_MASTER.STATUS = 'C') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+                            $completed_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CO' OR DOA_ENROLLMENT_MASTER.STATUS = 'C') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
                             $completed_service_code_array = [];
                             while (!$completed_service_data->EOF) {
                                 if ($completed_service_data->fields['CHARGE_TYPE'] == 'Membership') {
@@ -32,7 +32,11 @@
                                     $NUMBER_OF_SESSION = ($completed_service_data->fields['NUMBER_OF_SESSION'] > 0) ? $completed_service_data->fields['NUMBER_OF_SESSION'] : 0;
                                 }
                                 $SESSION_SCHEDULED = getSessionScheduledCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
-                                $SESSION_COMPLETED = getSessionCompletedCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                if ((int)$completed_service_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
+                                    $SESSION_COMPLETED = $NUMBER_OF_SESSION;
+                                } else {
+                                    $SESSION_COMPLETED = getSessionCompletedCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                }
                                 $PRICE_PER_SESSION = $completed_service_data->fields['PRICE_PER_SESSION'];
                                 $TOTAL_AMOUNT_PAID = ($completed_service_data->fields['TOTAL_AMOUNT_PAID'] > 0) ? $completed_service_data->fields['TOTAL_AMOUNT_PAID'] : 0;
                                 $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($TOTAL_AMOUNT_PAID / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
