@@ -41,10 +41,12 @@
                                 $TOTAL_AMOUNT_PAID = ($completed_service_data->fields['TOTAL_AMOUNT_PAID'] > 0) ? $completed_service_data->fields['TOTAL_AMOUNT_PAID'] : 0;
                                 $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($TOTAL_AMOUNT_PAID / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
                                 $remain_session = $NUMBER_OF_SESSION - ($SESSION_COMPLETED + $SESSION_SCHEDULED);
-                                $ps_balance = $paid_session - $SESSION_COMPLETED;
+                                //$ps_balance = $paid_session - $SESSION_COMPLETED;
 
                                 if ((int)$completed_service_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
                                     $ps_balance = 0;
+                                } else {
+                                    $ps_balance = $paid_session - $SESSION_COMPLETED;
                                 }
 
                                 //if ($remain_session > 0) {
