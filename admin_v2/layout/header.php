@@ -204,6 +204,9 @@ if (count($LOCATIONS) == 1) {
         touch-action: none;
     }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">
         <div class="d-flex align-items-center gap-2">
@@ -359,11 +362,11 @@ if (count($LOCATIONS) == 1) {
             </nav>
         </div>
 
-        <div class="d-flex align-items-center" style="gap: 1.5rem !important;">
+        <div class="d-flex align-items-center" style="gap: 1.2rem !important;">
 
             <?php if (($_SESSION['TICKET_SYSTEM_ACCESS'] == 1) && (count($LOCATIONS) == 1) && ($FOCUSBIZ_ACCESS_TOKEN != null && $FOCUSBIZ_ACCESS_TOKEN != '')): ?>
                 <div class="topbar-item d-none d-sm-flex">
-                    <a class="top-bar-icon" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $FOCUSBIZ_ACCESS_TOKEN ?>">
+                    <a class="top-bar-icon" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $FOCUSBIZ_ACCESS_TOKEN ?>" style="margin-top: 4px;">
                         <i class="fa fa-ticket" aria-hidden="true" style="font-size: 22px;"></i>
                     </a>
                 </div>

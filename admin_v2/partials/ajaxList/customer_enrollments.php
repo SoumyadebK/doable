@@ -266,7 +266,7 @@ while (!$enrollment_data->EOF) {
                     <?php
                     $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                     $total_amount = 0;
-                    $total_paid_amount = 0;
+                    $total_paid_amount = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
                     $total_used_amount = 0;
                     $total_scheduled_amount = 0;
                     $enrollment_service_array = [];
@@ -313,7 +313,7 @@ while (!$enrollment_data->EOF) {
                         }
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-                        $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        //$total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                         $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
                         $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
                         <tr>
