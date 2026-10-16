@@ -43,6 +43,10 @@
                                 $remain_session = $NUMBER_OF_SESSION - ($SESSION_COMPLETED + $SESSION_SCHEDULED);
                                 $ps_balance = $paid_session - $SESSION_COMPLETED;
 
+                                if ((int)$completed_service_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
+                                    $ps_balance = 0;
+                                }
+
                                 //if ($remain_session > 0) {
                                 if (isset($completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']])) {
                                     $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['CODE'] = $completed_service_data->fields['SERVICE_CODE'];
