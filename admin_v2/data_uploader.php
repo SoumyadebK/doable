@@ -76,17 +76,14 @@ if (!empty($_POST)) {
 
 /**
  * Shared helper: normalize the date to Y-m-d.
- * Handles: "2026-02-01 00:00:00", "01/13/2026", "2026-02-01".
  */
 function normalizeImportDate($raw)
 {
     $raw = trim($raw);
     if ($raw === '') return '';
-    // ISO datetime
     if (preg_match('/^\d{4}-\d{2}-\d{2}/', $raw)) {
         return date('Y-m-d', strtotime($raw));
     }
-    // MM/DD/YYYY
     if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $raw, $m)) {
         return sprintf('%04d-%02d-%02d', $m[3], $m[1], $m[2]);
     }
@@ -160,50 +157,26 @@ function handleCustomerEnrollmentsUpload()
     $rows_created      = 0;
 
     // =====================================================
-    // Service code → location lookup helper
+    // Service lookup helper — no junction table.
+    // Prefers a row scoped to the target location, then any matching code.
     // =====================================================
-    $service_location_strategy = null;
-    $probe = $db_account->Execute("SHOW TABLES LIKE 'DOA_SERVICE_LOCATION'");
-    if ($probe && $probe->RecordCount() > 0) {
-        $service_location_strategy = 'junction';
-    } else {
-        $probe = $db_account->Execute("SHOW COLUMNS FROM DOA_SERVICE_MASTER LIKE 'PK_LOCATION'");
-        if ($probe && $probe->RecordCount() > 0) {
-            $service_location_strategy = 'direct';
-        } else {
-            $service_location_strategy = 'none';
-        }
-    }
-
-    $findServiceInLocation = function ($db_account, $PK_LOCATION, $service_code_like, $strategy) {
-        $code_safe = addslashes($service_code_like);
+    $findServiceInLocation = function ($db_account, $PK_LOCATION, $service_code, $prefix = false) {
+        $code_safe = addslashes($service_code);
         $loc_safe  = intval($PK_LOCATION);
+        $op        = $prefix ? 'LIKE' : '=';
 
-        if ($strategy === 'junction') {
-            $sql = "SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME,
-                           SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
-                    FROM DOA_SERVICE_MASTER SM
-                    INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                    INNER JOIN DOA_SERVICE_LOCATION SL ON SL.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                    WHERE SL.PK_LOCATION = " . $loc_safe . "
-                      AND SC.SERVICE_CODE LIKE '" . $code_safe . "%'
-                      AND SM.ACTIVE = 1
-                      AND SM.IS_DELETED = 0
-                    LIMIT 1";
-        } elseif ($strategy === 'direct') {
-            $sql = "SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME,
-                           SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
-                    FROM DOA_SERVICE_MASTER SM
-                    INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                    WHERE SM.PK_LOCATION = " . $loc_safe . "
-                      AND SC.SERVICE_CODE LIKE '" . $code_safe . "%'
-                      AND SM.ACTIVE = 1
-                      AND SM.IS_DELETED = 0
-                    LIMIT 1";
-        } else {
-            return $db_account->Execute("SELECT 1 FROM DOA_SERVICE_MASTER WHERE 1=0");
-        }
-        return $db_account->Execute($sql);
+        return $db_account->Execute("
+            SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME,
+                   SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
+            FROM DOA_SERVICE_MASTER SM
+            INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
+            WHERE SC.SERVICE_CODE $op '$code_safe" . ($prefix ? "%" : "") . "'
+              AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
+            ORDER BY (SC.PK_LOCATION = $loc_safe) DESC,
+                     (SM.PK_LOCATION = $loc_safe) DESC,
+                     SC.PK_SERVICE_CODE DESC
+            LIMIT 1
+        ");
     };
 
     // =====================================================
@@ -262,41 +235,31 @@ function handleCustomerEnrollmentsUpload()
     };
 
     // =====================================================
-    // Service create-or-reuse helper
+    // Service create-or-reuse helper — no junction table.
     // =====================================================
-    $ensureServiceInLocation = function ($db_account, $PK_LOCATION, $code, $label, $is_group, $strategy, &$created_rows) use ($ensureSchedulingCode) {
-        $existing = null;
+    $ensureServiceInLocation = function ($db_account, $PK_LOCATION, $code, $label, $is_group, &$created_rows) use ($ensureSchedulingCode) {
         $code_safe = addslashes($code);
 
-        if ($strategy === 'junction') {
-            $existing = $db_account->Execute("SELECT SM.PK_SERVICE_MASTER, SC.PK_SERVICE_CODE
-                                              FROM DOA_SERVICE_MASTER SM
-                                              INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                                              INNER JOIN DOA_SERVICE_LOCATION SL ON SL.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                                              WHERE SL.PK_LOCATION = " . intval($PK_LOCATION) . "
-                                                AND SC.SERVICE_CODE LIKE '" . $code_safe . "%'
-                                                AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-                                              LIMIT 1");
-        } elseif ($strategy === 'direct') {
-            $existing = $db_account->Execute("SELECT SM.PK_SERVICE_MASTER, SC.PK_SERVICE_CODE
-                                              FROM DOA_SERVICE_MASTER SM
-                                              INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                                              WHERE SM.PK_LOCATION = " . intval($PK_LOCATION) . "
-                                                AND SC.SERVICE_CODE LIKE '" . $code_safe . "%'
-                                                AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-                                              LIMIT 1");
-        } else {
-            return false;
-        }
+        $existing = $db_account->Execute("
+            SELECT SM.PK_SERVICE_MASTER, SC.PK_SERVICE_CODE
+            FROM DOA_SERVICE_MASTER SM
+            INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
+            WHERE SC.SERVICE_CODE = '{$code_safe}'
+              AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
+            ORDER BY (SC.PK_LOCATION = " . intval($PK_LOCATION) . ") DESC,
+                     (SM.PK_LOCATION = " . intval($PK_LOCATION) . ") DESC,
+                     SC.PK_SERVICE_CODE DESC
+            LIMIT 1
+        ");
 
         if ($existing && $existing->RecordCount() > 0) {
             $PK_SERVICE_MASTER = $existing->fields['PK_SERVICE_MASTER'];
             $PK_SERVICE_CODE   = $existing->fields['PK_SERVICE_CODE'];
-            $created_rows[] = "• {$label} ({$code}) already exists at location {$PK_LOCATION} — checked scheduling codes";
+            $created_rows[] = "• {$label} ({$code}) already exists — reusing";
         } else {
             $SERVICE_MASTER = [
                 'PK_LOCATION'      => $PK_LOCATION,
-                'SERVICE_NAME'     => $label . ' || ' . $code . '1',
+                'SERVICE_NAME'     => $label,
                 'PK_SERVICE_CLASS' => 1,
                 'IS_SCHEDULE'      => 1,
                 'IS_SUNDRY'        => 0,
@@ -312,26 +275,19 @@ function handleCustomerEnrollmentsUpload()
 
             $SERVICE_CODE = [
                 'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
-                'SERVICE_CODE'      => $code . '1',
+                'PK_LOCATION'       => $PK_LOCATION,
+                'SERVICE_CODE'      => $code,
                 'DESCRIPTION'       => $label,
                 'IS_GROUP'          => $is_group ? 1 : 0,
                 'IS_SUNDRY'         => 0,
                 'CAPACITY'          => 0,
                 'IS_CHARGEABLE'     => 1,
                 'PRICE'             => 0,
-                'COUNT_ON_CALENDAR' => 0,
+                'COUNT_ON_CALENDAR' => 1,
                 'SORT_ORDER'        => 100,
             ];
             db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
             $PK_SERVICE_CODE = $db_account->insert_ID();
-
-            if ($strategy === 'junction') {
-                $LINK = [
-                    'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
-                    'PK_LOCATION'       => $PK_LOCATION,
-                ];
-                db_perform_account('DOA_SERVICE_LOCATION', $LINK, 'insert');
-            }
 
             $created_rows[] = "• {$label} ({$code}) created at location {$PK_LOCATION}";
         }
@@ -352,7 +308,7 @@ function handleCustomerEnrollmentsUpload()
         ['code' => 'MISC', 'label' => 'Miscellaneous', 'is_group' => 0],
     ];
     foreach ($required as $r) {
-        $ensureServiceInLocation($db_account, $PK_LOCATION, $r['code'], $r['label'], $r['is_group'], $service_location_strategy, $created_rows);
+        $ensureServiceInLocation($db_account, $PK_LOCATION, $r['code'], $r['label'], $r['is_group'], $created_rows);
     }
 
     // Default scheduling code for completed appointments
@@ -369,6 +325,27 @@ function handleCustomerEnrollmentsUpload()
 
     // ==========================================================
     // CSV LOOP
+    //
+    // Column layout (0-based) with MINDBODY_CLIENT_ID prepended:
+    //   0  MINDBODY_CLIENT_ID
+    //   1  First Name
+    //   2  Last Name
+    //   3  Email
+    //   4  Phone No
+    //   5  Privates Used
+    //   6  Groups Used
+    //   7  Parties Used
+    //   8  Coaches Used
+    //   9  total cost of historical services
+    //   10 Privates Remaining
+    //   11 Groups Remaining
+    //   12 Parties Remaining
+    //   13 Coaches Remaining
+    //   14 total cost of remaining services
+    //   15 amount owed on remaining services
+    //   16 $ Amount Paid Ahead or Amount Behind
+    //   17 Partner First Name
+    //   18 Partner Last Name
     // ==========================================================
     while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
         if ($lineNumber === 1) {
@@ -376,7 +353,7 @@ function handleCustomerEnrollmentsUpload()
             continue;
         }
 
-        if (count($getData) < 4 || (empty($getData[0]) && empty($getData[2]))) {
+        if (count($getData) < 5 || (empty($getData[1]) && empty($getData[3]))) {
             $lineNumber++;
             continue;
         }
@@ -386,45 +363,84 @@ function handleCustomerEnrollmentsUpload()
         $USER_ID             = 0;
         $PK_CUSTOMER_DETAILS = 0;
 
-        $priv_completed  = (float)($getData[4]  ?? 0);
-        $grp_completed   = (float)($getData[5]  ?? 0);
-        $party_completed = (float)($getData[6]  ?? 0);
-        $coach_completed = (float)($getData[7]  ?? 0);
-        $cost_completed  = (float)($getData[8]  ?? 0);
+        $MINDBODY_CLIENT_ID = trim($getData[0] ?? '');
+        $MINDBODY_CLIENT_ID_INT = ($MINDBODY_CLIENT_ID === '') ? 0 : (int)$MINDBODY_CLIENT_ID;
 
-        $priv_active     = (float)($getData[9]  ?? 0);
-        $grp_active      = (float)($getData[10] ?? 0);
-        $party_active    = (float)($getData[11] ?? 0);
-        $coach_active    = (float)($getData[12] ?? 0);
-        $cost_active     = (float)($getData[13] ?? 0);
+        $first_name = trim($getData[1] ?? '');
+        $last_name  = trim($getData[2] ?? '');
+        $email      = trim($getData[3] ?? '');
+        $phone      = trim($getData[4] ?? '');
 
-        $account_balance = (float)($getData[15] ?? 0);
+        $priv_completed  = (float)($getData[5]  ?? 0);
+        $grp_completed   = (float)($getData[6]  ?? 0);
+        $party_completed = (float)($getData[7]  ?? 0);
+        $coach_completed = (float)($getData[8]  ?? 0);
+        $cost_completed  = (float)($getData[9]  ?? 0);
 
-        $amount_paid_active_raw = isset($getData[18]) ? trim($getData[18]) : '';
-        $amount_paid_active = ($amount_paid_active_raw === '') ? null : (float)$amount_paid_active_raw;
+        $priv_active     = (float)($getData[10] ?? 0);
+        $grp_active      = (float)($getData[11] ?? 0);
+        $party_active    = (float)($getData[12] ?? 0);
+        $coach_active    = (float)($getData[13] ?? 0);
+        $cost_active     = (float)($getData[14] ?? 0);
 
-        $partner_first = isset($getData[16]) ? trim($getData[16]) : '';
-        $partner_last  = isset($getData[17]) ? trim($getData[17]) : '';
+        $account_balance = (float)($getData[16] ?? 0);
 
-        // CUSTOMER
-        $email_escaped = addslashes(trim($getData[2]));
-        $customer_exist = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, DOA_USERS.USER_ID 
-                                        FROM DOA_USERS 
-                                        INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
-                                        WHERE DOA_USERS.EMAIL_ID = '$email_escaped' 
-                                        AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' 
-                                        AND DOA_USERS.PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+        // No separate "amount paid ahead" column in this layout; default null.
+        $amount_paid_active = null;
 
-        if ($customer_exist->RecordCount() > 0) {
-            $PK_USER        = $customer_exist->fields['PK_USER'];
-            $PK_USER_MASTER = $customer_exist->fields['PK_USER_MASTER'];
-            $USER_ID        = $customer_exist->fields['USER_ID'];
-        } else {
+        $partner_first = isset($getData[17]) ? trim($getData[17]) : '';
+        $partner_last  = isset($getData[18]) ? trim($getData[18]) : '';
+
+        // =====================================================
+        // CUSTOMER: split lookup (UNIQUE_ID first, then EMAIL) — no OR scan
+        // =====================================================
+        if ($MINDBODY_CLIENT_ID_INT > 0) {
+            $r = $db->Execute("
+                SELECT U.PK_USER, UM.PK_USER_MASTER, U.USER_ID, U.UNIQUE_ID
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_MASTER UM ON U.PK_USER = UM.PK_USER
+                WHERE U.UNIQUE_ID = " . $MINDBODY_CLIENT_ID_INT . "
+                  AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                LIMIT 1
+            ");
+            if ($r && $r->RecordCount() > 0) {
+                $PK_USER        = $r->fields['PK_USER'];
+                $PK_USER_MASTER = $r->fields['PK_USER_MASTER'];
+                $USER_ID        = $r->fields['USER_ID'];
+            }
+        }
+
+        if ($PK_USER == 0 && $email !== '') {
+            $email_escaped = addslashes($email);
+            $r = $db->Execute("
+                SELECT U.PK_USER, UM.PK_USER_MASTER, U.USER_ID, U.UNIQUE_ID
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_MASTER UM ON U.PK_USER = UM.PK_USER
+                WHERE U.EMAIL_ID = '$email_escaped'
+                  AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                ORDER BY U.PK_USER DESC
+                LIMIT 1
+            ");
+            if ($r && $r->RecordCount() > 0) {
+                $PK_USER        = $r->fields['PK_USER'];
+                $PK_USER_MASTER = $r->fields['PK_USER_MASTER'];
+                $USER_ID        = $r->fields['USER_ID'];
+                // Back-fill UNIQUE_ID if empty
+                if ($MINDBODY_CLIENT_ID_INT > 0 && (empty($r->fields['UNIQUE_ID']) || $r->fields['UNIQUE_ID'] == 0)) {
+                    $db->Execute("UPDATE DOA_USERS SET UNIQUE_ID = " . $MINDBODY_CLIENT_ID_INT . " WHERE PK_USER = " . intval($PK_USER));
+                }
+            }
+        }
+
+        // Not found → create new customer
+        if ($PK_USER == 0) {
             $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-            $USER_DATA['FIRST_NAME']        = trim($getData[0]);
-            $USER_DATA['LAST_NAME']         = trim($getData[1]);
-            $USER_DATA['EMAIL_ID']          = $getData[2];
-            $USER_DATA['PHONE']             = $getData[3];
+            $USER_DATA['FIRST_NAME']        = $first_name;
+            $USER_DATA['LAST_NAME']         = $last_name;
+            $USER_DATA['EMAIL_ID']          = $email;
+            $USER_DATA['PHONE']             = $phone;
             $USER_DATA['DOB']               = null;
             $USER_DATA['ADDRESS']           = '';
             $USER_DATA['ADDRESS_1']         = null;
@@ -434,6 +450,9 @@ function handleCustomerEnrollmentsUpload()
             $USER_DATA['PK_STATES']         = 0;
             $USER_DATA['IS_DELETED']        = 0;
             $USER_DATA['ACTIVE']            = 1;
+            if ($MINDBODY_CLIENT_ID_INT > 0) {
+                $USER_DATA['UNIQUE_ID'] = $MINDBODY_CLIENT_ID_INT;
+            }
             $USER_DATA['CREATED_BY']        = $_SESSION['PK_USER'];
             $USER_DATA['CREATED_ON']        = date("Y-m-d H:i");
             db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -460,19 +479,19 @@ function handleCustomerEnrollmentsUpload()
             if ($PK_USER_MASTER) {
                 $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                 $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                $USER_DATA_ACCOUNT['FIRST_NAME']        = trim($getData[0]);
-                $USER_DATA_ACCOUNT['LAST_NAME']         = trim($getData[1]);
-                $USER_DATA_ACCOUNT['EMAIL_ID']          = $getData[2];
-                $USER_DATA_ACCOUNT['PHONE']             = $getData[3];
+                $USER_DATA_ACCOUNT['FIRST_NAME']        = $first_name;
+                $USER_DATA_ACCOUNT['LAST_NAME']         = $last_name;
+                $USER_DATA_ACCOUNT['EMAIL_ID']          = $email;
+                $USER_DATA_ACCOUNT['PHONE']             = $phone;
                 $USER_DATA_ACCOUNT['CREATED_BY']        = $_SESSION['PK_USER'];
                 $USER_DATA_ACCOUNT['CREATED_ON']        = date("Y-m-d H:i");
                 db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
                 $CUSTOMER_DATA['PK_USER_MASTER']     = $PK_USER_MASTER;
-                $CUSTOMER_DATA['FIRST_NAME']         = trim($getData[0]);
-                $CUSTOMER_DATA['LAST_NAME']          = trim($getData[1]);
-                $CUSTOMER_DATA['EMAIL']              = $getData[2];
-                $CUSTOMER_DATA['PHONE']              = $getData[3];
+                $CUSTOMER_DATA['FIRST_NAME']         = $first_name;
+                $CUSTOMER_DATA['LAST_NAME']          = $last_name;
+                $CUSTOMER_DATA['EMAIL']              = $email;
+                $CUSTOMER_DATA['PHONE']              = $phone;
                 $CUSTOMER_DATA['ATTENDING_WITH']     = (!empty($partner_first) || !empty($partner_last)) ? 'With a Partner' : 'Solo';
                 $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $partner_first;
                 $CUSTOMER_DATA['PARTNER_LAST_NAME']  = $partner_last;
@@ -482,7 +501,7 @@ function handleCustomerEnrollmentsUpload()
         }
 
         if (empty($PK_USER_MASTER)) {
-            $skipped_rows[] = "Line $lineNumber — could not resolve customer for email " . htmlspecialchars($getData[2]);
+            $skipped_rows[] = "Line $lineNumber — could not resolve customer for email " . htmlspecialchars($email) . " (client ID " . htmlspecialchars($MINDBODY_CLIENT_ID) . ")";
             $lineNumber++;
             continue;
         }
@@ -501,7 +520,7 @@ function handleCustomerEnrollmentsUpload()
                                                 AND ENROLLMENT_DATE = '" . date('Y-m-d') . "' 
                                                 LIMIT 1");
             if ($dup_check && $dup_check->RecordCount() > 0) {
-                $duplicate_rows[] = "Line $lineNumber — completed enrollment already exists for " . htmlspecialchars($getData[2]);
+                $duplicate_rows[] = "Line $lineNumber — completed enrollment already exists for " . htmlspecialchars($email);
             } else {
                 $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` 
                                                         WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " 
@@ -522,11 +541,7 @@ function handleCustomerEnrollmentsUpload()
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                $cen = $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'];
-                if ($cen <= 1)        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                else if ($cen == 2)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                else if ($cen == 3)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
-                else                  $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
+                $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
                 $TOTAL_COST        = $cost_completed;
                 $PRICE_PER_SESSION = ($priv_completed > 0) ? $TOTAL_COST / $priv_completed : 0;
@@ -570,7 +585,7 @@ function handleCustomerEnrollmentsUpload()
                 ];
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
-                    $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], $service_location_strategy);
+                    $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], false);
                     if (!$service_details || $service_details->RecordCount() == 0) {
                         $skipped_rows[] = "Line $lineNumber — no service with code '{$svc['code']}' in location $PK_LOCATION";
                         continue;
@@ -622,80 +637,89 @@ function handleCustomerEnrollmentsUpload()
                 ];
                 db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
 
-                // Completed appointments for Used count
-                if ($PK_SCHEDULING_CODE_DEFAULT > 0) {
-                    $used_buckets = [
-                        ['count' => $priv_completed,  'code' => 'PRI'],
-                        ['count' => $grp_completed,   'code' => 'GRP'],
-                        ['count' => $party_completed, 'code' => 'Pty'],
-                        ['count' => $coach_completed, 'code' => 'CCH'],
-                    ];
+                // Completed appointments for "Used" count (record-only history)
+                // if ($PK_SCHEDULING_CODE_DEFAULT > 0) {
 
-                    foreach ($used_buckets as $bucket) {
-                        if ($bucket['count'] <= 0) continue;
+                //     $used_buckets = [
+                //         ['count' => $priv_completed,  'code' => 'PRI'],
+                //         ['count' => $grp_completed,   'code' => 'GRP'],
+                //         ['count' => $party_completed, 'code' => 'Pty'],
+                //         ['count' => $coach_completed, 'code' => 'CCH'],
+                //     ];
 
-                        $svc_info = $findServiceInLocation($db_account, $PK_LOCATION, $bucket['code'], $service_location_strategy);
-                        if (!$svc_info || $svc_info->RecordCount() == 0) continue;
+                //     $history_date = $ENROLLMENT_DATA['ENROLLMENT_DATE'];
 
-                        $PK_SVC_MASTER = $svc_info->fields['PK_SERVICE_MASTER'];
-                        $PK_SVC_CODE   = $svc_info->fields['PK_SERVICE_CODE'];
-                        $IS_GROUP_SVC  = (int)$svc_info->fields['IS_GROUP'];
+                //     foreach ($used_buckets as $bucket) {
+                //         if ($bucket['count'] <= 0) continue;
 
-                        $enr_svc_row = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE 
-                                                            FROM DOA_ENROLLMENT_SERVICE 
-                                                            WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " 
-                                                            AND PK_SERVICE_MASTER = " . $PK_SVC_MASTER . " 
-                                                            LIMIT 1");
-                        if (!$enr_svc_row || $enr_svc_row->RecordCount() == 0) continue;
-                        $PK_ENROLLMENT_SERVICE = $enr_svc_row->fields['PK_ENROLLMENT_SERVICE'];
+                //         $svc_info = $findServiceInLocation($db_account, $PK_LOCATION, $bucket['code'], false);
+                //         if (!$svc_info || $svc_info->RecordCount() == 0) continue;
 
-                        for ($u = 0; $u < (int)$bucket['count']; $u++) {
-                            $APPT = [
-                                'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
-                                'PK_ENROLLMENT_SERVICE' => $PK_ENROLLMENT_SERVICE,
-                                'PK_SERVICE_MASTER'     => $PK_SVC_MASTER,
-                                'PK_SERVICE_CODE'       => $PK_SVC_CODE,
-                                'PK_SCHEDULING_CODE'    => $PK_SCHEDULING_CODE_DEFAULT,
-                                'PK_LOCATION'           => $PK_LOCATION,
-                                'PK_APPOINTMENT_STATUS' => 2,
-                                'APPOINTMENT_TYPE'      => ($IS_GROUP_SVC == 1) ? 'GROUP' : 'NORMAL',
-                                'DATE'                  => date('Y-m-d', strtotime('-' . ($u + 1) . ' days')),
-                                'START_TIME'            => '09:00:00',
-                                'END_TIME'              => '10:00:00',
-                                'ACTIVE'                => 1,
-                                'STATUS'                => 'A',
-                                'IS_CHARGED'            => 1,
-                                'IS_PAID'               => 1,
-                                'SERIAL_NUMBER'         => 0,
-                                'STANDING_ID'           => 0,
-                                'CREATED_BY'            => $_SESSION['PK_USER'],
-                                'CREATED_ON'            => date('Y-m-d H:i'),
-                            ];
-                            db_perform_account('DOA_APPOINTMENT_MASTER', $APPT, 'insert');
-                            $PK_APPT = $db_account->insert_ID();
+                //         $PK_SVC_MASTER = $svc_info->fields['PK_SERVICE_MASTER'];
+                //         $PK_SVC_CODE   = $svc_info->fields['PK_SERVICE_CODE'];
+                //         $IS_GROUP_SVC  = (int)$svc_info->fields['IS_GROUP'];
 
-                            if ($PK_APPT) {
-                                $APPT_CUST = [
-                                    'PK_APPOINTMENT_MASTER' => $PK_APPT,
-                                    'PK_USER_MASTER'        => $PK_USER_MASTER,
-                                    'IS_PARTNER'            => 0,
-                                ];
-                                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+                //         $enr_svc_row = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE
+                //                              FROM DOA_ENROLLMENT_SERVICE
+                //                              WHERE PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER) . "
+                //                                AND PK_SERVICE_MASTER = " . intval($PK_SVC_MASTER) . "
+                //                              LIMIT 1");
+                //         if (!$enr_svc_row || $enr_svc_row->RecordCount() == 0) continue;
+                //         $ENR_SVC_PK = $enr_svc_row->fields['PK_ENROLLMENT_SERVICE'];
 
-                                if ($IS_GROUP_SVC == 1) {
-                                    $APPT_ENR = [
-                                        'PK_APPOINTMENT_MASTER' => $PK_APPT,
-                                        'PK_USER_MASTER'        => $PK_USER_MASTER,
-                                        'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
-                                        'PK_ENROLLMENT_SERVICE' => $PK_ENROLLMENT_SERVICE,
-                                        'IS_CHARGED'            => 1,
-                                    ];
-                                    db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPT_ENR, 'insert');
-                                }
-                            }
-                        }
-                    }
-                }
+                //         for ($u = 0; $u < (int)$bucket['count']; $u++) {
+
+                //             $APPT = [
+                //                 'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
+                //                 'PK_ENROLLMENT_SERVICE' => $ENR_SVC_PK,
+                //                 'PK_SERVICE_MASTER'     => $PK_SVC_MASTER,
+                //                 'PK_SERVICE_CODE'       => $PK_SVC_CODE,
+                //                 'PK_SCHEDULING_CODE'    => $PK_SCHEDULING_CODE_DEFAULT,
+                //                 'PK_LOCATION'           => $PK_LOCATION,
+                //                 'APPOINTMENT_TYPE'      => 'RECORD_ONLY',
+                //                 'COMMENT'               => 'Imported from Mindbody, lesson history',
+                //                 'INTERNAL_COMMENT'      => 'Imported from Mindbody, lesson history',
+                //                 'DATE'                  => $history_date,
+                //                 'START_TIME'            => '09:00:00',
+                //                 'END_TIME'              => '10:00:00',
+                //                 'PK_APPOINTMENT_STATUS' => 2,
+                //                 'ACTIVE'                => 1,
+                //                 'STATUS'                => 'A',
+                //                 'IS_CHARGED'            => 1,
+                //                 'IS_PAID'               => 1,
+                //                 'SERIAL_NUMBER'         => 0,
+                //                 'STANDING_ID'           => 0,
+                //                 'GROUP_NAME'            => null,
+                //                 'NO_SHOW'               => null,
+                //                 'CREATED_BY'            => $_SESSION['PK_USER'],
+                //                 'CREATED_ON'            => date('Y-m-d H:i'),
+                //             ];
+
+                //             db_perform_account('DOA_APPOINTMENT_MASTER', $APPT, 'insert');
+                //             $PK_APPT = $db_account->insert_ID();
+
+                //             if ($PK_APPT) {
+                //                 $APPT_CUST = [
+                //                     'PK_APPOINTMENT_MASTER' => $PK_APPT,
+                //                     'PK_USER_MASTER'        => $PK_USER_MASTER,
+                //                     'IS_PARTNER'            => 0,
+                //                 ];
+                //                 db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+
+                //                 if ($IS_GROUP_SVC == 1) {
+                //                     $APPT_ENR = [
+                //                         'PK_APPOINTMENT_MASTER' => $PK_APPT,
+                //                         'PK_USER_MASTER'        => $PK_USER_MASTER,
+                //                         'PK_ENROLLMENT_MASTER'  => $PK_ENROLLMENT_MASTER,
+                //                         'PK_ENROLLMENT_SERVICE' => $ENR_SVC_PK,
+                //                         'IS_CHARGED'            => 1,
+                //                     ];
+                //                     db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPT_ENR, 'insert');
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
 
                 $row_created_enrollment = true;
                 $rows_created++;
@@ -714,7 +738,7 @@ function handleCustomerEnrollmentsUpload()
                                                 AND ENROLLMENT_DATE = '" . date('Y-m-d') . "' 
                                                 LIMIT 1");
             if ($dup_check && $dup_check->RecordCount() > 0) {
-                $duplicate_rows[] = "Line $lineNumber — active enrollment already exists for " . htmlspecialchars($getData[2]);
+                $duplicate_rows[] = "Line $lineNumber — active enrollment already exists for " . htmlspecialchars($email);
             } else {
                 $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` 
                                                         WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " 
@@ -795,7 +819,7 @@ function handleCustomerEnrollmentsUpload()
                 ];
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
-                    $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], $service_location_strategy);
+                    $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], false);
                     if (!$service_details || $service_details->RecordCount() == 0) {
                         $skipped_rows[] = "Line $lineNumber — no service with code '{$svc['code']}' in location $PK_LOCATION";
                         continue;
@@ -883,9 +907,9 @@ function handleCustomerEnrollmentsUpload()
             $misc_amount = abs($account_balance);
         }
 
-        $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MISC', $service_location_strategy);
+        $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MISC', false);
         if (!$misc_service || $misc_service->RecordCount() == 0) {
-            $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MIS', $service_location_strategy);
+            $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MIS', false);
         }
 
         if ($should_create_misc && $misc_amount > 0) {
@@ -898,7 +922,7 @@ function handleCustomerEnrollmentsUpload()
                     LIMIT 1");
 
             if ($dup_check && $dup_check->RecordCount() > 0) {
-                $duplicate_rows[] = "Line $lineNumber — miscellaneous enrollment already exists for " . htmlspecialchars($getData[2]);
+                $duplicate_rows[] = "Line $lineNumber — miscellaneous enrollment already exists for " . htmlspecialchars($email);
             } else {
                 $ENROLLMENT_DATA = [];
 
@@ -986,9 +1010,9 @@ function handleCustomerEnrollmentsUpload()
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
 
                 if ($row_created_enrollment) {
-                    $misc_rows[] = "Line $lineNumber — misc enrollment for " . htmlspecialchars($getData[2]) . " ($" . number_format($misc_amount, 2) . " from account balance)";
+                    $misc_rows[] = "Line $lineNumber — misc enrollment for " . htmlspecialchars($email) . " ($" . number_format($misc_amount, 2) . " from account balance)";
                 } else {
-                    $balance_only_rows[] = "Line $lineNumber — balance-only enrollment for " . htmlspecialchars($getData[2]) . " ($" . number_format($misc_amount, 2) . " owed)";
+                    $balance_only_rows[] = "Line $lineNumber — balance-only enrollment for " . htmlspecialchars($email) . " ($" . number_format($misc_amount, 2) . " owed)";
                 }
                 $rows_created++;
             }
@@ -1019,6 +1043,16 @@ function handleCustomerEnrollmentsUpload()
     $upload_success = implode('', $msg_parts);
 }
 
+/**
+ * ================================================================
+ * HANDLER: Appointments
+ * ================================================================
+ */
+/**
+ * ================================================================
+ * HANDLER: Appointments
+ * ================================================================
+ */
 /**
  * ================================================================
  * HANDLER: Appointments
@@ -1066,34 +1100,25 @@ function handleAppointmentsUpload()
 
     $PK_LOCATION = $_POST['PK_LOCATION'];
 
-    // -----------------------------------------------------------------
-    // Column indexes (0-based) — derived from your CSV header
-    // -----------------------------------------------------------------
-    // 5 = GROUP_NAME, 8 = PK_SCHEDULING_CODE, 9 = PK_LOCATION, 10 = DATE,
-    // 11 = START_TIME, 12 = END_TIME, 13 = PK_APPOINTMENT_STATUS, 14 = NO_SHOW,
-    // 15 = COMMENT, 16 = INTERNAL_COMMENT, 19 = IS_PAID, 22 = IS_CHARGED,
-    // 23 = APPOINTMENT_TYPE, 34 = CUSTOMER_EMAIL, 35 = CUSTOMER_NAME,
-    // 36 = MINDBODY_CLIENT_ID, 37 = SERVICE_PROVIDER, 38 = SERVICE_PROVIDER_EMAIL,
-    // 39 = SERVICE_CODE, 40 = SCHEDULING_CODE
-    $IDX_GROUP_NAME          = 5;
-    $IDX_PK_APPOINTMENT_ST   = 13;
-    $IDX_NO_SHOW             = 14;
-    $IDX_COMMENT             = 15;
-    $IDX_INTERNAL_COMMENT    = 16;
-    $IDX_IS_PAID             = 23;   // was 19
-    $IDX_IS_CHARGED          = 24;   // was 22
-    $IDX_APPOINTMENT_TYPE    = 25;   // was 23
-    $IDX_CUSTOMER_EMAIL      = 32;   // was 34
-    $IDX_CUSTOMER_NAME       = 33;   // was 35
-    $IDX_MINDBODY_CLIENT_ID  = 34;   // was 36
-    $IDX_SERVICE_PROVIDER    = 35;   // was 37
-    $IDX_SP_EMAIL            = 36;   // was 38
-    $IDX_SERVICE_CODE        = 37;   // was 39
-    $IDX_SCHEDULING_CODE     = 38;   // was 40
-    $IDX_DATE                = 10;
-    $IDX_START_TIME          = 11;
-    $IDX_END_TIME            = 12;
-    $IDX_PK_SCHEDULING_CODE  = 8;
+    $IDX_MINDBODY_CLIENT_ID  = 0;
+    $IDX_GROUP_NAME          = 6;
+    $IDX_PK_SCHEDULING_CODE  = 9;
+    $IDX_DATE                = 11;
+    $IDX_START_TIME          = 12;
+    $IDX_END_TIME            = 13;
+    $IDX_PK_APPOINTMENT_ST   = 14;
+    $IDX_NO_SHOW             = 15;
+    $IDX_COMMENT             = 16;
+    $IDX_INTERNAL_COMMENT    = 17;
+    $IDX_IS_PAID             = 24;
+    $IDX_IS_CHARGED          = 25;
+    $IDX_APPOINTMENT_TYPE    = 26;
+    $IDX_CUSTOMER_EMAIL      = 33;
+    $IDX_CUSTOMER_NAME       = 34;
+    $IDX_SERVICE_PROVIDER    = 36;
+    $IDX_SP_EMAIL            = 37;
+    $IDX_SERVICE_CODE        = 38;
+    $IDX_SCHEDULING_CODE     = 39;
 
     $skipped_rows = [];
     $warn_rows    = [];
@@ -1102,44 +1127,25 @@ function handleAppointmentsUpload()
 
     $lineNumber = 1;
 
-    // -----------------------------------------------------------------
-    // Location-scoped service lookup (same pattern as enrollment uploader)
-    // -----------------------------------------------------------------
-    $service_location_strategy = null;
-    $probe = $db_account->Execute("SHOW TABLES LIKE 'DOA_SERVICE_LOCATION'");
-    if ($probe && $probe->RecordCount() > 0) {
-        $service_location_strategy = 'junction';
-    } else {
-        $probe = $db_account->Execute("SHOW COLUMNS FROM DOA_SERVICE_MASTER LIKE 'PK_LOCATION'");
-        $service_location_strategy = ($probe && $probe->RecordCount() > 0) ? 'direct' : 'none';
-    }
-
-    $findServiceByCode = function ($db_account, $PK_LOCATION, $service_code, $strategy) {
+    // =====================================================
+    // SERVICE LOOKUP (for AD-HOC service resolution only)
+    // Try exact code, then prefix-stripped code.
+    // =====================================================
+    $findServiceByCode = function ($db_account, $PK_LOCATION, $service_code) {
         $code_safe = addslashes($service_code);
         $loc_safe  = intval($PK_LOCATION);
-        if ($strategy === 'junction') {
-            return $db_account->Execute("
-                SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME, SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
-                FROM DOA_SERVICE_MASTER SM
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                INNER JOIN DOA_SERVICE_LOCATION SL ON SL.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                WHERE SL.PK_LOCATION = $loc_safe
-                  AND SC.SERVICE_CODE = '$code_safe'
-                  AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-                LIMIT 1
-            ");
-        } elseif ($strategy === 'direct') {
-            return $db_account->Execute("
-                SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME, SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
-                FROM DOA_SERVICE_MASTER SM
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
-                WHERE SM.PK_LOCATION = $loc_safe
-                  AND SC.SERVICE_CODE = '$code_safe'
-                  AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-                LIMIT 1
-            ");
-        }
-        return $db_account->Execute("SELECT 1 FROM DOA_SERVICE_MASTER WHERE 1=0");
+        return $db_account->Execute("
+            SELECT SM.PK_SERVICE_MASTER, SM.SERVICE_NAME,
+                   SC.PK_SERVICE_CODE, SC.SERVICE_CODE, SC.IS_GROUP
+            FROM DOA_SERVICE_MASTER SM
+            INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
+            WHERE SC.SERVICE_CODE = '$code_safe'
+              AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
+            ORDER BY (SC.PK_LOCATION = $loc_safe) DESC,
+                     (SM.PK_LOCATION = $loc_safe) DESC,
+                     SC.PK_SERVICE_CODE DESC
+            LIMIT 1
+        ");
     };
 
     $findSchedulingCodeByName = function ($db_account, $PK_LOCATION, $sched_code) {
@@ -1154,10 +1160,7 @@ function handleAppointmentsUpload()
         ");
     };
 
-    // -----------------------------------------------------------------
-    // Group class dedupe: one master per (group_name + date + start_time)
-    // -----------------------------------------------------------------
-    $group_cache = [];  // key => PK_APPOINTMENT_MASTER
+    $group_cache = [];
 
     while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
         if ($lineNumber === 1) {
@@ -1165,72 +1168,72 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // Skip clearly empty rows
-        if (count($getData) < 4 || (empty($getData[0]) && empty($getData[$IDX_CUSTOMER_EMAIL]))) {
+        if (count($getData) < 5) {
             $lineNumber++;
             continue;
         }
 
-        $appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
-        if ($appt_type === '') $appt_type = 'DEMO';
-        if (!in_array($appt_type, ['NORMAL', 'AD-HOC', 'DEMO'])) {
-            $skipped_rows[] = "Line $lineNumber — unknown APPOINTMENT_TYPE '{$appt_type}'";
+        // =====================================================
+        // CUSTOMER — MINDBODY_CLIENT_ID → UNIQUE_ID only.
+        // =====================================================
+        $mb_id_raw = trim($getData[$IDX_MINDBODY_CLIENT_ID] ?? '');
+        $mb_id_int = ($mb_id_raw === '') ? 0 : (int)$mb_id_raw;
+
+        if ($mb_id_int <= 0) {
+            $skipped_rows[] = "Line $lineNumber — missing MINDBODY_CLIENT_ID";
             $lineNumber++;
             continue;
         }
 
-        $date       = normalizeImportDate($getData[$IDX_DATE] ?? '');
-        $start_time = trim($getData[$IDX_START_TIME] ?? '');
-        $end_time   = trim($getData[$IDX_END_TIME] ?? '');
-        if ($date === '' || $start_time === '' || $end_time === '') {
-            $skipped_rows[] = "Line $lineNumber — missing date/time (date='{$getData[$IDX_DATE]}', start='{$start_time}')";
-            $lineNumber++;
-            continue;
-        }
-
-        // -------------------- CUSTOMER --------------------
-        $email = trim($getData[$IDX_CUSTOMER_EMAIL] ?? '');
-        if ($email === '') {
-            $skipped_rows[] = "Line $lineNumber — missing CUSTOMER_EMAIL";
-            $lineNumber++;
-            continue;
-        }
-        $email_escaped = addslashes($email);
         $cust = $db->Execute("
-            SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER
-            FROM DOA_USERS
-            INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-            WHERE DOA_USERS.EMAIL_ID = '$email_escaped'
-              AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
-              AND DOA_USERS.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+            SELECT U.PK_USER, UM.PK_USER_MASTER
+            FROM DOA_USERS U
+            INNER JOIN DOA_USER_MASTER UM ON U.PK_USER = UM.PK_USER
+            WHERE U.UNIQUE_ID = " . $mb_id_int . "
+              AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
+              AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
             LIMIT 1
         ");
         if (!$cust || $cust->RecordCount() == 0) {
-            $skipped_rows[] = "Line $lineNumber — customer not found in location {$PK_LOCATION} for email {$email}";
+            $skipped_rows[] = "Line $lineNumber — no customer with MINDBODY_CLIENT_ID {$mb_id_int} in location {$PK_LOCATION}";
             $lineNumber++;
             continue;
         }
         $PK_USER        = $cust->fields['PK_USER'];
         $PK_USER_MASTER = $cust->fields['PK_USER_MASTER'];
 
-        // -------------------- SERVICE + SCHEDULING CODE --------------------
-        $service_code = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
-        if ($service_code === '') {
-            $skipped_rows[] = "Line $lineNumber — missing SERVICE_CODE";
-            $lineNumber++;
-            continue;
-        }
-        $service = $findServiceByCode($db_account, $PK_LOCATION, $service_code, $service_location_strategy);
-        if (!$service || $service->RecordCount() == 0) {
-            $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$service_code}' not found in location {$PK_LOCATION}";
-            $lineNumber++;
-            continue;
-        }
-        $PK_SERVICE_MASTER = $service->fields['PK_SERVICE_MASTER'];
-        $PK_SERVICE_CODE   = $service->fields['PK_SERVICE_CODE'];
+        // =====================================================
+        // KIND from CSV service-code prefix
+        // =====================================================
+        $csv_svc = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
+        if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
 
-        // Scheduling code
-        $sched_label = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
+        if (strpos($csv_svc, 'PRI') === 0) {
+            $kind = 'PRI';
+            $kind_like = 'PRI';
+            $kind_is_group = 0;
+        } elseif (strpos($csv_svc, 'GRP') === 0) {
+            $kind = 'GRP';
+            $kind_like = 'GRP';
+            $kind_is_group = 1;
+        } elseif (strpos($csv_svc, 'PTY') === 0) {
+            $kind = 'Pty';
+            $kind_like = 'Pty';
+            $kind_is_group = 1;
+        } elseif (strpos($csv_svc, 'CCH') === 0) {
+            $kind = 'CCH';
+            $kind_like = 'CCH';
+            $kind_is_group = 0;
+        } else {
+            $kind = 'PRI';
+            $kind_like = 'PRI';
+            $kind_is_group = 0;
+        }
+
+        // =====================================================
+        // SCHEDULING CODE — from CSV (PRI45, PRI30, ...)
+        // =====================================================
+        $sched_label  = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
         $sched_pk_csv = (int)($getData[$IDX_PK_SCHEDULING_CODE] ?? 0);
         $PK_SCHEDULING_CODE = 0;
         if ($sched_label !== '') {
@@ -1240,7 +1243,6 @@ function handleAppointmentsUpload()
             }
         }
         if ($PK_SCHEDULING_CODE == 0 && $sched_pk_csv > 0) {
-            // Fallback: use the PK provided in the CSV if it exists
             $chk = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . intval($sched_pk_csv));
             if ($chk && $chk->RecordCount() > 0) $PK_SCHEDULING_CODE = $chk->fields['PK_SCHEDULING_CODE'];
         }
@@ -1250,7 +1252,9 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // -------------------- SERVICE PROVIDER --------------------
+        // =====================================================
+        // SERVICE PROVIDER
+        // =====================================================
         $sp_email = trim($getData[$IDX_SP_EMAIL] ?? '');
         $sp_name  = trim($getData[$IDX_SERVICE_PROVIDER] ?? '');
         $PK_SERVICE_PROVIDER = 0;
@@ -1293,50 +1297,100 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // -------------------- ENROLLMENT LINK --------------------
-        $PK_ENROLLMENT_MASTER  = 0;
-        $PK_ENROLLMENT_SERVICE = 0;
+        // =====================================================
+        // DATE / TIME
+        // =====================================================
+        $date       = normalizeImportDate($getData[$IDX_DATE] ?? '');
+        $start_time = trim($getData[$IDX_START_TIME] ?? '');
+        $end_time   = trim($getData[$IDX_END_TIME] ?? '');
+        if ($date === '' || $start_time === '' || $end_time === '') {
+            $skipped_rows[] = "Line $lineNumber — missing date/time (date='{$getData[$IDX_DATE]}', start='{$start_time}')";
+            $lineNumber++;
+            continue;
+        }
 
-        if ($appt_type === 'NORMAL') {
-            $enr = $db_account->Execute("
-                SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                       DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE
-                FROM DOA_ENROLLMENT_MASTER
-                INNER JOIN DOA_ENROLLMENT_SERVICE 
-                    ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND DOA_ENROLLMENT_MASTER.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND DOA_ENROLLMENT_MASTER.STATUS = 'A'
-                  AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = " . intval($PK_SERVICE_MASTER) . "
-                ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC
-                LIMIT 1
-            ");
-            if ($enr && $enr->RecordCount() > 0) {
+        // =====================================================
+        // ENROLLMENT LOOKUP by kind — not by exact CSV service code.
+        // Pulls the enrollment-service's own PK_SERVICE_MASTER / PK_SERVICE_CODE
+        // so NORMAL rows can inherit the exact service of the enrollment.
+        // =====================================================
+        $PK_ENROLLMENT_MASTER   = 0;
+        $PK_ENROLLMENT_SERVICE  = 0;
+        $PK_SERVICE_MASTER      = 0;
+        $PK_SERVICE_CODE        = 0;
+        $derived_type           = 'AD-HOC';
+
+        $group_kind_sql = '';
+        if ($kind_is_group === 1) {
+            $group_kind_sql = " OR SC.IS_GROUP = 1 ";
+        } elseif ($kind_is_group === 0) {
+            $group_kind_sql = " OR SC.IS_GROUP = 0 ";
+        }
+
+        $enr = $db_account->Execute("
+            SELECT EM.PK_ENROLLMENT_MASTER,
+                   ES.PK_ENROLLMENT_SERVICE,
+                   ES.PK_SERVICE_MASTER,
+                   ES.PK_SERVICE_CODE,
+                   ES.NUMBER_OF_SESSION,
+                   SC.SERVICE_CODE,
+                   (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
+                     WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
+                       AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
+            FROM DOA_ENROLLMENT_MASTER EM
+            INNER JOIN DOA_ENROLLMENT_SERVICE ES
+                    ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
+            INNER JOIN DOA_SERVICE_CODE SC
+                    ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
+            WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+              AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
+              AND EM.STATUS         = 'A'
+              AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
+            ORDER BY EM.PK_ENROLLMENT_MASTER DESC, ES.PK_ENROLLMENT_SERVICE DESC
+            LIMIT 1
+        ");
+
+        if ($enr && $enr->RecordCount() > 0) {
+            $remaining = (int)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
+            if ($remaining > 0) {
+                $derived_type          = 'NORMAL';
                 $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
-            } else {
-                $skipped_rows[] = "Line $lineNumber — NORMAL appointment but no active enrollment-service found for {$email} + {$service_code}";
-                $lineNumber++;
-                continue;
+                $PK_SERVICE_MASTER     = $enr->fields['PK_SERVICE_MASTER'];
+                $PK_SERVICE_CODE       = $enr->fields['PK_SERVICE_CODE'];
             }
         }
 
-        // -------------------- STATUS / FLAGS --------------------
-        $status_pk = (int)($getData[$IDX_PK_APPOINTMENT_ST] ?? 0);
-        if ($status_pk <= 0) {
-            $status_pk = 1; // default Scheduled
+        // AD-HOC: resolve service from CSV code (try exact, then prefix)
+        if ($derived_type === 'AD-HOC') {
+            $svc = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
+            if (!$svc || $svc->RecordCount() == 0) {
+                $svc = $findServiceByCode($db_account, $PK_LOCATION, $kind_like);
+            }
+            if (!$svc || $svc->RecordCount() == 0) {
+                $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' (or '{$kind_like}') not found in location {$PK_LOCATION}";
+                $lineNumber++;
+                continue;
+            }
+            $PK_SERVICE_MASTER = $svc->fields['PK_SERVICE_MASTER'];
+            $PK_SERVICE_CODE   = $svc->fields['PK_SERVICE_CODE'];
         }
 
-        $no_show   = (int)($getData[$IDX_NO_SHOW] ?? 0);
-        $is_paid   = (int)($getData[$IDX_IS_PAID] ?? 1);
+        // =====================================================
+        // STATUS / FLAGS
+        // =====================================================
+        $status_pk = (int)($getData[$IDX_PK_APPOINTMENT_ST] ?? 0);
+        if ($status_pk <= 0) $status_pk = 1;
+
+        $no_show    = (int)($getData[$IDX_NO_SHOW] ?? 0);
+        $is_paid    = (int)($getData[$IDX_IS_PAID] ?? 1);
         $is_charged = (int)($getData[$IDX_IS_CHARGED] ?? 0);
-        $comment   = trim($getData[$IDX_COMMENT] ?? '');
-        $internal  = trim($getData[$IDX_INTERNAL_COMMENT] ?? '');
+        $comment    = trim($getData[$IDX_COMMENT] ?? '');
+        $internal   = trim($getData[$IDX_INTERNAL_COMMENT] ?? '');
         $group_name = trim($getData[$IDX_GROUP_NAME] ?? '');
 
-        $is_group = (strtoupper($service_code) === 'GRP') || ($group_name !== '');
+        $is_group = ($kind_is_group === 1) || ($group_name !== '');
 
-        // -------------------- DUPLICATE GUARD (non-group) --------------------
         if (!$is_group) {
             $dup = $db_account->Execute("
                 SELECT AM.PK_APPOINTMENT_MASTER
@@ -1349,13 +1403,15 @@ function handleAppointmentsUpload()
                 LIMIT 1
             ");
             if ($dup && $dup->RecordCount() > 0) {
-                $dup_rows[] = "Line $lineNumber — duplicate appointment for {$email} on {$date} {$start_time}";
+                $dup_rows[] = "Line $lineNumber — duplicate appointment for client ID {$mb_id_int} on {$date} {$start_time}";
                 $lineNumber++;
                 continue;
             }
         }
 
-        // -------------------- GROUP DEDUPE / INSERT MASTER --------------------
+        // =====================================================
+        // INSERT MASTER
+        // =====================================================
         $PK_APPOINTMENT_MASTER = 0;
 
         if ($is_group) {
@@ -1387,31 +1443,61 @@ function handleAppointmentsUpload()
                 'STATUS'                 => 'A',
                 'IS_PAID'                => $is_paid,
                 'IS_CHARGED'             => $is_charged,
-                'APPOINTMENT_TYPE'       => ($is_group ? 'GROUP' : $appt_type),
+                'APPOINTMENT_TYPE'       => ($is_group ? 'GROUP' : $derived_type),
                 'IS_REMINDER_SEND'       => 0,
                 'IS_FROM_AI_CALL'        => 0,
                 'CREATED_BY'             => $_SESSION['PK_USER'],
                 'CREATED_ON'             => date('Y-m-d H:i'),
             ];
-            db_perform_account('DOA_APPOINTMENT_MASTER', $APPT, 'insert');
-            $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+            $insert_ok = db_perform_account('DOA_APPOINTMENT_MASTER', $APPT, 'insert');
+
+            if (!$insert_ok) {
+                $conn = null;
+                if (isset($db_account->connection)) $conn = $db_account->connection;
+                elseif (isset($db_account->conn))    $conn = $db_account->conn;
+                elseif (isset($db_account->link))    $conn = $db_account->link;
+                $mysql_err = $conn ? mysqli_error($conn) : '(no connection handle)';
+
+                error_log("APPT INSERT FAILED line $lineNumber: $mysql_err");
+                $warn_rows[] = "Line $lineNumber — could not create appointment master: " . htmlspecialchars($mysql_err);
+                $lineNumber++;
+                continue;
+            }
+
+            // db_perform_account doesn't return an ID; look the row back up
+            // by its unique fingerprint (location + service + schedule + date + time).
+            $row_back = $db_account->Execute("
+    SELECT PK_APPOINTMENT_MASTER
+    FROM DOA_APPOINTMENT_MASTER
+    WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+      AND PK_SERVICE_MASTER   = " . intval($PK_SERVICE_MASTER) . "
+      AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+      AND DATE                = '" . addslashes($date) . "'
+      AND START_TIME          = '" . addslashes($start_time) . "'
+    ORDER BY PK_APPOINTMENT_MASTER DESC
+    LIMIT 1
+");
+
+            if (!$row_back || $row_back->RecordCount() == 0) {
+                $warn_rows[] = "Line $lineNumber — inserted appointment but could not re-fetch its PK";
+                $lineNumber++;
+                continue;
+            }
+
+            $PK_APPOINTMENT_MASTER = (int)$row_back->fields['PK_APPOINTMENT_MASTER'];
 
             if ($is_group) {
                 $group_cache[$gkey] = $PK_APPOINTMENT_MASTER;
                 $imported['GROUP']++;
             } else {
-                $imported[$appt_type]++;
+                $imported[$derived_type]++;
             }
         }
 
-        if (!$PK_APPOINTMENT_MASTER) {
-            $warn_rows[] = "Line $lineNumber — could not create appointment master";
-            $lineNumber++;
-            continue;
-        }
-
-        // -------------------- ATTACH CUSTOMER --------------------
-        // Skip if already attached (for group attendees)
+        // =====================================================
+        // ATTACH CUSTOMER
+        // =====================================================
         $already = $db_account->Execute("
             SELECT PK_APPOINTMENT_CUSTOMER
             FROM DOA_APPOINTMENT_CUSTOMER
@@ -1428,7 +1514,9 @@ function handleAppointmentsUpload()
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
         }
 
-        // -------------------- ATTACH SERVICE PROVIDER --------------------
+        // =====================================================
+        // ATTACH SERVICE PROVIDER
+        // =====================================================
         $already_sp = $db_account->Execute("
             SELECT PK_APPOINTMENT_MASTER
             FROM DOA_APPOINTMENT_SERVICE_PROVIDER
@@ -1444,9 +1532,10 @@ function handleAppointmentsUpload()
             db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPT_SP, 'insert');
         }
 
-        // -------------------- GROUP CLASS ENROLLMENT LINK --------------------
-        // For group classes, also attach DOA_APPOINTMENT_ENROLLMENT if NORMAL
-        if ($is_group && $appt_type === 'NORMAL' && $PK_ENROLLMENT_SERVICE > 0) {
+        // =====================================================
+        // ENROLLMENT LINK — only when NORMAL
+        // =====================================================
+        if ($derived_type === 'NORMAL' && $PK_ENROLLMENT_SERVICE > 0) {
             $already_enr = $db_account->Execute("
                 SELECT PK_APPOINTMENT_MASTER
                 FROM DOA_APPOINTMENT_ENROLLMENT
@@ -1472,50 +1561,39 @@ function handleAppointmentsUpload()
     fclose($csvFile);
 
     // =================================================================
-    // DETAILED REPORT
+    // REPORT
     // =================================================================
     $total_imported = $imported['NORMAL'] + $imported['AD-HOC'] + $imported['DEMO'] + $imported['GROUP'];
     $total_skipped  = count($skipped_rows);
     $total_dup      = count($dup_rows);
     $total_warn     = count($warn_rows);
 
-    // Group skipped rows by reason
     $skipped_by_reason = [];
     foreach ($skipped_rows as $row) {
-        // Extract reason after the em-dash
-        if (preg_match('/^Line \d+ — (.+)$/u', $row, $m)) {
-            $reason = $m[1];
-        } else {
-            $reason = $row;
-        }
-        // Collapse to a category
-        if (preg_match('/^customer not found in location (\d+) for email (.+)$/', $reason, $m)) {
-            $cat = "Customer not found in location " . $m[1];
-        } elseif (preg_match("/^SERVICE_CODE '(.+)' not found in location (\d+)$/", $reason, $m)) {
-            $cat = "Service code not found in location " . $m[2];
+        if (preg_match('/^Line \d+ — (.+)$/u', $row, $m)) $reason = $m[1];
+        else                                           $reason = $row;
+
+        if (preg_match('/^no customer with MINDBODY_CLIENT_ID (\d+) in location (\d+)$/', $reason, $m)) {
+            $cat = "Customer not found by MINDBODY_CLIENT_ID in location " . $m[2];
+        } elseif (preg_match("/^SERVICE_CODE '(.+)' \(or '(.+)'\) not found in location (\d+)$/", $reason, $m)) {
+            $cat = "Service code not found in location " . $m[3];
         } elseif (preg_match("/^scheduling code '(.+)' not found in location (\d+)$/", $reason, $m)) {
             $cat = "Scheduling code not found in location " . $m[2];
         } elseif (preg_match("/^service provider not found for '(.+)' \/ '(.+)'$/", $reason, $m)) {
             $cat = "Service provider not found";
-        } elseif (strpos($reason, 'missing CUSTOMER_EMAIL') !== false) {
-            $cat = "Missing CUSTOMER_EMAIL";
+        } elseif (strpos($reason, 'missing MINDBODY_CLIENT_ID') !== false) {
+            $cat = "Missing MINDBODY_CLIENT_ID";
         } elseif (strpos($reason, 'missing date/time') !== false) {
             $cat = "Missing date/time";
-        } elseif (strpos($reason, 'missing SERVICE_CODE') !== false) {
-            $cat = "Missing SERVICE_CODE";
-        } elseif (strpos($reason, 'unknown APPOINTMENT_TYPE') !== false) {
-            $cat = "Unknown APPOINTMENT_TYPE";
         } else {
             $cat = "Other";
         }
         $skipped_by_reason[$cat][] = $row;
     }
 
-    // ---- Build HTML report ----
     $report  = '<div style="line-height:1.6;">';
     $report .= '<h5 style="margin-top:0;color:#166534;">✅ Appointments CSV processed</h5>';
 
-    // ----- Summary block -----
     $report .= '<table style="border-collapse:collapse;margin-bottom:16px;font-size:0.9rem;">';
     $report .= '<tr><td style="padding:4px 14px 4px 0;font-weight:600;">Total rows imported</td>'
         . '<td style="padding:4px 0;"><b style="color:#39b54a;">' . $total_imported . '</b></td></tr>';
@@ -1537,7 +1615,6 @@ function handleAppointmentsUpload()
     }
     $report .= '</table>';
 
-    // ----- Detailed breakdown per skip reason -----
     if (!empty($skipped_by_reason)) {
         $report .= '<h6 style="margin-top:18px;margin-bottom:8px;color:#b91c1c;">Why rows were skipped</h6>';
         foreach ($skipped_by_reason as $reason => $rows) {
@@ -1548,14 +1625,11 @@ function handleAppointmentsUpload()
                 . ' <span style="background:#fca5a5;color:#7f1d1d;border-radius:999px;padding:1px 8px;font-size:0.75rem;margin-left:6px;">' . $count . '</span>'
                 . '</summary>';
             $report .= '<ul style="margin:8px 0 0 0;padding-left:20px;font-size:0.85rem;color:#7f1d1d;max-height:280px;overflow-y:auto;">';
-            foreach ($rows as $r) {
-                $report .= '<li>' . htmlspecialchars($r) . '</li>';
-            }
+            foreach ($rows as $r) $report .= '<li>' . htmlspecialchars($r) . '</li>';
             $report .= '</ul></details>';
         }
     }
 
-    // ----- Duplicate rows -----
     if (!empty($dup_rows)) {
         $report .= '<details style="margin-top:12px;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;background:#fffbeb;">';
         $report .= '<summary style="cursor:pointer;font-weight:600;color:#a16207;">'
@@ -1567,38 +1641,15 @@ function handleAppointmentsUpload()
         $report .= '</ul></details>';
     }
 
-    // ----- Warnings -----
     if (!empty($warn_rows)) {
-        $report .= '<details style="margin-top:12px;border:1px solid #93c5fd;border-radius:8px;padding:8px 12px;background:#eff6ff;">';
+        $report .= '<details style="margin-top:12px;border:1px solid #93c5fd;border-radius:8px;padding:8px 12px;background:#eff6ff;" open>';
         $report .= '<summary style="cursor:pointer;font-weight:600;color:#1d4ed8;">'
             . 'Warnings'
             . ' <span style="background:#93c5fd;color:#1e3a8a;border-radius:999px;padding:1px 8px;font-size:0.75rem;margin-left:6px;">' . count($warn_rows) . '</span>'
             . '</summary>';
         $report .= '<ul style="margin:8px 0 0 0;padding-left:20px;font-size:0.85rem;color:#1e3a8a;max-height:280px;overflow-y:auto;">';
-        foreach ($warn_rows as $r) $report .= '<li>' . htmlspecialchars($r) . '</li>';
+        foreach ($warn_rows as $r) $report .= '<li>' . $r . '</li>';
         $report .= '</ul></details>';
-    }
-
-    // ----- Recommendations -----
-    if (!empty($skipped_by_reason)) {
-        $report .= '<div style="margin-top:18px;padding:12px 16px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:0.85rem;color:#166534;">';
-        $report .= '<b>What to do next:</b><ul style="margin:6px 0 0 0;padding-left:20px;">';
-        foreach ($skipped_by_reason as $reason => $rows) {
-            if (strpos($reason, 'Customer not found') !== false) {
-                $report .= '<li>Some customers don\'t exist in this location yet. Import the Customer &amp; Enrollments file first, or move these customers to this location.</li>';
-            } elseif (strpos($reason, 'Service code not found') !== false) {
-                $report .= '<li>A SERVICE_CODE from the CSV is missing from this location\'s Services. Add it under <b>Setup → Services</b>.</li>';
-            } elseif (strpos($reason, 'Scheduling code not found') !== false) {
-                $report .= '<li>A SCHEDULING_CODE from the CSV is missing from this location. Add it under <b>Setup → Scheduling Codes</b> and link it to the service.</li>';
-            } elseif (strpos($reason, 'Service provider not found') !== false) {
-                $report .= '<li>A teacher in the CSV isn\'t set up in this location. Create the teacher under <b>Setup → Users</b> with the matching email and grant them this location.</li>';
-            } elseif (strpos($reason, 'Missing') !== false) {
-                $report .= '<li>Some rows are missing required values (email, date, time, or service code). Fix those cells in the CSV.</li>';
-            } elseif (strpos($reason, 'Unknown APPOINTMENT_TYPE') !== false) {
-                $report .= '<li>Some rows have an APPOINTMENT_TYPE that isn\'t NORMAL, AD-HOC, or DEMO. Fix the value in column X.</li>';
-            }
-        }
-        $report .= '</ul></div>';
     }
 
     $report .= '</div>';
