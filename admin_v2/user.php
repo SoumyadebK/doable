@@ -4,7 +4,7 @@ use FontLib\Table\Type\glyf;
 
 require_once('../global/config.php');
 global $db;
-global $AMI_ENABLE;
+//global $AMI_ENABLE;
 
 $userType = "Users";
 $order = $db->Execute("SELECT SORT_ORDER FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = " . $_SESSION['PK_ROLES']);
@@ -29,6 +29,7 @@ $PK_CUSTOMER_DETAILS = '';
 $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
+$USER_ID = '';
 //$TYPE = '';
 $EMAIL_ID = '';
 $DISPLAY_ORDER = '';
@@ -65,6 +66,7 @@ if (!empty($_GET['id'])) {
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
+    $USER_ID = $res->fields['USER_ID'];
     //$TYPE = $res->fields['TYPE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
@@ -87,6 +89,11 @@ if (!empty($_GET['id'])) {
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $APPEAR_IN_CALENDAR = $res->fields['APPEAR_IN_CALENDAR'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
+
+    $user_location_data = $db->Execute("SELECT PK_LOCATION FROM DOA_USER_LOCATION WHERE PK_USER = '$PK_USER'");
+
+    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = " . $user_location_data->fields['PK_LOCATION'] . " AND ACTIVE = 1");
+    $AMI_ENABLE = $location_data->fields['FRANCHISE'];
 
     if (!empty($_GET['id'])) {
         $PK_USER = $_GET['id'];
@@ -1199,6 +1206,11 @@ if (!empty($_GET['id'])) {
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">Arthur Murray ID</label>
                                                                 <input type="text" id="ARTHUR_MURRAY_ID" name="ARTHUR_MURRAY_ID" class="form-control-modern" placeholder="Arthur Murray ID" value="<?= htmlspecialchars($ARTHUR_MURRAY_ID) ?>">
+                                                            </div>
+                                                        <?php } else { ?>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">User ID</label>
+                                                                <input type="text" id="USER_ID" name="USER_ID" class="form-control-modern" placeholder="User ID" value="<?= htmlspecialchars($USER_ID) ?>">
                                                             </div>
                                                         <?php } ?>
 

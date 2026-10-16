@@ -130,6 +130,7 @@ if ($selected_primary_location->RecordCount() > 0) {
                 <div class="label">Customer ID</div>
                 <div class="value">
                     <input type="text" name="CUSTOMER_ID" class="form-control" value="<?= $CUSTOMER_ID ?>" />
+                    <input type="hidden" name="UNIQUE_ID" class="form-control" value="<?= $UNIQUE_ID ?>" />
                 </div>
             </div>
             <div class="col-6">
