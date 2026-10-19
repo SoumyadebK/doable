@@ -2173,7 +2173,14 @@ if ($PK_USER_MASTER > 0) {
 </script>
 <!-- All function related to customer details edit -->
 <script>
+    var personalInfoOriginalHtml = null;
+
     function editPersonalInfo(PK_USER, PK_USER_MASTER) {
+        // Preserve the original view before displaying the edit form
+        if (personalInfoOriginalHtml === null) {
+            personalInfoOriginalHtml = $('#user_edit_information').html();
+        }
+
         $.ajax({
             url: "partials/edit_customer_details.php",
             type: 'POST',
@@ -2183,9 +2190,24 @@ if ($PK_USER_MASTER > 0) {
             },
             success: function(data) {
                 $('#user_edit_information').html(data);
+            },
+            error: function() {
+                Swal.fire({
+                    title: "Error!",
+                    text: "Unable to load the edit form. Please try again.",
+                    icon: "error"
+                });
             }
         });
     }
+
+    function cancelPersonalInfo() {
+        if (personalInfoOriginalHtml !== null) {
+            $('#user_edit_information').html(personalInfoOriginalHtml);
+            personalInfoOriginalHtml = null;
+        }
+    }
+
 
     function editAddress(PK_USER, PK_USER_MASTER) {
         $.ajax({

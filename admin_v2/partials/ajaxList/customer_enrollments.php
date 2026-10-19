@@ -270,67 +270,147 @@ while (!$enrollment_data->EOF) {
                     $total_used_amount = 0;
                     $total_scheduled_amount = 0;
                     $enrollment_service_array = [];
-                    while (!$serviceCodeData->EOF) {
-                        if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
-                            $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                        } else {
-                            $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                        }
+                    if ($enrollment_data->fields['PK_ENROLLMENT_TYPE'] == 35) {
 
-                        $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-
-                        /* if ($type == 'completed') {
-                                $SESSION_COMPLETED = $NUMBER_OF_SESSION;
-                            } else { */
-                        if ((int)$enrollment_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
-                            $SESSION_COMPLETED = $NUMBER_OF_SESSION;
-                        } else {
-                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                        }
-                        //}
-
-                        $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
-
-                        if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
-                            $PRICE_PER_SESSION = ($NUMBER_OF_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $NUMBER_OF_SESSION, 2) : 0;
-                        } else {
-                            $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
-                        }
-
-                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
-                            $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
-                            if ($serviceCodeData->fields['STATUS'] == 'C') {
-                                $TOTAL_AMOUNT_PAID = is_null($serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? 0 : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        while (!$serviceCodeData->EOF) {
+                            if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                                $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
                             } else {
-                                $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                             }
-                        } else {
-                            $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);
-                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+
+                            $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+
+                            if ((int)$enrollment_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
+                                $SESSION_COMPLETED = $NUMBER_OF_SESSION;
+                            } else {
+                                $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            }
+
+                            $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
+
+                            if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                                $PRICE_PER_SESSION = ($NUMBER_OF_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $NUMBER_OF_SESSION, 2) : 0;
+                            } else {
+                                $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+                            }
+
+                            if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                                $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
+                                if ($serviceCodeData->fields['STATUS'] == 'C') {
+                                    $TOTAL_AMOUNT_PAID = is_null($serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? 0 : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                                } else {
+                                    $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                }
+                            } else {
+                                $FINAL_AMOUNT = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+
+                                if ($FINAL_AMOUNT > 0 && $NUMBER_OF_SESSION > 0) {
+                                    $TOTAL_PAID_SESSION = ($TOTAL_AMOUNT_PAID / $FINAL_AMOUNT) * $NUMBER_OF_SESSION;
+
+                                    if (abs($TOTAL_PAID_SESSION - $NUMBER_OF_SESSION) < 0.01 && $TOTAL_AMOUNT_PAID >= $FINAL_AMOUNT) {
+                                        $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
+                                    }
+                                } else {
+                                    $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
+                                }
+                            }
+
+                            $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
+                            $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
+
+                            if (abs($ENR_BALANCE) < 0.01) $ENR_BALANCE = 0;
+                            if (abs($SERVICE_CREDIT) < 0.01) $SERVICE_CREDIT = 0;
+
+                            if ($type == 'completed' && $SERVICE_CREDIT > 0) {
+                                $SERVICE_CREDIT = 0;
+                            }
+
+                            $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
+
+                            if ($FINAL_AMOUNT > 0 && $NUMBER_OF_SESSION > 0) {
+                                $total_used_amount += ($FINAL_AMOUNT * ($SESSION_COMPLETED / $NUMBER_OF_SESSION));
+                            } else {
+                                $total_used_amount += 0;
+                            }
+
+                            $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
+                            <tr>
+                                <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
+                                <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
+                                <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
+                                <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
+                                <td style="text-align: center; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
+                                <td style="text-align: center"><?= number_format($TOTAL_PAID_SESSION, 2) ?></td>
+                                <td style="text-align: center; color:<?= ($SERVICE_CREDIT < 0) ? 'red' : 'black' ?>;"><?= number_format($SERVICE_CREDIT, 2) ?></td>
+                            </tr>
+                        <?php $serviceCodeData->MoveNext();
                         }
+                    } else {
+                        while (!$serviceCodeData->EOF) {
+                            if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                                $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            } else {
+                                $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                            }
 
-                        $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
-                        $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
+                            $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
-                        if ($type == 'completed' && $SERVICE_CREDIT > 0) {
-                            $SERVICE_CREDIT = 0;
-                        }
+                            /* if ($type == 'completed') {
+                        $SESSION_COMPLETED = $NUMBER_OF_SESSION;
+                        } else { */
+                            if ((int)$enrollment_data->fields['PK_ENROLLMENT_TYPE'] === 35) {
+                                $SESSION_COMPLETED = $NUMBER_OF_SESSION;
+                            } else {
+                                $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            }
+                            //}
 
-                        $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-                        //$total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                        $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
-                        $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
-                        <tr>
-                            <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
-                            <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
-                            <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
-                            <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
-                            <td style="text-align: center; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
-                            <td style="text-align: center"><?= number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / (($PRICE_PER_SESSION == 0) ? 1 : $PRICE_PER_SESSION), 2) ?></td>
-                            <td style="text-align: center; color:<?= ($SERVICE_CREDIT < 0) ? 'red' : 'black' ?>;"><?= number_format($SERVICE_CREDIT, 2) ?></td>
-                        </tr>
+                            $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
+
+                            if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                                $PRICE_PER_SESSION = ($NUMBER_OF_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $NUMBER_OF_SESSION, 2) : 0;
+                            } else {
+                                $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+                            }
+
+                            if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                                $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
+                                if ($serviceCodeData->fields['STATUS'] == 'C') {
+                                    $TOTAL_AMOUNT_PAID = is_null($serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? 0 : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                                } else {
+                                    $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                }
+                            } else {
+                                $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);
+                                $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                            }
+
+                            $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
+                            $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
+
+                            if ($type == 'completed' && $SERVICE_CREDIT > 0) {
+                                $SERVICE_CREDIT = 0;
+                            }
+
+                            $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
+                            //$total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                            $total_used_amount += ($PRICE_PER_SESSION * $SESSION_COMPLETED);
+                            $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
+                            <tr>
+                                <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
+                                <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
+                                <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
+                                <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
+                                <td style="text-align: center; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
+                                <td style="text-align: center"><?= number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / (($PRICE_PER_SESSION == 0) ? 1 : $PRICE_PER_SESSION), 2) ?></td>
+                                <td style="text-align: center; color:<?= ($SERVICE_CREDIT < 0) ? 'red' : 'black' ?>;"><?= number_format($SERVICE_CREDIT, 2) ?></td>
+                            </tr>
                     <?php $serviceCodeData->MoveNext();
+                        }
                     } ?>
+
                 </tbody>
 
                 <tfoot class="border-top-0">

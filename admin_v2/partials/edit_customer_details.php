@@ -89,7 +89,13 @@ if ($selected_primary_location->RecordCount() > 0) {
             </div>
 
             <div class="d-flex gap-2 align-items-center">
-                <a href="javascript:;" class="btn btn-secondary cancel">Cancel</a>
+
+                <button type="button"
+                    class="btn btn-secondary"
+                    onclick="cancelPersonalInfo()">
+                    Cancel
+                </button>
+
                 <button class="btn btn-secondary" type="submit">Save</button>
             </div>
         </div>
@@ -129,8 +135,8 @@ if ($selected_primary_location->RecordCount() > 0) {
             <div class="col-6">
                 <div class="label">Customer ID</div>
                 <div class="value">
-                    <input type="text" name="CUSTOMER_ID" class="form-control" value="<?= $CUSTOMER_ID ?>" />
-                    <input type="hidden" name="UNIQUE_ID" class="form-control" value="<?= $UNIQUE_ID ?>" />
+                    <input type="hidden" name="CUSTOMER_ID" class="form-control" value="<?= $CUSTOMER_ID ?>" readonly />
+                    <input type="text" name="UNIQUE_ID" class="form-control" value="<?= $UNIQUE_ID ?>" readonly />
                 </div>
             </div>
             <div class="col-6">

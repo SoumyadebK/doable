@@ -759,11 +759,13 @@ function handleCustomerEnrollmentsUpload()
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                $cen = $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'];
-                if ($cen <= 1)        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                else if ($cen == 2)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                else if ($cen == 3)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
-                else                  $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
+                // $cen = $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'];
+                // if ($cen <= 1)        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
+                // else if ($cen == 2)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
+                // else if ($cen == 3)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
+                // else                  $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
+
+                $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
                 $TOTAL_COST        = $cost_active;
                 $PRICE_PER_SESSION = ($priv_active > 0) ? $TOTAL_COST / $priv_active : 0;
