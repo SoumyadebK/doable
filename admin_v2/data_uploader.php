@@ -898,17 +898,92 @@ function handleCustomerEnrollmentsUpload()
         }
 
         // MISC ENROLLMENT
+        // MISC ENROLLMENT / WALLET CREDIT
         $should_create_misc = false;
+        $should_add_to_wallet = false;
         $misc_amount = 0;
 
-        if ($row_created_enrollment && $account_balance != 0) {
-            $should_create_misc = true;
-            $misc_amount = abs($account_balance);
-        } elseif (!$row_created_enrollment && $account_balance < 0) {
+        // Rule 1 & 2: Check the sign of the balance
+        if ($account_balance > 0) {
+            // Positive value = Credit (Add to wallet)
+            $should_add_to_wallet = true;
+            $misc_amount = $account_balance;
+        } elseif ($account_balance < 0) {
+            // Negative value = Debt (Create MISC charge)
             $should_create_misc = true;
             $misc_amount = abs($account_balance);
         }
 
+        // --- HANDLE WALLET CREDIT (Rule 1) ---
+        if ($should_add_to_wallet && $misc_amount > 0) {
+            // Check for duplicates on the same day to prevent double-importing
+            $dup_check = $db_account->Execute("SELECT PK_CUSTOMER_WALLET 
+                    FROM DOA_CUSTOMER_WALLET 
+                    WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
+                    AND NOTE LIKE '%Imported from Mindbody%'
+                    AND DATE(CREATED_ON) = '" . date('Y-m-d') . "' 
+                    LIMIT 1");
+
+            if ($dup_check && $dup_check->RecordCount() > 0) {
+                $duplicate_rows[] = "Line $lineNumber — wallet credit already imported today for " . htmlspecialchars($email);
+            } else {
+                // 1. Get or Create the Parent Wallet Record
+                $parent_wallet = $db_account->Execute("SELECT PK_CUSTOMER_WALLET, CURRENT_BALANCE, BALANCE_LEFT 
+                                                       FROM DOA_CUSTOMER_WALLET 
+                                                       WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
+                                                       AND CUSTOMER_WALLET_PARENT = 0 
+                                                       LIMIT 1");
+
+                if ($parent_wallet && $parent_wallet->RecordCount() > 0) {
+                    $PK_PARENT_WALLET = $parent_wallet->fields['PK_CUSTOMER_WALLET'];
+                    $NEW_CURRENT_BALANCE = $parent_wallet->fields['CURRENT_BALANCE'] + $misc_amount;
+                    $NEW_BALANCE_LEFT = $parent_wallet->fields['BALANCE_LEFT'] + $misc_amount;
+
+                    // Update Parent Balance
+                    $db_account->Execute("UPDATE DOA_CUSTOMER_WALLET 
+                                          SET CURRENT_BALANCE = " . $NEW_CURRENT_BALANCE . ", 
+                                              BALANCE_LEFT = " . $NEW_BALANCE_LEFT . " 
+                                          WHERE PK_CUSTOMER_WALLET = " . $PK_PARENT_WALLET);
+                } else {
+                    // Create Parent Record if none exists
+                    $PARENT_DATA = [
+                        'CUSTOMER_WALLET_PARENT' => 0,
+                        'PK_USER_MASTER'         => $PK_USER_MASTER,
+                        'CURRENT_BALANCE'        => $misc_amount,
+                        'DEBIT'                  => 0,
+                        'CREDIT'                 => 0,
+                        'BALANCE_LEFT'           => $misc_amount,
+                        'DESCRIPTION'            => 'Wallet Created via Import',
+                        'IS_DELETED'             => 0,
+                        'CREATED_BY'             => $_SESSION['PK_USER'],
+                        'CREATED_ON'             => date('Y-m-d H:i:s'),
+                    ];
+                    db_perform_account('DOA_CUSTOMER_WALLET', $PARENT_DATA, 'insert');
+                    $PK_PARENT_WALLET = $db_account->insert_ID();
+                }
+
+                // 2. Insert the Child Transaction (Credit)
+                $WALLET_DATA = [
+                    'CUSTOMER_WALLET_PARENT' => $PK_PARENT_WALLET,
+                    'PK_USER_MASTER'         => $PK_USER_MASTER,
+                    'CURRENT_BALANCE'        => 0,
+                    'DEBIT'                  => 0,
+                    'CREDIT'                 => $misc_amount,
+                    'BALANCE_LEFT'           => $misc_amount,
+                    'DESCRIPTION'            => 'Mindbody Import Credit',
+                    'PK_PAYMENT_TYPE'        => 12, // Adjust if you have a specific type for import
+                    'NOTE'                   => 'Imported from Mindbody (Amount Paid Ahead)',
+                    'IS_DELETED'             => 0,
+                    'CREATED_BY'             => $_SESSION['PK_USER'],
+                    'CREATED_ON'             => date('Y-m-d H:i:s'),
+                ];
+                db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_DATA, 'insert');
+
+                $misc_rows[] = "Line $lineNumber — Wallet credit added for " . htmlspecialchars($email) . " ($" . number_format($misc_amount, 2) . " credit)";
+            }
+        }
+
+        // --- HANDLE MISC DEBT (Rule 2) ---
         $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MISC', false);
         if (!$misc_service || $misc_service->RecordCount() == 0) {
             $misc_service = $findServiceInLocation($db_account, $PK_LOCATION, 'MIS', false);
@@ -1030,10 +1105,10 @@ function handleCustomerEnrollmentsUpload()
         $msg_parts[] = "<br><br><b>Services / scheduling codes checked for location " . intval($PK_LOCATION) . ":</b><br>" . implode('<br>', $created_rows);
     }
     if (!empty($misc_rows)) {
-        $msg_parts[] = "<br><br><b>Miscellaneous enrollments created:</b><br>" . implode('<br>', $misc_rows);
+        $msg_parts[] = "<br><br><b>Wallet Credits Added:</b><br>" . implode('<br>', $misc_rows);
     }
     if (!empty($balance_only_rows)) {
-        $msg_parts[] = "<br><br><b>Balance-only enrollments created:</b><br>" . implode('<br>', $balance_only_rows);
+        $msg_parts[] = "<br><br><b>Miscellaneous Debts Created:</b><br>" . implode('<br>', $balance_only_rows);
     }
     if (!empty($duplicate_rows)) {
         $msg_parts[] = "<br><br><b>Skipped (already imported today):</b><br>" . implode('<br>', $duplicate_rows);
