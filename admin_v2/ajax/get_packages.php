@@ -22,6 +22,7 @@ while (!$package_service_data->EOF) {
                 $service_master_data = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_MASTER.IS_DELETED = 0");
                 $service_code_color = getServiceCodeColor($service_master_data->fields['SERVICE_CODE']);
                 ?>
+                <input type="hidden" class="SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?= $service_master_data->fields['SERVICE_NAME'] ?>">
                 <p class="text-dark mb-0"><?= $service_master_data->fields['SERVICE_NAME'] ?>
                     <span class="badge ms-auto" style="background-color: <?= $service_code_color ?>20; color: <?= $service_code_color ?>;"><?= $service_master_data->fields['SERVICE_CODE'] ?></span>
                 </p>
