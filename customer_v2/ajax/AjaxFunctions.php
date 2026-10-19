@@ -906,7 +906,7 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
         chmod('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
     }
 
-    $file_name = "enrollment_pdf_" . time() . ".pdf";
+    $file_name = "enrollment_pdf_" . generateSecureToken(16) . ".pdf";
     $mpdf->Output('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $file_name, 'F');
 
     return $LOCATION_CODE . '/' . $file_name;
