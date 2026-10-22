@@ -371,16 +371,16 @@ function handleCustomerEnrollmentsUpload()
         $email      = trim($getData[3] ?? '');
         $phone      = trim($getData[4] ?? '');
 
-        $priv_completed  = (float)($getData[5]  ?? 0);
-        $grp_completed   = (float)($getData[6]  ?? 0);
-        $party_completed = (float)($getData[7]  ?? 0);
-        $coach_completed = (float)($getData[8]  ?? 0);
+        $priv_completed  = (string)($getData[5]  ?? '0');
+        $grp_completed   = (string)($getData[6]  ?? '0');
+        $party_completed = (string)($getData[7]  ?? '0');
+        $coach_completed = (string)($getData[8]  ?? '0');
         $cost_completed  = (float)($getData[9]  ?? 0);
 
-        $priv_active     = (float)($getData[10] ?? 0);
-        $grp_active      = (float)($getData[11] ?? 0);
-        $party_active    = (float)($getData[12] ?? 0);
-        $coach_active    = (float)($getData[13] ?? 0);
+        $priv_active     = (string)($getData[10] ?? '0');
+        $grp_active      = (string)($getData[11] ?? '0');
+        $party_active    = (string)($getData[12] ?? '0');
+        $coach_active    = (string)($getData[13] ?? '0');
         $cost_active     = (float)($getData[14] ?? 0);
 
         $account_balance = (float)($getData[16] ?? 0);
@@ -1407,7 +1407,11 @@ function handleAppointmentsUpload()
               AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
               AND EM.STATUS         = 'A'
               AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
-            ORDER BY EM.PK_ENROLLMENT_MASTER DESC, ES.PK_ENROLLMENT_SERVICE DESC
+            ORDER BY 
+                (SC.SERVICE_CODE = 'MISC') ASC, 
+                (SC.SERVICE_CODE = 'MIS') ASC, 
+                EM.PK_ENROLLMENT_MASTER DESC, 
+                ES.PK_ENROLLMENT_SERVICE DESC
             LIMIT 1
         ");
 

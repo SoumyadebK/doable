@@ -276,11 +276,14 @@ while (!$enrollment_data->EOF) {
                             if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
                                 $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
                             } else {
-                                $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                // Using floatval to properly handle 30.6
+                                $NUMBER_OF_SESSION = (float)$serviceCodeData->fields['NUMBER_OF_SESSION'];
                             }
 
                             $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                            $SESSION_COMPLETED = $NUMBER_OF_SESSION; // Type 35 is always fully used
+
+                            // FIX: Revert to actual completed count so active classes show as "Remaining" instead of "Used"
+                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
                             $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
 
@@ -292,25 +295,26 @@ while (!$enrollment_data->EOF) {
                                 $TOTAL_PAID_SESSION = 0;
                                 $ENR_BALANCE = 0;
                                 $SERVICE_CREDIT = 0;
-                                $SESSION_SCHEDULED = 0; // Force scheduled to 0 as well
+                                $SESSION_SCHEDULED = 0;
                                 $used_dollar_amount = 0;
                             } else {
                                 // RULE 1 & 2: Calculate exactly from the total for paid services
                                 if ($NUMBER_OF_SESSION > 0) {
-                                    // If fully used and fully paid, force exact match (Rule 2)
-                                    if ($SESSION_COMPLETED == $NUMBER_OF_SESSION && $TOTAL_AMOUNT_PAID >= $FINAL_AMOUNT) {
+                                    // Calculate paid sessions based on exact financial ratio
+                                    $TOTAL_PAID_SESSION = ($TOTAL_AMOUNT_PAID / $FINAL_AMOUNT) * $NUMBER_OF_SESSION;
+
+                                    // Snap to exact number if fully paid (e.g. 1.9999 becomes 2)
+                                    if (abs($TOTAL_PAID_SESSION - $NUMBER_OF_SESSION) < 0.01 && $TOTAL_AMOUNT_PAID >= $FINAL_AMOUNT) {
                                         $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
-                                        $ENR_BALANCE = 0;
-                                    } else {
-                                        // Calculate paid sessions based on exact financial ratio (Rule 1)
-                                        $TOTAL_PAID_SESSION = ($TOTAL_AMOUNT_PAID / $FINAL_AMOUNT) * $NUMBER_OF_SESSION;
-                                        $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
                                     }
+
+                                    $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
                                 } else {
                                     $TOTAL_PAID_SESSION = 0;
                                     $ENR_BALANCE = 0;
                                 }
 
+                                // Service Credit is Paid minus Used (which will show 30.6 for active imports)
                                 $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
                                 if (abs($SERVICE_CREDIT) < 0.01) $SERVICE_CREDIT = 0;
 
@@ -318,7 +322,7 @@ while (!$enrollment_data->EOF) {
                                 $used_dollar_amount = ($NUMBER_OF_SESSION > 0) ? ($FINAL_AMOUNT * ($SESSION_COMPLETED / $NUMBER_OF_SESSION)) : 0;
                             }
 
-                            // Snap floating point errors to 0
+                            // Snap floating point errors to 0 for display
                             if (abs($ENR_BALANCE) < 0.01) $ENR_BALANCE = 0;
 
                             if ($type == 'completed' && $SERVICE_CREDIT > 0) {
