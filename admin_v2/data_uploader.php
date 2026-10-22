@@ -916,7 +916,6 @@ function handleCustomerEnrollmentsUpload()
 
         // --- HANDLE WALLET CREDIT (Rule 1) ---
         if ($should_add_to_wallet && $misc_amount > 0) {
-            // Check for duplicates on the same day to prevent double-importing
             $dup_check = $db_account->Execute("SELECT PK_CUSTOMER_WALLET 
                     FROM DOA_CUSTOMER_WALLET 
                     WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
@@ -927,51 +926,36 @@ function handleCustomerEnrollmentsUpload()
             if ($dup_check && $dup_check->RecordCount() > 0) {
                 $duplicate_rows[] = "Line $lineNumber — wallet credit already imported today for " . htmlspecialchars($email);
             } else {
-                // 1. Get or Create the Parent Wallet Record
-                $parent_wallet = $db_account->Execute("SELECT PK_CUSTOMER_WALLET, CURRENT_BALANCE, BALANCE_LEFT 
-                                                       FROM DOA_CUSTOMER_WALLET 
-                                                       WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
-                                                       AND CUSTOMER_WALLET_PARENT = 0 
-                                                       LIMIT 1");
+                // 1. Get the current running balance of ALL wallet rows for this user
+                $current_sum_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) AS TOTAL_BALANCE 
+                                                          FROM DOA_CUSTOMER_WALLET 
+                                                          WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
+                                                          AND IS_DELETED = 0");
+                $current_total = ($current_sum_data && $current_sum_data->RecordCount() > 0) ? (float)$current_sum_data->fields['TOTAL_BALANCE'] : 0;
 
-                if ($parent_wallet && $parent_wallet->RecordCount() > 0) {
-                    $PK_PARENT_WALLET = $parent_wallet->fields['PK_CUSTOMER_WALLET'];
-                    $NEW_CURRENT_BALANCE = $parent_wallet->fields['CURRENT_BALANCE'] + $misc_amount;
-                    $NEW_BALANCE_LEFT = $parent_wallet->fields['BALANCE_LEFT'] + $misc_amount;
+                $new_total_balance = $current_total + $misc_amount;
 
-                    // Update Parent Balance
-                    $db_account->Execute("UPDATE DOA_CUSTOMER_WALLET 
-                                          SET CURRENT_BALANCE = " . $NEW_CURRENT_BALANCE . ", 
-                                              BALANCE_LEFT = " . $NEW_BALANCE_LEFT . " 
-                                          WHERE PK_CUSTOMER_WALLET = " . $PK_PARENT_WALLET);
+                // 2. Generate a Receipt Number
+                $receipt_lookup = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_CUSTOMER_WALLET WHERE RECEIPT_NUMBER IS NOT NULL AND RECEIPT_NUMBER != '' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+                if ($receipt_lookup && $receipt_lookup->RecordCount() > 0) {
+                    $last_receipt = $receipt_lookup->fields['RECEIPT_NUMBER'];
+                    $last_num = (int)str_replace('PMT-', '', $last_receipt);
+                    $new_receipt = 'PMT-' . ($last_num + 1);
                 } else {
-                    // Create Parent Record if none exists
-                    $PARENT_DATA = [
-                        'CUSTOMER_WALLET_PARENT' => 0,
-                        'PK_USER_MASTER'         => $PK_USER_MASTER,
-                        'CURRENT_BALANCE'        => $misc_amount,
-                        'DEBIT'                  => 0,
-                        'CREDIT'                 => 0,
-                        'BALANCE_LEFT'           => $misc_amount,
-                        'DESCRIPTION'            => 'Wallet Created via Import',
-                        'IS_DELETED'             => 0,
-                        'CREATED_BY'             => $_SESSION['PK_USER'],
-                        'CREATED_ON'             => date('Y-m-d H:i:s'),
-                    ];
-                    db_perform_account('DOA_CUSTOMER_WALLET', $PARENT_DATA, 'insert');
-                    $PK_PARENT_WALLET = $db_account->insert_ID();
+                    $new_receipt = 'PMT-1';
                 }
 
-                // 2. Insert the Child Transaction (Credit)
+                // 3. Insert the Transaction as a parent row (CUSTOMER_WALLET_PARENT = 0) to match the UI
                 $WALLET_DATA = [
-                    'CUSTOMER_WALLET_PARENT' => $PK_PARENT_WALLET,
+                    'CUSTOMER_WALLET_PARENT' => 0, // The UI queries this
                     'PK_USER_MASTER'         => $PK_USER_MASTER,
-                    'CURRENT_BALANCE'        => 0,
+                    'CURRENT_BALANCE'        => $misc_amount,
                     'DEBIT'                  => 0,
                     'CREDIT'                 => $misc_amount,
-                    'BALANCE_LEFT'           => $misc_amount,
+                    'BALANCE_LEFT'           => $new_total_balance, // Set the running total
                     'DESCRIPTION'            => 'Mindbody Import Credit',
-                    'PK_PAYMENT_TYPE'        => 12, // Adjust if you have a specific type for import
+                    'PK_PAYMENT_TYPE'        => 12,
+                    'RECEIPT_NUMBER'         => $new_receipt,
                     'NOTE'                   => 'Imported from Mindbody (Amount Paid Ahead)',
                     'IS_DELETED'             => 0,
                     'CREATED_BY'             => $_SESSION['PK_USER'],
@@ -979,7 +963,7 @@ function handleCustomerEnrollmentsUpload()
                 ];
                 db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_DATA, 'insert');
 
-                $misc_rows[] = "Line $lineNumber — Wallet credit added for " . htmlspecialchars($email) . " ($" . number_format($misc_amount, 2) . " credit)";
+                $misc_rows[] = "Line $lineNumber — Wallet credit added for " . htmlspecialchars($email) . " ($" . number_format($misc_amount, 2) . " credit, Receipt: $new_receipt)";
             }
         }
 
