@@ -1819,13 +1819,13 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     </div>
 
                                                     <!-- Royalty Percentage -->
-                                                    <div class="form-group-modern">
+                                                    <!-- <div class="form-group-modern">
                                                         <label class="form-label">Royalty Percentage</label>
                                                         <div class="input-group-modern">
                                                             <input type="text" class="form-control-modern" name="ROYALTY_PERCENTAGE" value="<?= htmlspecialchars($ROYALTY_PERCENTAGE) ?>">
                                                             <span class="input-group-text">%</span>
                                                         </div>
-                                                    </div>
+                                                    </div> -->
 
                                                     <!-- Sales Tax -->
                                                     <div class="form-group-modern">
