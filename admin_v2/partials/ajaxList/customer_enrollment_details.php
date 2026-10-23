@@ -181,7 +181,7 @@ while (!$serviceCodeData->EOF) {
                             <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, 'enrollment_payment')"><i class="fa fa-info-circle" style="font-size: 17px; margin-right: 5px;"></i></a>
                             <?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>
                             <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, '<?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>', 'payment')"><i class="fa fa-pencil" style="font-size: 16px; margin-left: 5px;"></i></a>
-                            <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] == 12) { ?>
+                            <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] != 1 && $payment_details->fields['PK_PAYMENT_TYPE'] != 14 && $payment_details->fields['PK_PAYMENT_TYPE'] != 7) { ?>
                                 <a href="javascript:" title="Delete" onclick="deletePayment(<?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $payment_details->fields['AMOUNT'] ?>)" style="color: red;"><i class="fa fa-trash" style="font-size: 16px; margin-left: 5px;"></i></a>
                             <?php } ?>
                         </td>
