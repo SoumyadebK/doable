@@ -783,9 +783,6 @@ function handleCustomerEnrollmentsUpload()
                 } else {
                     $prepaid_lessons_value = $amount_paid_active;
                 }
-                if ($prepaid_lessons_value > $TOTAL_COST) {
-                    $prepaid_lessons_value = $TOTAL_COST;
-                }
 
                 $TOTAL_PAID      = $prepaid_lessons_value;
                 $TOTAL_REMAINING = max(0, $TOTAL_COST - $prepaid_lessons_value);
@@ -917,9 +914,11 @@ function handleCustomerEnrollmentsUpload()
             $should_add_to_wallet = true;
             $misc_amount = $account_balance;
         } elseif ($account_balance < 0) {
-            // Negative value = Debt (Create MISC charge)
-            $should_create_misc = true;
-            $misc_amount = abs($account_balance);
+            // FIX: Only create a MISC debt if we DID NOT already put the debt into an active PRI enrollment
+            if ($amount_owed_remaining <= 0) {
+                $should_create_misc = true;
+                $misc_amount = abs($account_balance);
+            }
         }
 
         // --- HANDLE WALLET CREDIT (Rule 1) ---
