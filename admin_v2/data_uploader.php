@@ -771,17 +771,33 @@ function handleCustomerEnrollmentsUpload()
                 $TOTAL_COST        = $cost_active;
                 $PRICE_PER_SESSION = ($priv_active > 0) ? $TOTAL_COST / $priv_active : 0;
 
+                // Initialize variables to track the extra debt
+                $amount_owed_for_misc = 0;
+
                 if ($amount_paid_active === null) {
-                    // If we have a specific "Amount Owed" from the CSV, subtract it from the total cost
+                    // If we have a specific "Amount Owed" from the CSV
                     if ($amount_owed_remaining > 0) {
-                        $prepaid_lessons_value = $TOTAL_COST - $amount_owed_remaining;
-                        if ($prepaid_lessons_value < 0) $prepaid_lessons_value = 0;
+                        if ($amount_owed_remaining > $TOTAL_COST) {
+                            // If they owe MORE than the lessons cost, 
+                            // the lessons are 100% unpaid, and the rest goes to MISC
+                            $prepaid_lessons_value = 0;
+                            $amount_owed_for_misc = $amount_owed_remaining - $TOTAL_COST;
+                        } else {
+                            // They owe less than or equal to the lessons cost
+                            $prepaid_lessons_value = $TOTAL_COST - $amount_owed_remaining;
+                            $amount_owed_for_misc = 0;
+                        }
                     } else {
                         // Fallback: If no amount owed is specified, assume it's fully paid
                         $prepaid_lessons_value = $TOTAL_COST;
+                        $amount_owed_for_misc = 0;
                     }
                 } else {
                     $prepaid_lessons_value = $amount_paid_active;
+                }
+
+                if ($prepaid_lessons_value > $TOTAL_COST) {
+                    $prepaid_lessons_value = $TOTAL_COST;
                 }
 
                 $TOTAL_PAID      = $prepaid_lessons_value;
@@ -904,6 +920,7 @@ function handleCustomerEnrollmentsUpload()
 
         // MISC ENROLLMENT
         // MISC ENROLLMENT / WALLET CREDIT
+        // MISC ENROLLMENT / WALLET CREDIT
         $should_create_misc = false;
         $should_add_to_wallet = false;
         $misc_amount = 0;
@@ -914,10 +931,18 @@ function handleCustomerEnrollmentsUpload()
             $should_add_to_wallet = true;
             $misc_amount = $account_balance;
         } elseif ($account_balance < 0) {
-            // FIX: Only create a MISC debt if we DID NOT already put the debt into an active PRI enrollment
-            if ($amount_owed_remaining <= 0) {
+            // Negative value = Debt. 
+            // If they have no active lessons, OR if they owe more than the lessons cost, create a MISC.
+            if ($TOTAL_LESSONS <= 0 || $amount_owed_for_misc > 0) {
                 $should_create_misc = true;
-                $misc_amount = abs($account_balance);
+
+                // If we already calculated a leftover debt from the active enrollment, use that.
+                // Otherwise (no lessons), use the absolute account balance.
+                if ($amount_owed_for_misc > 0) {
+                    $misc_amount = $amount_owed_for_misc;
+                } else {
+                    $misc_amount = abs($account_balance);
+                }
             }
         }
 
