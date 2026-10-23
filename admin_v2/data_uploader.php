@@ -382,6 +382,7 @@ function handleCustomerEnrollmentsUpload()
         $party_active    = (string)($getData[12] ?? '0');
         $coach_active    = (string)($getData[13] ?? '0');
         $cost_active     = (float)($getData[14] ?? 0);
+        $amount_owed_remaining = (float)($getData[15] ?? 0);
 
         $account_balance = (float)($getData[16] ?? 0);
 
@@ -771,7 +772,14 @@ function handleCustomerEnrollmentsUpload()
                 $PRICE_PER_SESSION = ($priv_active > 0) ? $TOTAL_COST / $priv_active : 0;
 
                 if ($amount_paid_active === null) {
-                    $prepaid_lessons_value = $TOTAL_COST;
+                    // If we have a specific "Amount Owed" from the CSV, subtract it from the total cost
+                    if ($amount_owed_remaining > 0) {
+                        $prepaid_lessons_value = $TOTAL_COST - $amount_owed_remaining;
+                        if ($prepaid_lessons_value < 0) $prepaid_lessons_value = 0;
+                    } else {
+                        // Fallback: If no amount owed is specified, assume it's fully paid
+                        $prepaid_lessons_value = $TOTAL_COST;
+                    }
                 } else {
                     $prepaid_lessons_value = $amount_paid_active;
                 }
@@ -1370,59 +1378,86 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // =====================================================
-        // ENROLLMENT LOOKUP by kind — not by exact CSV service code.
-        // Pulls the enrollment-service's own PK_SERVICE_MASTER / PK_SERVICE_CODE
-        // so NORMAL rows can inherit the exact service of the enrollment.
-        // =====================================================
-        $PK_ENROLLMENT_MASTER   = 0;
-        $PK_ENROLLMENT_SERVICE  = 0;
-        $PK_SERVICE_MASTER      = 0;
-        $PK_SERVICE_CODE        = 0;
-        $derived_type           = 'AD-HOC';
+        // 1. Check if the CSV explicitly provided a PK_ENROLLMENT_MASTER
+        $PK_ENROLLMENT_MASTER = 0;
+        $PK_ENROLLMENT_SERVICE = 0;
+        $PK_SERVICE_MASTER = 0;
+        $PK_SERVICE_CODE = 0;
+        $derived_type = 'AD-HOC';
 
-        $group_kind_sql = '';
-        if ($kind_is_group === 1) {
-            $group_kind_sql = " OR SC.IS_GROUP = 1 ";
-        } elseif ($kind_is_group === 0) {
-            $group_kind_sql = " OR SC.IS_GROUP = 0 ";
+        if ($sched_pk_csv > 0) {
+            $specific_enr = $db_account->Execute("
+                SELECT EM.PK_ENROLLMENT_MASTER,
+                       ES.PK_ENROLLMENT_SERVICE,
+                       ES.PK_SERVICE_MASTER,
+                       ES.PK_SERVICE_CODE,
+                       ES.NUMBER_OF_SESSION,
+                       SC.SERVICE_CODE,
+                       (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
+                         WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
+                           AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
+                FROM DOA_ENROLLMENT_MASTER EM
+                INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
+                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
+                WHERE EM.PK_ENROLLMENT_MASTER = " . intval($sched_pk_csv) . "
+                  AND EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+                  AND EM.STATUS = 'A'
+                ORDER BY ES.PK_ENROLLMENT_SERVICE DESC
+                LIMIT 1
+            ");
+
+            if ($specific_enr && $specific_enr->RecordCount() > 0) {
+                $derived_type          = 'NORMAL';
+                $PK_ENROLLMENT_MASTER  = $specific_enr->fields['PK_ENROLLMENT_MASTER'];
+                $PK_ENROLLMENT_SERVICE = $specific_enr->fields['PK_ENROLLMENT_SERVICE'];
+                $PK_SERVICE_MASTER     = $specific_enr->fields['PK_SERVICE_MASTER'];
+                $PK_SERVICE_CODE       = $specific_enr->fields['PK_SERVICE_CODE'];
+            }
         }
 
-        $enr = $db_account->Execute("
-            SELECT EM.PK_ENROLLMENT_MASTER,
-                   ES.PK_ENROLLMENT_SERVICE,
-                   ES.PK_SERVICE_MASTER,
-                   ES.PK_SERVICE_CODE,
-                   ES.NUMBER_OF_SESSION,
-                   SC.SERVICE_CODE,
-                   (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
-                     WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
-                       AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
-            FROM DOA_ENROLLMENT_MASTER EM
-            INNER JOIN DOA_ENROLLMENT_SERVICE ES
-                    ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
-            INNER JOIN DOA_SERVICE_CODE SC
-                    ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
-            WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-              AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
-              AND EM.STATUS         = 'A'
-              AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
-            ORDER BY 
-                (SC.SERVICE_CODE = 'MISC') ASC, 
-                (SC.SERVICE_CODE = 'MIS') ASC, 
-                EM.PK_ENROLLMENT_MASTER DESC, 
-                ES.PK_ENROLLMENT_SERVICE DESC
-            LIMIT 1
-        ");
+        // 2. If no specific ID was provided (or it failed), run the original fallback search prioritizing PRI over MISC
+        if ($PK_ENROLLMENT_MASTER == 0) {
+            $group_kind_sql = '';
+            if ($kind_is_group === 1) {
+                $group_kind_sql = " OR SC.IS_GROUP = 1 ";
+            } elseif ($kind_is_group === 0) {
+                $group_kind_sql = " OR SC.IS_GROUP = 0 ";
+            }
 
-        if ($enr && $enr->RecordCount() > 0) {
-            $remaining = (int)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
-            if ($remaining > 0) {
-                $derived_type          = 'NORMAL';
-                $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
-                $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
-                $PK_SERVICE_MASTER     = $enr->fields['PK_SERVICE_MASTER'];
-                $PK_SERVICE_CODE       = $enr->fields['PK_SERVICE_CODE'];
+            $enr = $db_account->Execute("
+                SELECT EM.PK_ENROLLMENT_MASTER,
+                       ES.PK_ENROLLMENT_SERVICE,
+                       ES.PK_SERVICE_MASTER,
+                       ES.PK_SERVICE_CODE,
+                       ES.NUMBER_OF_SESSION,
+                       SC.SERVICE_CODE,
+                       (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
+                         WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
+                           AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
+                FROM DOA_ENROLLMENT_MASTER EM
+                INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
+                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
+                WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+                  AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
+                  AND EM.STATUS         = 'A'
+                  AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
+                ORDER BY 
+                    (SC.SERVICE_CODE = 'MISC') ASC, 
+                    (SC.SERVICE_CODE = 'MIS') ASC, 
+                    EM.PK_ENROLLMENT_MASTER DESC, 
+                    ES.PK_ENROLLMENT_SERVICE DESC
+                LIMIT 1
+            ");
+
+            if ($enr && $enr->RecordCount() > 0) {
+                $remaining = (float)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
+                if ($remaining > 0) {
+                    $derived_type          = 'NORMAL';
+                    $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
+                    $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
+                    $PK_SERVICE_MASTER     = $enr->fields['PK_SERVICE_MASTER'];
+                    $PK_SERVICE_CODE       = $enr->fields['PK_SERVICE_CODE'];
+                }
             }
         }
 
