@@ -132,145 +132,653 @@ if ($help->RecordCount() > 0) {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #39B54A;
+        --primary-light: #5DCB6E;
+        --primary-dark: #2D8F3B;
+        --primary-rgb: 57, 181, 74;
+        --success-color: #39B54A;
+        --warning-color: #F59E0B;
+        --danger-color: #EF4444;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-400: #9CA3AF;
+        --gray-500: #6B7280;
+        --gray-600: #4B5563;
+        --gray-700: #374151;
+        --gray-800: #1F2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+        --radius-pill: 50px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--gray-50);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .page-wrapper {
+        padding-top: 0px !important;
+        background: var(--gray-50);
+    }
+
+
+    /* Breadcrumb */
+    .breadcrumb-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .breadcrumb-wrapper h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+
+    .breadcrumb-wrapper h4 i {
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-500);
+    }
+
+    .breadcrumb-nav a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--primary-dark);
+    }
+
+    .breadcrumb-nav .separator {
+        color: var(--gray-300);
+    }
+
+    .breadcrumb-nav .current {
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    /* Layout */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .container-fluid {
+            padding: 16px !important;
+        }
+    }
+
+    /* Card */
+    .card-modern {
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-modern .card-header {
+        padding: 20px 24px;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .card-modern .card-header h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-modern .card-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .card-modern .card-header .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .card-modern .card-header .status-indicator.active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .card-modern .card-header .status-indicator.inactive {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .card-modern .card-header .status-indicator i {
+        font-size: 8px;
+        margin-right: 0;
+    }
+
+    .card-modern .card-body {
+        padding: 28px 32px;
+    }
+
+    @media (max-width: 768px) {
+        .card-modern .card-body {
+            padding: 20px;
+        }
+    }
+
+    /* Form */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 24px;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group-modern .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-700);
+        letter-spacing: 0.01em;
+    }
+
+    .form-group-modern .form-label .required {
+        color: var(--danger-color);
+        margin-left: 2px;
+    }
+
+    .form-control-modern {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .form-control-modern:hover {
+        border-color: var(--gray-300);
+    }
+
+    .form-control-modern::placeholder {
+        color: var(--gray-400);
+        font-size: 13px;
+    }
+
+    .form-control-modern.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    select.form-control-modern {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Radio */
+    .radio-group-modern {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-top: 4px;
+    }
+
+    .radio-group-modern .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .radio-group-modern .radio-item input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 28px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .btn-modern-primary {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-modern-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-modern-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-modern-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .btn-modern-secondary:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-actions .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .breadcrumb-wrapper {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        margin: 24px 0 20px 0;
+        border: 1px solid var(--gray-200);
+        grid-column: 1 / -1;
+    }
+
+    .section-header i {
+        color: var(--primary-color);
+        font-size: 18px;
+    }
+
+    .section-header span {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+
+    /* Stripe Element */
+    #card-element,
+    .StripeElement {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        transition: all 0.2s ease;
+        min-height: 44px;
+    }
+
+    #card-element:focus,
+    .StripeElement--focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .StripeElement--invalid {
+        border-color: var(--danger-color);
+    }
+
+    /* Alert */
+    .alert-modern {
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        margin: 12px 0;
+    }
+
+    .alert-modern.success {
+        background: #D1FAE5;
+        color: #065F46;
+        border: 1px solid #A7F3D0;
+    }
+
+    .alert-modern.error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+    }
+
+    /* Help Card */
+    .help-card {
+        background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+        border: 1px solid #A7F3D0;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        position: sticky;
+        top: 24px;
+    }
+
+    .help-card .help-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .help-card h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0 0 12px 0;
+    }
+
+    .help-card p {
+        font-size: 14px;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        .full-width {
+            grid-column: 1;
+        }
+    }
+
+    /* Credit Card List */
+    .credit-card-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 8px;
+    }
+
+    .credit-card-item:hover {
+        border-color: var(--primary-color);
+        background: var(--gray-50);
+    }
+
+    .credit-card-item.selected {
+        border-color: var(--primary-color);
+        background: #F0FDF4;
+    }
+
+    .credit-card-item i {
+        font-size: 24px;
+        color: var(--gray-400);
+    }
+
+    .credit-card-item .card-details {
+        flex: 1;
+        font-size: 14px;
+        color: var(--gray-700);
+    }
+
+    .credit-card-item .card-details .card-brand {
+        font-weight: 600;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
+        <?php require_once('../includes/header.php'); ?>
+
         <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
-            <div class="container-fluid body_content" style="margin-top: 0px;">
-                <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
-                    <div class="col-md-7 align-self-center text-end">
-                        <div class="d-flex justify-content-end align-items-center">
-                            <ol class="breadcrumb justify-content-end">
-                                <li class="breadcrumb-item active"><?= $title ?></li>
-                            </ol>
-
+                <!-- Main Grid -->
+                <div class="main-grid">
+                    <!-- Main Content -->
+                    <div class="card-modern">
+                        <div class="card-header">
+                            <h5>
+                                <i class="fas fa-building"></i>
+                                <?= !empty($_GET['id']) ? 'Edit Corporation' : 'Create New Corporation' ?>
+                            </h5>
+                            <?php if (!empty($_GET['id'])): ?>
+                                <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
+                                    <i class="fas fa-circle"></i>
+                                    <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
-                    </div>
-                </div>
+                        <div class="card-body">
+                            <form class="form-material form-horizontal" id="save_corporation_form" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="FUNCTION_NAME" value="saveCorporationData">
 
-                <div class="row">
-                    <div class="col-8">
-                        <div class="card">
-                            <div class="card-body">
-                                <form class="form-material form-horizontal" id="save_corporation_form" method="post" enctype="multipart/form-data">
-                                    <div class="form-group">
-                                        <label class="col-md-12" for="example-text">Corporation Name<span class="text-danger">*</span>
-                                        </label>
-                                        <div class="col-md-12">
-                                            <input type="text" id="CORPORATION_NAME" name="CORPORATION_NAME" class="form-control" placeholder="Enter Corporation Name" value="<?php echo $CORPORATION_NAME ?>" required>
-                                        </div>
-                                    </div>
-                                    <div class="row" style="margin-bottom: 15px;">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12">Timezone<span class="text-danger">*</span></label>
-                                                <div class="col-md-12">
-                                                    <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control" required>
-                                                        <option value="">Select</option>
-                                                        <?php $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
-                                                        while (!$res_type->EOF) { ?>
-                                                            <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?php if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= $res_type->fields['NAME'] ?></option>
-                                                        <?php $res_type->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12">Currency</label>
-                                                <div class="col-md-12">
-                                                    <select name="PK_CURRENCY" id="PK_CURRENCY" class="form-control required-entry">
-                                                        <?php $res_type = $db->Execute("SELECT * FROM `DOA_CURRENCY` WHERE `ACTIVE` = 1");
-                                                        while (!$res_type->EOF) { ?>
-                                                            <option value="<?= $res_type->fields['PK_CURRENCY'] ?>" <?= ($res_type->fields['PK_CURRENCY'] == $PK_CURRENCY) ? 'selected' : '' ?>><?= $res_type->fields['CURRENCY_NAME'] . " (" . $res_type->fields['CURRENCY_SYMBOL'] . ")" ?></option>
-                                                        <?php $res_type->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="form-grid">
+                                    <!-- Corporation Name -->
+                                    <div class="form-group-modern full-width">
+                                        <label class="form-label">Corporation Name <span class="required">*</span></label>
+                                        <input type="text" id="CORPORATION_NAME" name="CORPORATION_NAME" class="form-control-modern" placeholder="Enter Corporation Name" value="<?php echo htmlspecialchars($CORPORATION_NAME) ?>" required>
+                                        <div class="form-helper">The official name of the corporation</div>
                                     </div>
 
-                                    <div class="row" style="margin-top: 30px;">
-                                        <b class="btn btn-light" style="margin-bottom: 20px;">Add Credit Card</b>
-                                        <div class="col-12">
-                                            <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
-                                            <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
-                                                <input type="hidden" name="stripe_token" id="stripe_token" value="">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="form-group" id="card_div">
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div id="card_list_div">
-                                                </div>
-                                            <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
-                                                <input type="hidden" name="square_token" id="square_token" value="">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div id="payment-card-container"></div>
-                                                        <div id="payment-status-container"></div>
-                                                    </div>
-                                                </div>
-                                                <div id="card_list_div">
-                                                </div>
-                                            <?php } ?>
-                                        </div>
+                                    <!-- Timezone -->
+                                    <div class="form-group-modern">
+                                        <label class="form-label">Timezone <span class="required">*</span></label>
+                                        <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control-modern" required>
+                                            <option value="">Select Timezone</option>
+                                            <?php $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                            while (!$res_type->EOF) { ?>
+                                                <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?php if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= htmlspecialchars($res_type->fields['NAME']) ?></option>
+                                            <?php $res_type->MoveNext();
+                                            } ?>
+                                        </select>
+                                        <div class="form-helper">Primary timezone for this corporation</div>
                                     </div>
-                                    <div class="row" id="corporation_payment_status"></div>
 
-
-
-                                    <?php if (!empty($_GET['id'])) { ?>
-                                        <div class="row" style="margin-bottom: 15px;">
-                                            <div class="col-6">
-                                                <div class="col-md-2">
-                                                    <label>Active</label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <? } ?>
-                                    <button type="submit" id="corporation-pay-button" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                    <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_corporations.php'">Cancel</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <h4 class="col-md-12" STYLE="text-align: center">
-                                        <?= $help_title ?>
-                                    </h4>
-                                    <div class="col-md-12">
-                                        <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                                    <!-- Currency -->
+                                    <div class="form-group-modern">
+                                        <label class="form-label">Currency</label>
+                                        <select name="PK_CURRENCY" id="PK_CURRENCY" class="form-control-modern">
+                                            <?php $res_type = $db->Execute("SELECT * FROM `DOA_CURRENCY` WHERE `ACTIVE` = 1");
+                                            while (!$res_type->EOF) { ?>
+                                                <option value="<?= $res_type->fields['PK_CURRENCY'] ?>" <?= ($res_type->fields['PK_CURRENCY'] == $PK_CURRENCY) ? 'selected' : '' ?>><?= htmlspecialchars($res_type->fields['CURRENCY_NAME'] . " (" . $res_type->fields['CURRENCY_SYMBOL'] . ")") ?></option>
+                                            <?php $res_type->MoveNext();
+                                            } ?>
+                                        </select>
+                                        <div class="form-helper">Default currency for financial transactions</div>
                                     </div>
                                 </div>
+
+                                <!-- Credit Card Section -->
+                                <div class="section-header">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Add Credit Card</span>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group-modern full-width">
+                                        <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+                                        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                            <label class="form-label">Card Details</label>
+                                            <div id="card_div">
+                                                <div id="card-element"></div>
+                                                <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
+                                            </div>
+                                            <div id="card_list_div"></div>
+                                        <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
+                                            <input type="hidden" name="square_token" id="square_token" value="">
+                                            <label class="form-label">Card Details</label>
+                                            <div id="payment-card-container"></div>
+                                            <div id="payment-status-container"></div>
+                                            <div id="card_list_div"></div>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+
+                                <div id="corporation_payment_status"></div>
+
+                                <!-- Active Status -->
+                                <?php if (!empty($_GET['id'])): ?>
+                                    <div class="form-group-modern" style="margin-top: 16px;">
+                                        <label class="form-label">Active</label>
+                                        <div class="radio-group-modern">
+                                            <label class="radio-item">
+                                                <input type="radio" name="ACTIVE" id="ACTIVE_YES" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?>>
+                                                Active
+                                            </label>
+                                            <label class="radio-item">
+                                                <input type="radio" name="ACTIVE" id="ACTIVE_NO" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?>>
+                                                Inactive
+                                            </label>
+                                        </div>
+                                        <div class="form-helper">Set the status of this corporation</div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Form Actions -->
+                                <div class="form-actions">
+                                    <button type="submit" id="corporation-pay-button" class="btn-modern btn-modern-primary">
+                                        <i class="fas fa-save"></i> <?= empty($_GET['id']) ? 'Create Corporation' : 'Update Corporation' ?>
+                                    </button>
+                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_corporations.php'">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Help Sidebar -->
+                    <div>
+                        <div class="help-card">
+                            <div class="help-icon">
+                                <i class="fas fa-question"></i>
                             </div>
+                            <h5><?= $help_title ?></h5>
+                            <p><?= $help_description ?></p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
     <?php require_once('../includes/footer.php'); ?>
 </body>
-
-</html>
 
 <script>
     $(document).ready(function() {
@@ -327,8 +835,6 @@ if ($help->RecordCount() > 0) {
 </script>
 
 
-
-
 <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
     <script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript">
@@ -337,21 +843,16 @@ if ($help->RecordCount() > 0) {
 
         var style = {
             base: {
-                height: '34px',
-                padding: '6px 12px',
                 fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
+                color: '#1F2937',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
                 '::placeholder': {
-                    color: '#ddd'
+                    color: '#9CA3AF'
                 }
             },
             invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
+                color: '#EF4444',
+                iconColor: '#EF4444'
             }
         };
 
@@ -436,7 +937,7 @@ if ($help->RecordCount() > 0) {
                 }
             } catch (e) {
                 console.error(e);
-                statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+                statusContainer.innerHTML = `<p class="alert-modern error">Payment Failed: ${e.message}</p>`;
             }
         }
     </script>
@@ -477,11 +978,11 @@ if ($help->RecordCount() > 0) {
             dataType: 'json',
             success: function(data) {
                 if (data.STATUS == false) {
-                    $('#corporation_payment_status').html(`<p class="alert alert-danger">${data.MESSAGE}</p>`);
+                    $('#corporation_payment_status').html(`<p class="alert-modern error">${data.MESSAGE}</p>`);
                     $('#corporation-pay-button').prop('disabled', false);
-                    $('#corporation-pay-button').html(`Process`);
+                    $('#corporation-pay-button').html(`<i class="fas fa-save"></i> Process`);
                 } else {
-                    $('#corporation_payment_status').html(`<p class="alert alert-success">Credit Card Successfully Saved.</p>`);
+                    $('#corporation_payment_status').html(`<p class="alert-modern success">Credit Card Successfully Saved.</p>`);
 
                     setTimeout(function() {
                         window.location.href = 'wizard_location.php';
@@ -491,3 +992,5 @@ if ($help->RecordCount() > 0) {
         });
     }
 </script>
+
+</html>
