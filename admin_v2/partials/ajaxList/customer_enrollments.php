@@ -283,7 +283,11 @@ while (!$enrollment_data->EOF) {
                             $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
                             // FIX: Revert to actual completed count so active classes show as "Remaining" instead of "Used"
-                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            if ((int)$enrollment_data->fields['PK_ENROLLMENT_TYPE'] === 35 && $enrollment_data->fields['STATUS'] == 'CO') {
+                                $SESSION_COMPLETED = $NUMBER_OF_SESSION;
+                            } else {
+                                $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            }
 
                             $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
 

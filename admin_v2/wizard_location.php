@@ -112,22 +112,7 @@ if (!empty($_GET['id'])) {
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
     $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
     $ACTIVE = $res->fields['ACTIVE'];
-    // $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
-    // $SECRET_KEY             = $res->fields['SECRET_KEY'];
-    // $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
-    // $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
-    // $SQUARE_APP_ID          = $res->fields['APP_ID'];
-    // $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
-    // $LOGIN_ID               = $res->fields['LOGIN_ID'];
-    // $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
-    // $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
-    // $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
-    // $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
-    // $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
-    // $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
-    // $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
-    // $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
     $PAYMENT_GATEWAY_TYPE = '';
     $SECRET_KEY = '';
     $PUBLISHABLE_KEY = '';
@@ -195,7 +180,6 @@ if ($account_payment_info->RecordCount() > 0) {
 
     $response = curl_exec($curl);
     $card_details = json_decode($response, true);
-    //pre_r($card_details);
 }
 
 if (!empty($_POST)) {
@@ -210,7 +194,6 @@ if (!empty($_POST)) {
                 $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
                 $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
 
-                // Special handling for 12:00 AM
                 $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
                 if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
                     $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
@@ -235,7 +218,6 @@ if (!empty($_POST)) {
                     $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = (int)$_POST['PK_LOCATION'];
                     $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
 
-                    // Special handling for 12:00 AM
                     $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
                     if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
                         $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
@@ -260,6 +242,13 @@ if (!empty($_POST)) {
     header("location:wizard_scheduling_code.php");
 }
 
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
+if ($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -267,741 +256,1251 @@ if (!empty($_POST)) {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
 <style>
-    #advice-required-entry-ACCEPT_HANDLING {
-        width: 150px;
-        top: 20px;
-        position: absolute;
+    :root {
+        --primary-color: #39B54A;
+        --primary-light: #5DCB6E;
+        --primary-dark: #2D8F3B;
+        --primary-rgb: 57, 181, 74;
+        --success-color: #39B54A;
+        --warning-color: #F59E0B;
+        --danger-color: #EF4444;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-400: #9CA3AF;
+        --gray-500: #6B7280;
+        --gray-600: #4B5563;
+        --gray-700: #374151;
+        --gray-800: #1F2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+        --radius-pill: 50px;
     }
 
-    .StripeElement {
-        display: block;
-        width: 100%;
-        height: 34px;
-        padding: 6px 12px;
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--gray-50);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .page-wrapper {
+        padding-top: 0px !important;
+        background: var(--gray-50);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .breadcrumb-wrapper h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+
+    .breadcrumb-wrapper h4 i {
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-size: 14px;
-        line-height: 1.42857143;
-        color: #555;
-        background-color: #fff;
-        background-image: none;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        color: var(--gray-500);
     }
 
+    .breadcrumb-nav a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--primary-dark);
+    }
+
+    .breadcrumb-nav .separator {
+        color: var(--gray-300);
+    }
+
+    .breadcrumb-nav .current {
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    /* Layout */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .container-fluid {
+            padding: 16px !important;
+        }
+    }
+
+    /* Card */
+    .card-modern {
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-modern .card-header {
+        padding: 20px 24px;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .card-modern .card-header h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-modern .card-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .card-modern .card-header .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .card-modern .card-header .status-indicator.active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .card-modern .card-header .status-indicator.inactive {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .card-modern .card-header .status-indicator i {
+        font-size: 8px;
+        margin-right: 0;
+    }
+
+    .card-modern .card-body {
+        padding: 28px 32px;
+    }
+
+    @media (max-width: 768px) {
+        .card-modern .card-body {
+            padding: 20px;
+        }
+    }
+
+    /* Tabs */
+    .tabs-modern {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid var(--gray-200);
+        padding: 0 32px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+        .tabs-modern {
+            padding: 0 20px;
+        }
+    }
+
+    .tabs-modern .tab-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-500);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .tabs-modern .tab-link i {
+        font-size: 16px;
+    }
+
+    .tabs-modern .tab-link:hover {
+        color: var(--gray-700);
+        background: var(--gray-50);
+    }
+
+    .tabs-modern .tab-link.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        background: transparent;
+    }
+
+    /* Form */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 24px;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group-modern .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-700);
+        letter-spacing: 0.01em;
+    }
+
+    .form-group-modern .form-label .required {
+        color: var(--danger-color);
+        margin-left: 2px;
+    }
+
+    .form-helper {
+        font-size: 12px;
+        color: var(--gray-400);
+        margin-top: 2px;
+    }
+
+    .form-control-modern {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .form-control-modern:hover {
+        border-color: var(--gray-300);
+    }
+
+    .form-control-modern::placeholder {
+        color: var(--gray-400);
+        font-size: 13px;
+    }
+
+    .form-control-modern.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    select.form-control-modern {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Input group with suffix */
+    .input-group-modern {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-group-modern .form-control-modern {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+    }
+
+    .input-group-modern .input-suffix {
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        background: var(--gray-100);
+        border: 1.5px solid var(--gray-200);
+        border-left: none;
+        border-top-right-radius: var(--radius-sm);
+        border-bottom-right-radius: var(--radius-sm);
+        font-size: 14px;
+        color: var(--gray-600);
+    }
+
+    /* Radio */
+    .radio-group-modern {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-top: 4px;
+    }
+
+    .radio-group-modern .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .radio-group-modern .radio-item input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* Checkbox */
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 28px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .btn-modern-primary {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-modern-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-modern-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-modern-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .btn-modern-secondary:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-actions .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .breadcrumb-wrapper {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        margin: 24px 0 20px 0;
+        border: 1px solid var(--gray-200);
+        grid-column: 1 / -1;
+    }
+
+    .section-header i {
+        color: var(--primary-color);
+        font-size: 18px;
+    }
+
+    .section-header span {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+
+    /* Stripe Element */
+    #card-element,
+    .StripeElement {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        transition: all 0.2s ease;
+        min-height: 44px;
+    }
+
+    #card-element:focus,
     .StripeElement--focus {
-        box-shadow: 0 1px 3px 0 #cfd7df;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
     }
 
     .StripeElement--invalid {
-        border-color: #fa755a;
+        border-color: var(--danger-color);
     }
 
-    .StripeElement--webkit-autofill {
-        background-color: #fefde5 !important;
+    /* Alert */
+    .alert-modern {
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        margin: 12px 0;
+    }
+
+    .alert-modern.success {
+        background: #D1FAE5;
+        color: #065F46;
+        border: 1px solid #A7F3D0;
+    }
+
+    .alert-modern.error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+    }
+
+    /* Help Card */
+    .help-card {
+        background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+        border: 1px solid #A7F3D0;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        position: sticky;
+        top: 24px;
+    }
+
+    .help-card .help-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .help-card h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0 0 12px 0;
+    }
+
+    .help-card p {
+        font-size: 14px;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        .full-width {
+            grid-column: 1;
+        }
+    }
+
+    /* Operational Hours table */
+    .hours-header {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr auto;
+        gap: 16px;
+        padding: 0 4px 12px 4px;
+        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 4px;
+    }
+
+    .hours-header .hours-col {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-500);
+    }
+
+    .hours-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr auto;
+        gap: 16px;
+        align-items: center;
+        padding: 10px 4px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .hours-row:last-child {
+        border-bottom: none;
+    }
+
+    .hours-row .day-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    @media (max-width: 640px) {
+        .hours-header {
+            display: none;
+        }
+
+        .hours-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+    }
+
+    /* Credit Card display */
+    .credit-card {
+        width: 260px;
+        height: 160px;
+        border-radius: var(--radius);
+        padding: 18px;
+        color: #fff;
+        position: relative;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #374151 0%, #1F2937 100%);
+    }
+
+    .credit-card.visa {
+        background: linear-gradient(135deg, #1A1F71 0%, #2A3A9B 100%);
+    }
+
+    .credit-card.mastercard {
+        background: linear-gradient(135deg, #EB001B 0%, #F79E1B 100%);
+    }
+
+    .credit-card.amex {
+        background: linear-gradient(135deg, #006FCF 0%, #2E77BC 100%);
+    }
+
+    .credit-card.discover {
+        background: linear-gradient(135deg, #FF6000 0%, #F76B1C 100%);
+    }
+
+    .credit-card-last4 {
+        font-size: 20px;
+        letter-spacing: 3px;
+        font-weight: 600;
+    }
+
+    .credit-card-expiry {
+        font-size: 13px;
+        opacity: 0.85;
     }
 </style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
-    <div class="page-wrapper" style="padding-top: 0px !important;">
+    <div id="main-wrapper">
+        <?php require_once('../includes/header.php'); ?>
 
-        <div class="container-fluid body_content" style="margin-top: 0px;">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?= $title ?></h4>
-                </div>
-            </div>
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
-                            <?php
-                            if (!empty($_GET['id'])) {
-                                echo $LOCATION_NAME;
-                            }
-                            ?>
+                <!-- Main Grid -->
+                <div class="main-grid">
+                    <!-- Main Content -->
+                    <div class="card-modern">
+                        <div class="card-header">
+                            <h5>
+                                <i class="fas fa-map-marker-alt"></i>
+                                Location Details
+                            </h5>
+                            <?php if (!empty($_GET['id'])): ?>
+                                <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
+                                    <i class="fas fa-circle"></i>
+                                    <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
-                        <div class="card-body">
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
-                                <?php if (!empty($_GET['id'])) { ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                <?php } ?>
-                            </ul>
 
-                            <!-- Tab panes -->
-                            <div class="tab-content tabcontent-border">
-                                <div class="tab-pane active" id="location_div" role="tabpanel">
+                        <!-- Tabs -->
+                        <ul class="nav tabs-modern" role="tablist">
+                            <li>
+                                <a class="tab-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab">
+                                    <i class="fas fa-location-dot"></i> Location
+                                </a>
+                            </li>
+                            <li>
+                                <a class="tab-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab">
+                                    <i class="fas fa-clock"></i> Operational Hours
+                                </a>
+                            </li>
+                            <?php if (!empty($_GET['id'])) { ?>
+                                <li>
+                                    <a class="tab-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();">
+                                        <i class="fas fa-credit-card"></i> Credit Card
+                                    </a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <!-- ================= LOCATION TAB ================= -->
+                            <div class="tab-pane fade show active" id="location_div" role="tabpanel">
+                                <div class="card-body">
                                     <form class="form-material form-horizontal" id="location_form" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
                                         <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                        <div class="p-20">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
+
+                                        <!-- Section: Corporation & Account -->
+                                        <div class="section-header">
+                                            <i class="fas fa-building"></i>
+                                            <span>Corporation &amp; Account</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Corporation <span class="required">*</span></label>
+                                                <select class="form-control-modern" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                    <option value="">Select Corporation</option>
+                                                    <?php
+                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['CORPORATION_NAME']) ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Account Type <span class="required">*</span></label>
+                                                <div class="radio-group-modern">
+                                                    <?php
+                                                    $row = $db->Execute("SELECT PK_ACCOUNT_TYPE, ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                    while (!$row->EOF) {
+                                                        $checked = '';
+                                                        if ($PK_ACCOUNT_TYPE != '') {
+                                                            if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) $checked = 'checked';
+                                                        } else {
+                                                            if ($row->fields['PK_ACCOUNT_TYPE'] == 1) $checked = 'checked';
+                                                        }
+                                                    ?>
+                                                        <label class="radio-item">
+                                                            <input type="radio" name="PK_ACCOUNT_TYPE"
+                                                                id="acct_type_<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                <?= $checked; ?> required>
+                                                            <?= htmlspecialchars($row->fields['ACCOUNT_TYPE']) ?>
                                                         </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
-                                                                    <option value="">Select Corporation</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= $row->fields['CORPORATION_NAME'] ?></option>
-                                                                    <?php $row->MoveNext();
-                                                                    } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
                                                 </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <?php
-                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                            while (!$row->EOF) {
+                                            </div>
 
-                                                                $checked = '';
-                                                                if ($PK_ACCOUNT_TYPE != '') {
-                                                                    if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) {
-                                                                        $checked = 'checked';
-                                                                    }
-                                                                } else {
-                                                                    if ($row->fields['PK_ACCOUNT_TYPE'] == 1) {
-                                                                        $checked = 'checked';
-                                                                    }
-                                                                }
-                                                            ?>
-                                                                <input type="radio" name="PK_ACCOUNT_TYPE"
-                                                                    id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
-                                                                    value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
-                                                                    <?= $checked; ?> required>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Location Name <span class="required">*</span></label>
+                                                <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control-modern" placeholder="Enter Location Name" required value="<?php echo htmlspecialchars($LOCATION_NAME) ?>">
+                                            </div>
 
-                                                                <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>">
-                                                                    <?= $row->fields['ACCOUNT_TYPE'] ?>
-                                                                </label>
-                                                            <?php
-                                                                $row->MoveNext();
-                                                            }
-                                                            ?>
-                                                        </div>
-                                                    </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Location Code <span class="required">*</span></label>
+                                                <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control-modern" placeholder="Enter Location Code" required value="<?php echo htmlspecialchars($LOCATION_CODE) ?>">
+                                            </div>
+                                        </div>
+
+                                        <!-- Section: Address -->
+                                        <div class="section-header">
+                                            <i class="fas fa-map-pin"></i>
+                                            <span>Address</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Address</label>
+                                                <input type="text" id="ADDRESS" name="ADDRESS" class="form-control-modern" placeholder="Enter Address" value="<?php echo htmlspecialchars($ADDRESS) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Apt/Ste</label>
+                                                <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control-modern" placeholder="Enter Apartment OR Street" value="<?php echo htmlspecialchars($ADDRESS_1) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Country <span class="required">*</span></label>
+                                                <select class="form-control-modern" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                    <option value="">Select Country</option>
+                                                    <?php
+                                                    $row = $db->Execute("SELECT PK_COUNTRY, COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['COUNTRY_NAME']) ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">State <span class="required">*</span></label>
+                                                <div id="State_div">
+                                                    <!-- populated via AJAX -->
                                                 </div>
-                                                <!-- <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Arthur Murray Franchise ?</label>
-                                                        <div class="col-md-12">
-                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
-                                                        </div>
-                                                    </div>
-                                                </div> -->
+                                            </div>
 
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location<span class="text-danger">*</span>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">City</label>
+                                                <input type="text" id="CITY" name="CITY" class="form-control-modern" placeholder="Enter City" value="<?php echo htmlspecialchars($CITY) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Postal / Zip Code</label>
+                                                <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control-modern" placeholder="Enter Postal / Zip Code" value="<?php echo htmlspecialchars($ZIP_CODE) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Phone</label>
+                                                <input type="text" id="PHONE" name="PHONE" class="form-control-modern" placeholder="Enter Phone No." value="<?php echo htmlspecialchars($PHONE) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" id="EMAIL" name="EMAIL" class="form-control-modern" placeholder="Enter Email Address" value="<?php echo htmlspecialchars($EMAIL) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Location Image</label>
+                                                <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control-modern">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Timezone <span class="required">*</span></label>
+                                                <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control-modern" required>
+                                                    <option value="">Select Timezone</option>
+                                                    <?php $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                    while (!$res_type->EOF) { ?>
+                                                        <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?= ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) ? 'selected="selected"' : '' ?>><?= htmlspecialchars($res_type->fields['NAME']) ?></option>
+                                                    <?php $res_type->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Section: Operational Settings -->
+                                        <div class="section-header">
+                                            <i class="fas fa-sliders-h"></i>
+                                            <span>Operational Settings</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Time Interval for Calendar Rows <span class="required">*</span></label>
+                                                <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control-modern" required>
+                                                    <option value="">Select</option>
+                                                    <?php for ($i = 5; $i <= 60; $i += 5) { ?>
+                                                        <option value="<?= '00:' . $i . ':00' ?>" <?= ($TIME_SLOT_INTERVAL == '00:' . $i . ':00') ? 'selected' : '' ?>><?= '00:' . $i . ':00' ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Title for Service Provider</label>
+                                                <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control-modern" placeholder="Enter Service Provider Title" value="<?php echo htmlspecialchars($SERVICE_PROVIDER_TITLE) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Name of the Tab for Charging Services</label>
+                                                <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control-modern" placeholder="Enter Operation Tab Title" value="<?php echo htmlspecialchars($OPERATION_TAB_TITLE) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Enrollment Prefix</label>
+                                                <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control-modern" placeholder="Enrollment Id Character" value="<?php echo htmlspecialchars($ENROLLMENT_ID_CHAR) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Starting Enrollment Number</label>
+                                                <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control-modern" placeholder="Enrollment Id Number" value="<?php echo htmlspecialchars($ENROLLMENT_ID_NUM) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Misc Enrollment Prefix</label>
+                                                <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control-modern" placeholder="Miscellaneous Id Character" value="<?php echo htmlspecialchars($MISCELLANEOUS_ID_CHAR) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Starting Misc Enrollment Number</label>
+                                                <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control-modern" placeholder="Miscellaneous Id Number" value="<?php echo htmlspecialchars($MISCELLANEOUS_ID_NUM) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Royalty Percentage</label>
+                                                <div class="input-group-modern">
+                                                    <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control-modern" value="<?php echo htmlspecialchars($ROYALTY_PERCENTAGE) ?>">
+                                                    <span class="input-suffix">%</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Sales Tax</label>
+                                                <div class="input-group-modern">
+                                                    <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control-modern" value="<?php echo htmlspecialchars($SALES_TAX) ?>">
+                                                    <span class="input-suffix">%</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Receipt Prefix <span class="required">*</span></label>
+                                                <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control-modern" placeholder="Receipt Character" required value="<?= htmlspecialchars($RECEIPT_CHARACTER) ?>">
+                                            </div>
+
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Focusbiz API Key</label>
+                                                <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control-modern" placeholder="Enter Focusbiz API Key" value="<?php echo htmlspecialchars($FOCUSBIZ_API_KEY) ?>">
+                                            </div>
+                                        </div>
+
+                                        <!-- Section: Appointment Reminder -->
+                                        <div class="section-header">
+                                            <i class="fas fa-bell"></i>
+                                            <span>Appointment Reminder</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Send an Appointment Reminder Text message.</label>
+                                                <div class="radio-group-modern">
+                                                    <label class="radio-item">
+                                                        <input type="radio" id="APPOINTMENT_REMINDER_YES" name="APPOINTMENT_REMINDER" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">
+                                                        Yes
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        <input type="radio" id="APPOINTMENT_REMINDER_NO" name="APPOINTMENT_REMINDER" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">
+                                                        No
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group-modern hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? 'flex' : 'none' ?>;">
+                                                <label class="form-label">How many hours before the appointment?</label>
+                                                <input type="text" class="form-control-modern" name="HOUR" value="<?= htmlspecialchars($HOUR) ?>">
+                                            </div>
+                                        </div>
+
+                                        <!-- Section: Texting -->
+                                        <div class="section-header">
+                                            <i class="fas fa-sms"></i>
+                                            <span>Texting Feature</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Texting Feature Enabled?</label>
+                                                <div class="radio-group-modern">
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED_YES" value="1" <?= ($TEXTING_FEATURE_ENABLED == 1) ? 'checked' : '' ?> onclick="showTwilioAccountSetting(this);">
+                                                        Yes
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED_NO" value="0" <?= ($TEXTING_FEATURE_ENABLED == 0) ? 'checked' : '' ?> onclick="showTwilioAccountSetting(this);">
+                                                        No
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group-modern twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? 'flex' : 'none' ?>;">
+                                                <label class="form-label">Twilio Account Type</label>
+                                                <div class="radio-group-modern">
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <?= ($TWILIO_ACCOUNT_TYPE == 0) ? 'checked' : '' ?> onclick="showTwilioSetting(this);">
+                                                        Using Doable's Twilio account
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <?= ($TWILIO_ACCOUNT_TYPE == 1) ? 'checked' : '' ?> onclick="showTwilioSetting(this);">
+                                                        Using Your own Twilio Account
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="twilio_setting_div" class="form-grid" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? 'grid' : 'none' ?>; margin-top: 16px;">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">SID</label>
+                                                <input type="text" id="SID" name="SID" class="form-control-modern" placeholder="Enter SID" value="<?php echo htmlspecialchars($SID) ?>">
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Token</label>
+                                                <input type="text" id="TOKEN" name="TOKEN" class="form-control-modern" placeholder="Enter TOKEN" value="<?php echo htmlspecialchars($TOKEN) ?>">
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Phone No.</label>
+                                                <input type="text" id="TWILIO_PHONE_NO" name="TWILIO_PHONE_NO" class="form-control-modern" placeholder="Enter Phone No." value="<?php echo htmlspecialchars($TWILIO_PHONE_NO) ?>">
+                                            </div>
+                                        </div>
+
+                                        <?php if ($IMAGE_PATH != '') { ?>
+                                            <div style="width: 120px; height: 120px; margin-top: 25px;">
+                                                <a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery">
+                                                    <img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px; border-radius: var(--radius-sm); object-fit: cover;" />
+                                                </a>
+                                            </div>
+                                        <?php } ?>
+
+                                        <!-- Section: Payment Gateway -->
+                                        <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                            <div class="section-header">
+                                                <i class="fas fa-credit-card"></i>
+                                                <span>Electronic Connection to Merchant Service</span>
+                                            </div>
+
+                                            <div class="form-grid">
+                                                <div class="form-group-modern full-width">
+                                                    <label class="form-label">Payment Gateway</label>
+                                                    <div class="radio-group-modern">
+                                                        <label class="radio-item">
+                                                            <input type="radio" id="PAYMENT_GATEWAY_TYPE_STRIPE" name="PAYMENT_GATEWAY_TYPE" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">
+                                                            Stripe
                                                         </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control" placeholder="Enter Location Name" required value="<?php echo $LOCATION_NAME ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location Code<span class="text-danger">*</span>
+                                                        <label class="radio-item">
+                                                            <input type="radio" id="PAYMENT_GATEWAY_TYPE_SQUARE" name="PAYMENT_GATEWAY_TYPE" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">
+                                                            Square
                                                         </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control" placeholder="Enter Location Code" required value="<?php echo $LOCATION_CODE ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Address</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Apt/Ste</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apartment OR Street" value="<?php echo $ADDRESS_1 ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
+                                                        <label class="radio-item">
+                                                            <input type="radio" id="PAYMENT_GATEWAY_TYPE_AUTH" name="PAYMENT_GATEWAY_TYPE" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">
+                                                            Authorized.net
                                                         </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                                    <option value="">Select Country</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
-                                                                    <?php $row->MoveNext();
-                                                                    } ?>
-                                                                </select>
-                                                            </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group-modern full-width payment_gateway" id="stripe" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>;">
+                                                    <div class="form-grid" style="width: 100%;">
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Secret Key</label>
+                                                            <input type="text" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
+                                                        </div>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Publishable Key</label>
+                                                            <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" value="<?= htmlspecialchars($PUBLISHABLE_KEY) ?>">
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <div id="State_div"></div>
-                                                            </div>
+
+                                                <div class="form-group-modern full-width payment_gateway" id="square" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'grid' : 'none' ?>;">
+                                                    <div class="form-grid" style="width: 100%;">
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Application ID</label>
+                                                            <input type="text" class="form-control-modern" name="APP_ID" value="<?= htmlspecialchars($SQUARE_APP_ID) ?>">
+                                                        </div>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Location ID</label>
+                                                            <input type="text" class="form-control-modern" name="LOCATION_ID" value="<?= htmlspecialchars($SQUARE_LOCATION_ID) ?>">
+                                                        </div>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Access Token</label>
+                                                            <input type="text" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group-modern full-width payment_gateway" id="authorized" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'grid' : 'none' ?>;">
+                                                    <div class="form-grid" style="width: 100%;">
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Login ID</label>
+                                                            <input type="text" class="form-control-modern" name="LOGIN_ID" value="<?= htmlspecialchars($LOGIN_ID) ?>">
+                                                        </div>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Transaction Key</label>
+                                                            <input type="text" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
+                                                        </div>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Authorize Client Key</label>
+                                                            <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        <?php } ?>
 
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">City</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City" value="<?php echo $CITY ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Postal / Zip Code</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE ?>">
-                                                        </div>
-                                                    </div>
+                                        <!-- Section: Email Connection -->
+                                        <div class="section-header">
+                                            <i class="fas fa-envelope"></i>
+                                            <span>Email Connection</span>
+                                        </div>
+
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">SMTP HOST</label>
+                                                <input type="text" class="form-control-modern" name="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">SMTP PORT</label>
+                                                <input type="text" class="form-control-modern" name="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">SMTP USERNAME</label>
+                                                <input type="text" class="form-control-modern" name="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">SMTP PASSWORD</label>
+                                                <input type="text" class="form-control-modern" name="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
+                                            </div>
+                                        </div>
+
+                                        <?php if (!empty($_GET['id'])) { ?>
+                                            <div class="section-header">
+                                                <i class="fas fa-toggle-on"></i>
+                                                <span>Status</span>
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Active</label>
+                                                <div class="radio-group-modern">
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="ACTIVE" id="ACTIVE_YES" value="1" <?= ($ACTIVE == 1) ? 'checked="checked"' : '' ?>>
+                                                        Yes
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        <input type="radio" name="ACTIVE" id="ACTIVE_NO" value="0" <?= ($ACTIVE == 0) ? 'checked="checked"' : '' ?>>
+                                                        No
+                                                    </label>
                                                 </div>
                                             </div>
+                                        <?php } ?>
 
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Phone</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Email</label>
-                                                        <div class="col-md-12">
-                                                            <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="enter Email Address" value="<?php echo $EMAIL ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location Image</label>
-                                                        <div class="col-md-12">
-                                                            <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Timezone<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
-                                                                <option value="">Select</option>
-                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
-                                                                while (!$res_type->EOF) { ?>
-                                                                    <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <? if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= $res_type->fields['NAME'] ?></option>
-                                                                <? $res_type->MoveNext();
-                                                                } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <!-- <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Username Prefix</label>
-                                                        <div class="col-md-12">
-                                                            <input type="hidden" name="OLD_USERNAME_PREFIX" id="OLD_USERNAME_PREFIX" value="<?php echo $USERNAME_PREFIX ?>">
-                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX ?>">
-                                                        </div>
-                                                    </div>
-                                                </div> -->
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label for="example-text">Time Interval for Calendar Rows <span class="text-danger">*</span></label>
-                                                        <div>
-                                                            <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
-                                                                <option value="">Select</option>
-                                                                <?php for ($i = 5; $i <= 60; $i += 5) { ?>
-                                                                    <option value="<?= '00:' . $i . ':00' ?>" <?= ($TIME_SLOT_INTERVAL == '00:' . $i . ':00') ? 'selected' : '' ?>><?= '00:' . $i . ':00' ?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php if (isset($_SESSION['error'])) { ?>
-                                                    <div class="alert alert-danger">
-                                                        <strong><?= $_SESSION['error']; ?></strong>
-                                                    </div>
-                                                <?php } ?>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Title for Service Provider</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Name of the Tab for Charging Services</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Enrollment Prefix</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Id Character" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Starting Enrollment Number</label>
-                                                        <div class="col-md-12">
-                                                            <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Misc Enrollment Prefix</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Starting Misc Enrollment Number</label>
-                                                        <div class="col-md-12">
-                                                            <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Royalty Percentage</label>
-                                                        <div class="input-group">
-                                                            <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE ?>">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Sales Tax</label>
-                                                        <div class="input-group">
-                                                            <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX ?>">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Receipt Prefix<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?= $RECEIPT_CHARACTER ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Focusbiz API Key</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Username Prefix</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div> -->
-                                            </div>
-
-                                            <div class="row twilio_account_type" id="twilio_account_type" style="margin-top: 30px;">
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 10px;">Send an Appointment Reminder Text message.</label><br>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
-                                                        <div class="form-group">
-                                                            <label class="form-label">How many hours before the appointment ?</label>
-                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
-                                                <div class="col-md-2">
-                                                    <label class="form-label">Texting Feature Enabled?</label>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;No</label>
-                                                </div>
-                                            </div>
-
-                                            <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
-                                                <div class="col-md-6">
-                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
-                                                </div>
-                                            </div>
-
-                                            <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
-                                                <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
-
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">SID</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Token</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Phone No.</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="TWILIO_PHONE_NO" name="TWILIO_PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $TWILIO_PHONE_NO ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
-                                            </div>
-
-                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
-                                                <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Electronic Connection to Merchant Service</b>
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <div class="form-group">
-                                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row payment_gateway" id="stripe" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? '' : 'none' ?>;">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Secret Key</label>
-                                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?= $SECRET_KEY ?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Publishable Key</label>
-                                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?= $PUBLISHABLE_KEY ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row payment_gateway" id="square" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? '' : 'none' ?>">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Application ID</label>
-                                                                <input type="text" class="form-control" name="APP_ID" value="<?= $SQUARE_APP_ID ?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Location ID</label>
-                                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?= $SQUARE_LOCATION_ID ?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Access Token</label>
-                                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?= $ACCESS_TOKEN ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row payment_gateway" id="authorized" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? '' : 'none' ?>">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Login ID</label>
-                                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?= $LOGIN_ID ?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Transaction Key</label>
-                                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?= $TRANSACTION_KEY ?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Authorize Client Key</label>
-                                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-
-                                            <div class="row" style="margin-top: 30px;">
-                                                <b class="btn btn-light" style="margin-bottom: 20px;">Email Connection</b>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP HOST</label>
-                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?= $SMTP_HOST ?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PORT</label>
-                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?= $SMTP_PORT ?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP USERNAME</label>
-                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?= $SMTP_USERNAME ?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PASSWORD</label>
-                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?= $SMTP_PASSWORD ?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
-                                                <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
-                                                    </div>
-                                                </div>
-                                            </div> -->
-
-                                            <?php if (!empty($_GET['id'])) { ?>
-                                                <div class="row" style="margin-bottom: 15px;">
-                                                    <div class="col-6">
-                                                        <div class="col-md-2">
-                                                            <label>Active</label>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Next</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-modern btn-modern-primary">
+                                                <i class="fas fa-arrow-right"></i> Next
+                                            </button>
+                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
+                            </div>
 
-                                <div class="tab-pane" id="operational_hours" role="tabpanel">
+                            <!-- ================= OPERATIONAL HOURS TAB ================= -->
+                            <div class="tab-pane fade" id="operational_hours" role="tabpanel">
+                                <div class="card-body">
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
                                         <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                        <div class="p-20" id="holiday_list_div">
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Day</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Open Time</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Close Time</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label><input type="checkbox" name="ALL_DAYS" class="form-check-inline" onclick="applyToAllDays(this)"> All Days</label>
-                                                    </div>
+
+                                        <div class="section-header" style="margin-top: 0;">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Weekly Schedule</span>
+                                        </div>
+
+                                        <div id="holiday_list_div">
+                                            <div class="hours-header">
+                                                <div class="hours-col">Day</div>
+                                                <div class="hours-col">Open Time</div>
+                                                <div class="hours-col">Close Time</div>
+                                                <div class="hours-col" style="text-align: right;">
+                                                    <label class="checkbox-item" style="justify-content: flex-end;">
+                                                        <input type="checkbox" name="ALL_DAYS" onclick="applyToAllDays(this)">
+                                                        All Days
+                                                    </label>
                                                 </div>
                                             </div>
+
                                             <?php
                                             $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
                                             if ($operational_hours->RecordCount() > 0) {
                                                 $i = 0;
+                                                $day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                                                 while (!$operational_hours->EOF) { ?>
-                                                    <div class="row">
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                        <option value="1" <?= ($operational_hours->fields['DAY_NUMBER'] == 1) ? 'selected' : '' ?>>Monday</option>
-                                                                        <option value="2" <?= ($operational_hours->fields['DAY_NUMBER'] == 2) ? 'selected' : '' ?>>Tuesday</option>
-                                                                        <option value="3" <?= ($operational_hours->fields['DAY_NUMBER'] == 3) ? 'selected' : '' ?>>Wednesday</option>
-                                                                        <option value="4" <?= ($operational_hours->fields['DAY_NUMBER'] == 4) ? 'selected' : '' ?>>Thursday</option>
-                                                                        <option value="5" <?= ($operational_hours->fields['DAY_NUMBER'] == 5) ? 'selected' : '' ?>>Friday</option>
-                                                                        <option value="6" <?= ($operational_hours->fields['DAY_NUMBER'] == 6) ? 'selected' : '' ?>>Saturday</option>
-                                                                        <option value="7" <?= ($operational_hours->fields['DAY_NUMBER'] == 7) ? 'selected' : '' ?>>Sunday</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
+                                                    <div class="hours-row">
+                                                        <div class="day-label"><?= $day_names[$operational_hours->fields['DAY_NUMBER'] - 1] ?></div>
+                                                        <div>
+                                                            <input type="text" name="OPEN_TIME[]" class="form-control-modern time-input time-picker OPEN_TIME" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
                                                         </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                                </div>
-                                                            </div>
+                                                        <div>
+                                                            <input type="text" name="CLOSE_TIME[]" class="form-control-modern time-input time-picker CLOSE_TIME" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
                                                         </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12" style="margin-top: 10px;">
-                                                                    <label><input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>> Closed</label>
-                                                                </div>
-                                                            </div>
+                                                        <div>
+                                                            <label class="checkbox-item">
+                                                                <input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>>
+                                                                Closed
+                                                            </label>
                                                         </div>
                                                     </div>
                                                 <?php $operational_hours->MoveNext();
                                                     $i++;
-                                                } ?>
-                                                <?php } else {
-                                                for ($i = 1; $i <= 7; $i++) { ?>
-                                                    <div class="row">
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                        <option value="1" <?= ($i == 1) ? 'selected' : '' ?>>Monday</option>
-                                                                        <option value="2" <?= ($i == 2) ? 'selected' : '' ?>>Tuesday</option>
-                                                                        <option value="3" <?= ($i == 3) ? 'selected' : '' ?>>Wednesday</option>
-                                                                        <option value="4" <?= ($i == 4) ? 'selected' : '' ?>>Thursday</option>
-                                                                        <option value="5" <?= ($i == 5) ? 'selected' : '' ?>>Friday</option>
-                                                                        <option value="6" <?= ($i == 6) ? 'selected' : '' ?>>Saturday</option>
-                                                                        <option value="7" <?= ($i == 7) ? 'selected' : '' ?>>Sunday</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
+                                                }
+                                            } else {
+                                                $day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                for ($i = 0; $i < 7; $i++) { ?>
+                                                    <div class="hours-row">
+                                                        <div class="day-label"><?= $day_names[$i] ?></div>
+                                                        <div>
+                                                            <input type="text" name="OPEN_TIME[]" class="form-control-modern time-input time-picker OPEN_TIME" readonly>
                                                         </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" readonly>
-                                                                </div>
-                                                            </div>
+                                                        <div>
+                                                            <input type="text" name="CLOSE_TIME[]" class="form-control-modern time-input time-picker CLOSE_TIME" readonly>
                                                         </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" readonly>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12" style="margin-top: 10px;">
-                                                                    <label><input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)"> Closed</label>
-                                                                </div>
-                                                            </div>
+                                                        <div>
+                                                            <label class="checkbox-item">
+                                                                <input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)">
+                                                                Closed
+                                                            </label>
                                                         </div>
                                                     </div>
                                             <?php }
                                             } ?>
                                         </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-modern btn-modern-primary">
+                                                <i class="fas fa-save"></i> Save
+                                            </button>
+                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
+                            </div>
 
-                                <div class="tab-pane" id="credit_card" role="tabpanel">
+                            <!-- ================= CREDIT CARD TAB ================= -->
+                            <div class="tab-pane fade" id="credit_card" role="tabpanel">
+                                <div class="card-body">
                                     <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                        <div class="p-20" id="credit_card_div">
-                                            <div class="row">
-                                                <div class="col-6">
+
+                                        <div class="section-header" style="margin-top: 0;">
+                                            <i class="fas fa-credit-card"></i>
+                                            <span>Card Details</span>
+                                        </div>
+
+                                        <div id="credit_card_div">
+                                            <div class="form-grid">
+                                                <div class="form-group-modern full-width">
                                                     <div id="card-element"></div>
+                                                    <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-modern btn-modern-primary">
+                                                <i class="fas fa-save"></i> Save
+                                            </button>
+                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
                                     </form>
+
                                     <?php if (isset($card_details['last4'])) {
                                         switch ($card_details['brand']) {
                                             case 'Visa':
@@ -1021,31 +1520,20 @@ if (!empty($_POST)) {
                                             case 'Discover (debit)':
                                                 $card_type = 'discover';
                                                 break;
-                                            case 'Diners Club':
-                                            case 'Diners Club (14-digit card)':
-                                                $card_type = 'diners';
-                                                break;
-                                            case 'JCB':
-                                                $card_type = 'jcb';
-                                                break;
-                                            case 'UnionPay':
-                                            case 'UnionPay (debit)':
-                                            case 'UnionPay (19-digit card)':
-                                                $card_type = 'unionpay';
-                                                break;
                                             default:
                                                 $card_type = '';
                                                 break;
                                         } ?>
-                                        <div class="p-20">
-                                            <h5>Saved Card Details</h5>
-                                            <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
-                                                <div class="credit-card-last4">
-                                                    <?= $card_details['last4'] ?>
-                                                </div>
-                                                <div class="credit-card-expiry">
-                                                    <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
-                                                </div>
+                                        <div class="section-header">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Saved Card</span>
+                                        </div>
+                                        <div class="credit-card <?= $card_type ?>">
+                                            <div class="credit-card-last4">
+                                                •••• <?= htmlspecialchars($card_details['last4']) ?>
+                                            </div>
+                                            <div class="credit-card-expiry">
+                                                Expires <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
                                             </div>
                                         </div>
                                     <?php } ?>
@@ -1053,14 +1541,25 @@ if (!empty($_POST)) {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Help Sidebar -->
+                    <div>
+                        <div class="help-card">
+                            <div class="help-icon">
+                                <i class="fas fa-question"></i>
+                            </div>
+                            <h5><?= htmlspecialchars($help_title) ?></h5>
+                            <p><?= htmlspecialchars($help_description) ?></p>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
-    </div>
-
     <?php require_once('../includes/footer.php'); ?>
 
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
         $('.time-picker').timepicker({
             timeFormat: 'hh:mm p',
@@ -1072,10 +1571,10 @@ if (!empty($_POST)) {
 
         function closeThisDay(param) {
             if ($(param).is(':checked')) {
-                $(param).closest('.row').find('.time-input').val('');
-                $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+                $(param).closest('.hours-row').find('.time-input').val('');
+                $(param).closest('.hours-row').find('.time-input').css('pointer-events', 'none');
             } else {
-                $(param).closest('.row').find('.time-input').css('pointer-events', '');
+                $(param).closest('.hours-row').find('.time-input').css('pointer-events', '');
             }
         }
 
@@ -1084,18 +1583,16 @@ if (!empty($_POST)) {
         });
 
         function fetch_state(PK_COUNTRY) {
-            jQuery(document).ready(function($) {
-                var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-                var value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache: false,
-                    success: function(result) {
-                        document.getElementById('State_div').innerHTML = result;
-                    }
-                }).responseText;
+            var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+            $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache: false,
+                success: function(result) {
+                    document.getElementById('State_div').innerHTML = result;
+                }
             });
         }
 
@@ -1103,90 +1600,36 @@ if (!empty($_POST)) {
             $('.payment_gateway').slideUp();
             if ($(param).val() === 'Stripe') {
                 $('#stripe').slideDown();
-            } else {
-                if ($(param).val() === 'Square') {
-                    $('#square').slideDown();
-                } else {
-                    if ($(param).val() === 'Authorized.net') {
-                        $('#authorized').slideDown();
-                    }
-                }
-
+            } else if ($(param).val() === 'Square') {
+                $('#square').slideDown();
+            } else if ($(param).val() === 'Authorized.net') {
+                $('#authorized').slideDown();
             }
         }
-    </script>
 
-    <script src="https://js.stripe.com/v3/"></script>
-    <script type="text/javascript">
-        function stripePaymentFunction() {
-            let stripe = Stripe('<?= $STRIPE_PUBLISHABLE_KEY ?>');
-            let elements = stripe.elements();
-
-            let style = {
-                base: {
-                    height: '34px',
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    lineHeight: '1.42857143',
-                    color: '#555',
-                    backgroundColor: '#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    '::placeholder': {
-                        color: '#ddd'
-                    }
-                },
-                invalid: {
-                    color: '#fa755a',
-                    iconColor: '#fa755a'
-                }
-            };
-
-            // Create an instance of the card Element.
-            let card = elements.create('card', {
-                style: style
-            });
-
-            if (($('#card-element')).length > 0) {
-                card.mount('#card-element');
+        function showTwilioAccountSetting(param) {
+            if ($(param).val() === '1') {
+                $('#twilio_account_type').slideDown();
+            } else {
+                $('#twilio_account_type').slideUp();
+                $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
+                $('#twilio_setting_div').slideUp();
             }
+        }
 
-            // Handle real-time validation errors from the card Element.
-            card.addEventListener('change', function(event) {
-                let displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                } else {
-                    displayError.textContent = '';
-                }
-            });
+        function showTwilioSetting(param) {
+            if ($(param).val() === '1') {
+                $('#twilio_setting_div').slideDown();
+            } else {
+                $('#twilio_setting_div').slideUp();
+            }
+        }
 
-            // Handle form submission.
-            let form = document.getElementById('creditCardForm');
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                        // Inform the user if there was an error.
-                        let errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                    } else {
-                        // Send the token to your server.
-                        stripeTokenHandler(result.token);
-                    }
-                });
-            });
-
-            // Submit the form with the token ID.
-            function stripeTokenHandler(token) {
-                // Insert the token ID into the form, so it gets submitted to the server
-                let form = document.getElementById('creditCardForm');
-                let hiddenInput = document.createElement('input');
-                hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'token');
-                hiddenInput.setAttribute('value', token.id);
-                form.appendChild(hiddenInput);
-                form.submit();
+        function showHourBox(radio) {
+            if (radio.value == 1) {
+                document.getElementById("yes").style.display = "flex";
+            } else {
+                document.getElementById("yes").style.display = "none";
             }
         }
 
@@ -1209,8 +1652,71 @@ if (!empty($_POST)) {
                 }
             }
         }
-    </script>
-    <script>
+
+        function stripePaymentFunction() {
+            let stripe = Stripe('<?= $STRIPE_PUBLISHABLE_KEY ?>');
+            let elements = stripe.elements();
+
+            let style = {
+                base: {
+                    fontSize: '14px',
+                    color: '#1F2937',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                    '::placeholder': {
+                        color: '#9CA3AF'
+                    }
+                },
+                invalid: {
+                    color: '#EF4444',
+                    iconColor: '#EF4444'
+                }
+            };
+
+            let card = elements.create('card', {
+                style: style
+            });
+
+            if (($('#card-element')).length > 0) {
+                card.mount('#card-element');
+            }
+
+            card.addEventListener('change', function(event) {
+                let displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+
+            let form = document.getElementById('creditCardForm');
+            // avoid duplicate listeners
+            if (!form.dataset.stripeBound) {
+                form.dataset.stripeBound = '1';
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    stripe.createToken(card).then(function(result) {
+                        if (result.error) {
+                            let errorElement = document.getElementById('card-errors');
+                            errorElement.textContent = result.error.message;
+                        } else {
+                            stripeTokenHandler(result.token);
+                        }
+                    });
+                });
+            }
+
+            function stripeTokenHandler(token) {
+                let form = document.getElementById('creditCardForm');
+                let hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'token');
+                hiddenInput.setAttribute('value', token.id);
+                form.appendChild(hiddenInput);
+                form.submit();
+            }
+        }
+
         $(document).on('submit', '#location_form', function(event) {
             event.preventDefault();
             let form_data = new FormData($('#location_form')[0]);
@@ -1232,71 +1738,6 @@ if (!empty($_POST)) {
                 }
             });
         });
-    </script>
-    <script>
-        function showTwilioAccountSetting(param) {
-            if ($(param).val() === '1') {
-                $('#twilio_account_type').slideDown();
-            } else {
-                $('#twilio_account_type').slideUp();
-                $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
-                $('#twilio_setting_div').slideUp();
-            }
-        }
-
-        function showTwilioSetting(param) {
-            if ($(param).val() === '1') {
-                $('#twilio_setting_div').slideDown();
-            } else {
-                $('#twilio_setting_div').slideUp();
-            }
-        }
-
-        function showArthurMurraySetup(param) {
-            if ($(param).val() === '1') {
-                $('#arthur_murray_setup').slideDown();
-            } else {
-                $('#arthur_murray_setup').slideUp();
-            }
-        }
-
-        function addMoreHoliday() {
-            $('#holiday_list_section').append(`<div class="row">
-                                            <div class="col-3">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-3">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="HOLIDAY_NAME[]" class="form-control">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-3" style="padding-top: 5px;">
-                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                            </div>
-                                        </div>`);
-
-            $('.datepicker-normal').datepicker({
-                format: 'mm/dd/yyyy',
-            });
-        }
-
-        function removeThis(param) {
-            $(param).closest('.row').remove();
-        }
-
-        function showHourBox(radio) {
-            if (radio.value == 1) {
-                document.getElementById("yes").style.display = "block";
-            } else {
-                document.getElementById("yes").style.display = "none";
-            }
-        }
     </script>
 </body>
 
