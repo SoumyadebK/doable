@@ -1639,3 +1639,13 @@ function maskSecretKey(string $key, int $visibleStart = 5, int $visibleEnd = 4, 
 
     return $start . $mask . $end;
 }
+
+
+function getSessionCost($finalAmount, $totalSessions, $sessionNumber)
+{
+    $base = round($finalAmount / $totalSessions, 2);
+    if ($sessionNumber < $totalSessions) {
+        return $base;
+    }
+    return round($finalAmount - $base * ($totalSessions - 1), 2);
+}

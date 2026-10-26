@@ -359,7 +359,7 @@ while (!$serviceCodeData->EOF) {
                 //$SESSION_CREATED = getSessionCreatedCount($pk_enrollment_service, $appointment_data->fields['APPOINTMENT_TYPE']);
                 $UNIT = $appointment_data->fields['UNIT'];
                 //echo $appointment_data->fields['SCHEDULING_CODE']."-".$UNIT."<br>";
-                $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $pk_enrollment_service);
+                $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION, FINAL_AMOUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $pk_enrollment_service);
                 $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'] * $UNIT;
                 //$total_amount_needed = $SESSION_CREATED * $per_session_price->fields['PRICE_PER_SESSION'];
                 $WITH_PARTNER = 0;
@@ -375,17 +375,6 @@ while (!$serviceCodeData->EOF) {
                     $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
                 }
 
-                /*if (($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' && $appointment_data->fields['APPOINTMENT_STATUS'] != 'No Show') || $appointment_data->fields['IS_CHARGED'] == 1)*/
-                if ($IS_CHARGED == 1) {
-                    if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
-                        $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + $UNIT;
-                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] + $PRICE_PER_SESSION;
-                    } else {
-                        $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $UNIT;
-                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $PRICE_PER_SESSION;
-                    }
-                }
-
                 if ($per_session_price->fields['NUMBER_OF_SESSION'] == 0) {
                     $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
                 } else {
@@ -395,7 +384,28 @@ while (!$serviceCodeData->EOF) {
                 if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
                 }
+
+                if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
+                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + $UNIT;
+                } else {
+                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $UNIT;
+                }
+
+                //echo $appointment_data->fields['SERVICE_CODE'] . ' - ' . $per_session_price->fields['FINAL_AMOUNT'] . ' - ' . $NUMBER_OF_SESSION . ' - ' . $service_code_array[$appointment_data->fields['SERVICE_CODE']];
+
+                $SESSION_COST = getSessionCost($per_session_price->fields['FINAL_AMOUNT'], $NUMBER_OF_SESSION, $service_code_array[$appointment_data->fields['SERVICE_CODE']]);
+
+                /*if (($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' && $appointment_data->fields['APPOINTMENT_STATUS'] != 'No Show') || $appointment_data->fields['IS_CHARGED'] == 1)*/
+                if ($IS_CHARGED == 1) {
+                    if (isset($service_credit_array[$appointment_data->fields['SERVICE_CODE']])) {
+                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] + $SESSION_COST;
+                    } else {
+                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $SESSION_COST;
+                    }
+                }
+
                 $service_credit = ($IS_CHARGED == 1) ? $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']] : 0;
+
                 $appointment_array[] = [
                     "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                     "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
@@ -409,7 +419,7 @@ while (!$serviceCodeData->EOF) {
                     "APPOINTMENT_DATE" => date('m/d/Y', strtotime($appointment_data->fields['DATE'])),
                     "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
                     "SERVICE_PROVIDER" => $appointment_data->fields['NAME'],
-                    "PRICE_PER_SESSION" => $PRICE_PER_SESSION,
+                    "PRICE_PER_SESSION" => $SESSION_COST,
                     "SERVICE_CREDIT" => (number_format($service_credit, 2) >= -0.05 && number_format($service_credit, 2) <= -0.01) ? 0.00 : $service_credit,
                 ];
                 $appointment_data->MoveNext();

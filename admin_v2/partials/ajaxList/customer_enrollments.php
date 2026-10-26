@@ -400,8 +400,17 @@ while (!$enrollment_data->EOF) {
 
                             $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                             //$total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                            $total_used_amount += ($PRICE_PER_SESSION * $SESSION_COMPLETED);
-                            $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
+                            if ($SESSION_COMPLETED == $NUMBER_OF_SESSION) {
+                                $total_used_amount = $total_paid_amount;
+                            } else {
+                                $total_used_amount += ($PRICE_PER_SESSION * $SESSION_COMPLETED);
+                            }
+
+                            if ($SESSION_SCHEDULED == $NUMBER_OF_SESSION) {
+                                $total_scheduled_amount = $total_paid_amount;
+                            } else {
+                                $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED);
+                            } ?>
                             <tr>
                                 <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
                                 <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
