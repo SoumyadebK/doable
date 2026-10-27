@@ -98,6 +98,7 @@ if (empty($_GET['id'])) {
     $AM_USER_NAME = '';
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
+    $ENABLE_SALES_TAX = '';
     $SALES_TAX              = $res->fields['SALES_TAX'];
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
     $TEXTING_FEATURE_ENABLED = '';
@@ -189,6 +190,7 @@ if (empty($_GET['id'])) {
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
+    $ENABLE_SALES_TAX       = $res->fields['ENABLE_SALES_TAX'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
     $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
@@ -1829,9 +1831,24 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
 
                                                     <!-- Sales Tax -->
                                                     <div class="form-group-modern">
-                                                        <label class="form-label">Sales Tax</label>
-                                                        <div class="input-group-modern">
-                                                            <input type="text" class="form-control-modern" name="SALES_TAX" value="<?= htmlspecialchars($SALES_TAX) ?>">
+                                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                                            <label class="form-label mb-0">Sales Tax</label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="1"
+                                                                    <?= $ENABLE_SALES_TAX === '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> Yes
+                                                            </label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="0"
+                                                                    <?= $ENABLE_SALES_TAX !== '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> No
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="input-group-modern" id="sales_tax_div" style="display: <?= $ENABLE_SALES_TAX === '1' ? 'flex' : 'none' ?>;">
+                                                            <input type="text" class="form-control-modern" name="SALES_TAX" id="SALES_TAX"
+                                                                value="<?= htmlspecialchars($SALES_TAX) ?>"
+                                                                <?= $ENABLE_SALES_TAX !== '1' ? 'disabled' : '' ?>>
                                                             <span class="input-group-text">%</span>
                                                         </div>
                                                     </div>
@@ -3576,6 +3593,16 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                     }
                 });
             }
+
+            $(document).on('click', '.ENABLE_SALES_TAX', function() {
+                if ($(this).is(':checked') && $(this).val() === '1') {
+                    $('#SALES_TAX').attr('disabled', false);
+                    $('#sales_tax_div').slideDown();
+                } else {
+                    $('#SALES_TAX').attr('disabled', true);
+                    $('#sales_tax_div').slideUp();
+                }
+            });
         </script>
 
 </body>
