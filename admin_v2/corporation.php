@@ -47,6 +47,8 @@ if (empty($_GET['id'])) {
     $CORPORATION_NAME       = '';
     $PK_TIMEZONE            = '';
     $PK_CURRENCY            = '';
+    $ENABLE_SALES_TAX       = '';
+    $SALES_TAX              = '';
     $USERNAME_PREFIX        = '';
     $TIME_SLOT_INTERVAL     = '';
     $SERVICE_PROVIDER_TITLE = '';
@@ -99,6 +101,8 @@ if (empty($_GET['id'])) {
     $CORPORATION_NAME       = $res->fields['CORPORATION_NAME'];
     $PK_TIMEZONE            = $res->fields['PK_TIMEZONE'];
     $PK_CURRENCY            = $res->fields['PK_CURRENCY'];
+    $ENABLE_SALES_TAX       = $res->fields['ENABLE_SALES_TAX'];
+    $SALES_TAX              = $res->fields['SALES_TAX'];
     $USERNAME_PREFIX        = $res->fields['USERNAME_PREFIX'];
     $TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
     $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
@@ -185,6 +189,7 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     $CORPORATION_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
 
     $CORPORATION_DATA['FOCUSBIZ_API_KEY'] = $_POST['FOCUSBIZ_API_KEY'];
+    $CORPORATION_DATA['ENABLE_SALES_TAX'] = $_POST['ENABLE_SALES_TAX'];
     $CORPORATION_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
 
     $CORPORATION_DATA['TEXTING_FEATURE_ENABLED'] = $_POST['TEXTING_FEATURE_ENABLED'];
@@ -1010,7 +1015,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
 
                                                     <!-- Currency -->
                                                     <div class="form-group-modern">
-                                                        <label class="form-label">Currency</label>
+                                                        <label class="form-label mb-2">Currency</label>
                                                         <select name="PK_CURRENCY" id="PK_CURRENCY" class="form-control-modern">
                                                             <?php $res_type = $db->Execute("SELECT * FROM `DOA_CURRENCY` WHERE `ACTIVE` = 1");
                                                             while (!$res_type->EOF) { ?>
@@ -1018,6 +1023,30 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                             <?php $res_type->MoveNext();
                                                             } ?>
                                                         </select>
+                                                    </div>
+
+                                                    <!-- Sales Tax -->
+                                                    <div class="form-group-modern">
+                                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                                            <label class="form-label mb-0">Sales Tax</label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="1"
+                                                                    <?= $ENABLE_SALES_TAX === '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> Yes
+                                                            </label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="0"
+                                                                    <?= $ENABLE_SALES_TAX !== '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> No
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="input-group-modern" id="sales_tax_div" style="display: <?= $ENABLE_SALES_TAX === '1' ? 'flex' : 'none' ?>;">
+                                                            <input type="text" class="form-control-modern" name="SALES_TAX" id="SALES_TAX"
+                                                                value="<?= htmlspecialchars($SALES_TAX) ?>"
+                                                                <?= $ENABLE_SALES_TAX !== '1' ? 'disabled' : '' ?>>
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
                                                     </div>
 
                                                     <!-- Payment Gateway -->
@@ -1692,6 +1721,16 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
 
     // Initialize after DOM is ready
     document.addEventListener('DOMContentLoaded', setupEnhancedPasswordField);
+
+    $(document).on('click', '.ENABLE_SALES_TAX', function() {
+        if ($(this).is(':checked') && $(this).val() === '1') {
+            $('#SALES_TAX').attr('disabled', false);
+            $('#sales_tax_div').slideDown();
+        } else {
+            $('#SALES_TAX').attr('disabled', true);
+            $('#sales_tax_div').slideUp();
+        }
+    });
 </script>
 
 </html>
