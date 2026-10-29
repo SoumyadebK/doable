@@ -13,6 +13,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 $PK_ENROLLMENT_MASTER = $_GET['master_id'] ?: 0;
 $RECEIPT_NUMBER = $_GET['receipt'] ?: 0;
 $BILLING_REF = '';
+$PK_LOCATION = 0;
 
 //$RECEIPT_NUMBER_ARRAY = explode(',', $RECEIPT_NUMBER);
 $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
@@ -86,11 +87,12 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
             $BILLING_REF = ($enrollment_billing_data->RecordCount() > 0) ? $enrollment_billing_data->fields['BILLING_REF'] : '';
             $enrollment_payment = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER'");
 
-            $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.PHONE, DOA_LOCATION.ZIP_CODE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_LOCATION ON DOA_USER_MASTER.PRIMARY_LOCATION_ID=DOA_LOCATION.PK_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.PHONE, DOA_LOCATION.ZIP_CODE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_LOCATION ON DOA_USER_MASTER.PRIMARY_LOCATION_ID=DOA_LOCATION.PK_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
             $BUSINESS_NAME = $business_details->fields['BUSINESS_NAME'];
             $CORPORATION_NAME = $user_data->fields['CORPORATION_NAME'];
             $FULL_NAME = $user_data->fields['FIRST_NAME'] . " " . $user_data->fields['LAST_NAME'];
+            $PK_LOCATION = $user_data->fields['PK_LOCATION'];
             $LOCATION_NAME = $user_data->fields['LOCATION_NAME'];
             $ADDRESS = $user_data->fields['ADDRESS'];
             $STATE_NAME = $user_data->fields['STATE_NAME'];
@@ -137,7 +139,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                 while (!$enrollment_tip->EOF) {
                     $TIP_PERCENTAGE = (isset($enrollment_tip->fields['TIP_PERCENTAGE']) && $enrollment_tip->fields['TIP_PERCENTAGE'] > 0) ? number_format($enrollment_tip->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
                     $TIP_AMOUNT = (isset($enrollment_tip->fields['TIP_AMOUNT'])) ? '$' . number_format($enrollment_tip->fields['TIP_AMOUNT'], 2) : '$0.00';
-                    $TOTAL_AMOUNT += floatval(str_replace('$', '', $TIP_AMOUNT));
+                    //$TOTAL_AMOUNT += floatval(str_replace('$', '', $TIP_AMOUNT));
                     $enrollment_tip->MoveNext();
                 }
             }
@@ -154,6 +156,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
 
         $AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
         $TOTAL = '$' . number_format($TOTAL_AMOUNT, 2);
+        $TAX_RATE = getSalesTax($PK_LOCATION);
         ?>
 
         <table style="margin-left: auto; margin-right: auto; width:70%;">
@@ -212,14 +215,31 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                     <td>Amount of Tip : </td>
                     <td style="text-align:right"><?= $TIP_AMOUNT ?></td>
                 </tr>
-                <tr>
-                    <td>Amount(s) : </td>
-                    <td style="text-align:right"><?= $AMOUNT ?></td>
-                </tr>
-                <tr>
-                    <td>Total : </td>
-                    <td style="text-align:right"><?= $TOTAL ?></td>
-                </tr>
+                <?php if ($TAX_RATE > 0) {
+                    $subTotal = $TOTAL_AMOUNT / (1 + ($TAX_RATE / 100));
+                ?>
+                    <tr>
+                        <td>Subtotal : </td>
+                        <td style="text-align:right">$<?= number_format((float)$subTotal, 2, '.', '') ?></td>
+                    </tr>
+                    <tr>
+                        <td>Tax (<?= $TAX_RATE ?>%) : </td>
+                        <td style="text-align:right"><?= '$' . number_format((float)($TOTAL_AMOUNT - $subTotal), 2, '.', ''); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Total : </td>
+                        <td style="text-align:right"><?= $TOTAL ?></td>
+                    </tr>
+                <?php } else { ?>
+                    <tr>
+                        <td>Amount(s) : </td>
+                        <td style="text-align:right"><?= $AMOUNT ?></td>
+                    </tr>
+                    <tr>
+                        <td>Total : </td>
+                        <td style="text-align:right"><?= $TOTAL ?></td>
+                    </tr>
+                <?php } ?>
             </tbody>
         </table>
 

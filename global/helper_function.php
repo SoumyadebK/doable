@@ -31,11 +31,16 @@ function getEmailAccountData($db1, $PK_LOCATION)
 function getSalesTax($PK_LOCATION)
 {
     global $db;
-    $sales_tax_data = $db->Execute("SELECT SALES_TAX FROM `DOA_LOCATION` WHERE `PK_LOCATION` = " . $PK_LOCATION);
-    if ($sales_tax_data->fields['SALES_TAX'] <= 0) {
-        $sales_tax_data = $db->Execute("SELECT SALES_TAX FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    $location_sales_tax_data = $db->Execute("SELECT SALES_TAX FROM `DOA_LOCATION` WHERE ENABLE_SALES_TAX = 1 AND `PK_LOCATION` = " . $PK_LOCATION);
+    if ($location_sales_tax_data->RecordCount() > 0) {
+        return (float)$location_sales_tax_data->fields['SALES_TAX'];
+    } else {
+        $corporation_sales_tax_data = $db->Execute("SELECT DOA_CORPORATION.SALES_TAX FROM `DOA_CORPORATION` INNER JOIN DOA_LOCATION ON DOA_CORPORATION.PK_CORPORATION = DOA_LOCATION.PK_CORPORATION WHERE DOA_CORPORATION.ENABLE_SALES_TAX = 1 AND DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION);
+        if ($corporation_sales_tax_data->RecordCount() > 0) {
+            return (float)$corporation_sales_tax_data->fields['SALES_TAX'];
+        }
     }
-    return $sales_tax_data->fields['SALES_TAX'];
+    return 0.0;
 }
 
 function markAppointmentPaid($PK_ENROLLMENT_SERVICE): void

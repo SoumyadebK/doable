@@ -508,7 +508,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     global $db;
     global $db_account;
     global $account_database;
-    $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']) ? $RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'] : [];
     $FLEXIBLE_PAYMENT_AMOUNT = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']) ? $RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT'] : [];
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
@@ -520,7 +519,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     } else {
         $NUMBER_OF_PAYMENT = 0;
     }
-    unset($RESPONSE_DATA['PK_ENROLLMENT_SERVICE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']);
     $RESPONSE_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
@@ -632,6 +630,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
     }
 
+    $html_template = str_replace('{TAX_PERCENT}', number_format((float)getSalesTax($enrollment_details->fields['PK_LOCATION']), 2, '.', '') . '%', $html_template);
+    $html_template = str_replace('{SALES_TAX}', number_format((float)$RESPONSE_DATA['sales_tax'], 2, '.', ''), $html_template);
     $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
 
     $html_template = str_replace('{REMAINING_BALANCE}', $enrollment_details->fields['FINAL_AMOUNT'] - $RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
@@ -652,10 +652,12 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
 
     $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $RESPONSE_DATA['BILLING_REF'];
-    $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = $RESPONSE_DATA['BILLING_DATE'];
+    $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = ($RESPONSE_DATA['BILLING_DATE'] != '') ? date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE'])) : date('Y-m-d');
     $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
     $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-    $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT'];
+    $ENROLLMENT_BILLING_DATA['SUB_TOTAL'] = $RESPONSE_DATA['sub_total'];
+    $ENROLLMENT_BILLING_DATA['SALES_TAX'] = $RESPONSE_DATA['sales_tax'];
+    $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $RESPONSE_DATA['total_bill'];
     $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = $RESPONSE_DATA['PAYMENT_METHOD'];
     $ENROLLMENT_BILLING_DATA['PAYMENT_TERM'] = $RESPONSE_DATA['PAYMENT_TERM'];
     $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $NUMBER_OF_PAYMENT;
@@ -669,6 +671,16 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
         db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'update', " PK_ENROLLMENT_BILLING =  '$PK_ENROLLMENT_BILLING'");
         $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_BILLING` = '$PK_ENROLLMENT_BILLING'");
+    }
+
+    if ($ENROLLMENT_BILLING_DATA['SALES_TAX'] > 0) {
+        $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+        while (!$enrollment_service_data->EOF) {
+            $TAX_PERCENTAGE = getSalesTax($enrollment_details->fields['PK_LOCATION']);
+            $ENROLLMENT_SERVICE_UPDATE_DATA['SALES_TAX'] = $enrollment_service_data->fields['FINAL_AMOUNT'] * $TAX_PERCENTAGE / 100;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE =  " . $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE']);
+            $enrollment_service_data->MoveNext();
+        }
     }
 
     $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';

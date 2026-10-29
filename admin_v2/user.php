@@ -15,6 +15,9 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
 $CREATE_LOGIN = 0;
 
 if (empty($_GET['id']))
@@ -23,6 +26,9 @@ else
     $title = "Edit " . $userType;
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+
+$location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = " . $LOCATION_ARRAY[0] . " AND ACTIVE = 1");
+$AMI_ENABLE = $location_data->fields['FRANCHISE'];
 
 $PK_USER = 0;
 $PK_CUSTOMER_DETAILS = '';
@@ -91,9 +97,6 @@ if (!empty($_GET['id'])) {
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
 
     $user_location_data = $db->Execute("SELECT PK_LOCATION FROM DOA_USER_LOCATION WHERE PK_USER = '$PK_USER'");
-
-    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = " . $user_location_data->fields['PK_LOCATION'] . " AND ACTIVE = 1");
-    $AMI_ENABLE = $location_data->fields['FRANCHISE'];
 
     if (!empty($_GET['id'])) {
         $PK_USER = $_GET['id'];

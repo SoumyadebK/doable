@@ -7,10 +7,11 @@ global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
-$enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+$enrollment_data = $db_account->Execute("SELECT PK_LOCATION, ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
 //$enrollment_number = $enrollment_data->fields['ENROLLMENT_ID'];
+$SALES_TAX = getSalesTax($enrollment_data->fields['PK_LOCATION']);
 ?>
-<input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?= $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'] ?>">
+
 <div class="form-check border rounded-2 p-2 mb-2">
     <div class="d-flex">
         <span class="checkicon d-inline-flex me-2 align-items-center">
@@ -57,7 +58,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     <?= $enrollment_service_data->fields['SERVICE_DETAILS'] ?>
                     <span class="badge ms-auto rounded-1" style="background-color: <?= $service_code_color ?>20; color: <?= $service_code_color ?>;"><?= $enrollment_service_data->fields['SERVICE_CODE'] ?></span>
                 </label>
-                <span class="f12 text-dark ms-auto"><?= number_format((float)$enrollment_service_data->fields['FINAL_AMOUNT'], 2, '.', ''); ?></span>
+                <span class="f12 text-dark ms-auto">$<?= number_format((float)$enrollment_service_data->fields['FINAL_AMOUNT'], 2, '.', ''); ?></span>
             </div>
             <div class="statusarea m-0">
                 <span>Session: <?= $enrollment_service_data->fields['NUMBER_OF_SESSION'] ?></span>
@@ -67,9 +68,30 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
         </div>
     <?php $enrollment_service_data->MoveNext();
     } ?>
-    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100 mt-2">
-        <span>Total Amount</span>
-        <input type="hidden" id="total_bill" name="total_bill" value="<?= number_format((float)$total, 2, '.', ''); ?>">
-        <span class="fw-semibold text-dark"><?= number_format((float)$total, 2, '.', ''); ?></span>
-    </div>
+    <?php if ($SALES_TAX > 0) { ?>
+        <div class="totalamount p-2 rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100 mt-2">
+            <span>Sub Total</span>
+            <input type="hidden" id="sub_total" name="sub_total" value="<?= number_format((float)$total, 2, '.', ''); ?>">
+            <span class="fw-semibold text-dark">$<?= number_format((float)$total, 2, '.', ''); ?></span>
+        </div>
+        <div class="totalamount p-2 rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+            <span>Tax (<?= $SALES_TAX ?>%)</span>
+            <input type="hidden" id="sales_tax" name="sales_tax" value="<?= number_format((float)($total * ($SALES_TAX / 100)), 2, '.', ''); ?>">
+            <span class="fw-semibold text-dark">$<?= number_format((float)($total * ($SALES_TAX / 100)), 2, '.', ''); ?></span>
+        </div>
+        <hr class="my-1">
+        <div class="totalamount p-2 rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+            <span>Total</span>
+            <input type="hidden" id="total_bill" name="total_bill" value="<?= number_format((float)($total + ($total * ($SALES_TAX / 100))), 2, '.', ''); ?>">
+            <span class="fw-semibold text-dark">$<?= number_format((float)($total + ($total * ($SALES_TAX / 100))), 2, '.', ''); ?></span>
+        </div>
+    <?php } else { ?>
+        <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100 mt-2">
+            <span>Total Amount</span>
+            <input type="hidden" id="sub_total" name="sub_total" value="<?= number_format((float)$total, 2, '.', ''); ?>">
+            <input type="hidden" id="sales_tax" name="sales_tax" value="0">
+            <input type="hidden" id="total_bill" name="total_bill" value="<?= number_format((float)$total, 2, '.', ''); ?>">
+            <span class="fw-semibold text-dark">$<?= number_format((float)$total, 2, '.', ''); ?></span>
+        </div>
+    <?php } ?>
 </div>

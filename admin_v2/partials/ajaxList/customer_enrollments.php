@@ -117,7 +117,7 @@ if ($page == 1) {
 } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_ENROLLMENT_BILLING.SALES_TAX, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -125,6 +125,7 @@ while (!$enrollment_data->EOF) {
     $AGREEMENT_PDF_LINK = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
     $PK_ENROLLMENT_MASTER = $enrollment_data->fields['PK_ENROLLMENT_MASTER'];
     $ENROLLMENT_ID = $enrollment_data->fields['ENROLLMENT_ID'];
+    $TAX_RATE = getSalesTax($enrollment_data->fields['PK_LOCATION']);
     if (empty($name)) {
         $enrollment_name = '';
     } else {
@@ -144,7 +145,7 @@ while (!$enrollment_data->EOF) {
         $unpaid_count = 0;
         $amount_to_pay = 0;
         $amount_to_return = 0;
-        $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        $enr_total_amount = $db_account->Execute("SELECT SUM(COALESCE(FINAL_AMOUNT, 0) + COALESCE(SALES_TAX, 0)) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         $enr_refund_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Move' OR TYPE = 'Refund') AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] < $enr_total_amount->fields['TOTAL_AMOUNT'])) {
@@ -254,6 +255,9 @@ while (!$enrollment_data->EOF) {
                     <tr>
                         <th style="text-align: center;">Service Code</th>
                         <th style="text-align: center;">Enrolled</th>
+                        <?php if ($TAX_RATE > 0) { ?>
+                            <th style="text-align: center;">Tax</th>
+                        <?php } ?>
                         <th style="text-align: center;">Used</th>
                         <th style="text-align: center;">Scheduled</th>
                         <th style="text-align: center;">Balance</th>
@@ -266,9 +270,10 @@ while (!$enrollment_data->EOF) {
                     <?php
                     $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                     $total_amount = 0;
-                    $total_paid_amount = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
+                    $total_paid_amount = 0; //$enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
                     $total_used_amount = 0;
                     $total_scheduled_amount = 0;
+                    $total_tax_amount = 0;
                     $enrollment_service_array = [];
                     if ($enrollment_data->fields['PK_ENROLLMENT_TYPE'] == 35) {
 
@@ -335,6 +340,8 @@ while (!$enrollment_data->EOF) {
 
                             $total_amount += $FINAL_AMOUNT;
                             $total_used_amount += $used_dollar_amount;
+                            $total_paid_amount += $TOTAL_AMOUNT_PAID;
+                            $total_tax_amount += $serviceCodeData->fields['SALES_TAX'];
 
                             $PRICE_PER_SESSION = ($NUMBER_OF_SESSION > 0) ? ($TOTAL_AMOUNT_PAID / $NUMBER_OF_SESSION) : 0;
                             $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
@@ -342,6 +349,9 @@ while (!$enrollment_data->EOF) {
                             <tr>
                                 <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
                                 <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
+                                <?php if ($TAX_RATE > 0) { ?>
+                                    <td style="text-align: center;"><?= number_format($serviceCodeData->fields['SALES_TAX'], 2) ?></td>
+                                <?php } ?>
                                 <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
                                 <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
                                 <td style="text-align: center; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
@@ -399,7 +409,8 @@ while (!$enrollment_data->EOF) {
                             }
 
                             $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-                            //$total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                            $total_paid_amount += $TOTAL_AMOUNT_PAID;
+
                             if ($SESSION_COMPLETED == $NUMBER_OF_SESSION) {
                                 $total_used_amount = $total_paid_amount;
                             } else {
@@ -410,10 +421,16 @@ while (!$enrollment_data->EOF) {
                                 $total_scheduled_amount = $total_paid_amount;
                             } else {
                                 $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED);
-                            } ?>
+                            }
+
+                            $total_tax_amount += $serviceCodeData->fields['SALES_TAX'];
+                        ?>
                             <tr>
                                 <td style="text-align: center;"><span class="badge-service" style="background-color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>20; color: <?= getServiceCodeColor($serviceCodeData->fields['SERVICE_CODE']) ?>;"><?= $serviceCodeData->fields['SERVICE_CODE'] ?></span></td>
                                 <td style="text-align: center"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
+                                <?php if ($TAX_RATE > 0) { ?>
+                                    <td style="text-align: center;"><?= number_format($serviceCodeData->fields['SALES_TAX'], 2) ?></td>
+                                <?php } ?>
                                 <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
                                 <td style="text-align: center;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
                                 <td style="text-align: center; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
@@ -422,14 +439,27 @@ while (!$enrollment_data->EOF) {
                             </tr>
                     <?php $serviceCodeData->MoveNext();
                         }
+                    }
+                    $total_payment_made = ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT']) ? $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] : 0;
+                    $total_paid_difference = number_format(((float)$total_payment_made - ((float)$total_paid_amount + (float)$total_tax_amount)), 2);
+                    if (($total_paid_difference >= 0) && ($total_paid_difference <= 0.05)) {
+                        $total_paid_amount = $total_payment_made - $total_tax_amount;
+                    }
+                    if (($total_paid_amount - $total_scheduled_amount) >= 0 && ($total_paid_amount - $total_scheduled_amount) <= 0.05) {
+                        $total_scheduled_amount = $total_paid_amount;
+                    }
+                    if (($total_paid_amount - $total_used_amount) >= 0 && ($total_paid_amount - $total_used_amount) <= 0.05) {
+                        $total_used_amount = $total_paid_amount;
                     } ?>
-
                 </tbody>
 
                 <tfoot class="border-top-0">
                     <tr class="fw-bold">
                         <td style="text-align: center; font-size: 14px;">Amount</td>
                         <td style="text-align: center; font-size: 14px;">$<?= number_format($total_amount, 2) ?></td>
+                        <?php if ($TAX_RATE > 0) { ?>
+                            <td style="text-align: center; font-size: 14px;">$<?= number_format($total_tax_amount, 2) ?></td>
+                        <?php } ?>
                         <td style="text-align: center; font-size: 14px;">$<?= number_format($total_amount - $total_used_amount < 0.00 ? $total_amount : $total_used_amount, 2) ?></td>
                         <td style="text-align: center; font-size: 14px;">$<?= number_format($total_scheduled_amount, 2) ?></td>
                         <td style="text-align: center; font-size: 14px; color:<?= ($total_amount - $total_paid_amount < -0.05) ? 'red' : 'black' ?>;">$<?= number_format((abs($total_amount - $total_paid_amount <= 0.05) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>

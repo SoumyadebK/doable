@@ -307,14 +307,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
     <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
         <h5 class="mb-4 text-dark">Billing</h5>
-
-        <div class="booking-lesson" id="payment_tab_div">
-            <!--Data coming from ajax-->
-        </div>
-
-        <hr class="my-3">
-        <h5 class="mb-4 text-dark">Payment Plans</h5>
         <form class="mb-0" id="billing_form">
+            <div class="booking-lesson" id="payment_tab_div">
+                <!--Data coming from ajax-->
+            </div>
+
+            <hr class="my-3">
+            <h5 class="mb-4 text-dark">Payment Plans</h5>
+
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
             <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
@@ -1169,14 +1169,11 @@ if ($current_address != 'customer.php') {
 
         if (PK_PACKAGE) {
             $.ajax({
-
                 url: "ajax/get_packages.php",
                 type: "POST",
                 data: {
                     PK_PACKAGE: PK_PACKAGE
-                }
-
-                ,
+                },
                 async: false,
                 cache: false,
                 success: function(result) {
@@ -1391,9 +1388,7 @@ if ($current_address != 'customer.php') {
                 type: 'POST',
                 data: {
                     PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
-                }
-
-                ,
+                },
                 success: function(data) {
                     $('#payment_tab_div').html(data);
                     $('#AMOUNT_SHOW').val($('.TOTAL_AMOUNT').val());
