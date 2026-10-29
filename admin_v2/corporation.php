@@ -173,6 +173,12 @@ if (($AM_AMOUNT == '' || $AM_AMOUNT == 0.00) && ($NOT_AM_AMOUNT == '' || $NOT_AM
 }
 
 if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
+    // Only enforce T&C acceptance for NEW corporations
+    if (empty($_GET['id']) && (empty($_POST['terms_checkbox']) || $_POST['terms_checkbox'] != '1')) {
+        header("location: all_corporations.php");
+        exit;
+    }
+
     $CORPORATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $CORPORATION_DATA['CORPORATION_NAME'] = $_POST['CORPORATION_NAME'];
     $CORPORATION_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
@@ -934,6 +940,141 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
         letter-spacing: 2px;
     }
+
+    /* Terms & Conditions Modal */
+    .terms-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.6);
+        backdrop-filter: blur(3px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .terms-modal-box {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        animation: modalPop 0.25s ease;
+    }
+
+    @keyframes modalPop {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .terms-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        flex-shrink: 0;
+    }
+
+    .terms-modal-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .terms-modal-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .terms-modal-close {
+        background: transparent;
+        border: none;
+        font-size: 18px;
+        color: var(--gray-500);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+
+    .terms-modal-close:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    .terms-modal-body {
+        padding: 0;
+        /* terms.php brings its own layout */
+        overflow-y: auto;
+        flex: 1;
+        min-height: 200px;
+        background: var(--gray-50);
+    }
+
+    .terms-modal-body .terms-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 60px 20px;
+        color: var(--gray-500);
+        font-size: 14px;
+    }
+
+    .terms-modal-body .terms-loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .terms-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 14px 24px;
+        border-top: 1px solid var(--gray-200);
+        background: #fff;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+        .terms-modal-footer {
+            flex-direction: column;
+        }
+
+        .terms-modal-footer .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .terms-modal-box {
+            max-height: 95vh;
+        }
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -1165,8 +1306,30 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                     <?php } ?>
                                                 </div>
 
+                                                <!-- Terms and Conditions Checkbox — only for new corporations -->
+                                                <?php if (empty($_GET['id'])): ?>
+                                                    <div class="terms-checkbox-wrapper" style="grid-column: 1 / -1; margin-top: 24px; padding: 16px 20px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-sm);">
+                                                        <label class="radio-item d-flex align-items-center gap-2 mb-0" style="cursor: pointer;">
+                                                            <input type="checkbox" id="terms_checkbox" name="terms_checkbox" value="1" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-color);">
+                                                            <span style="font-size: 14px; color: var(--gray-700);">
+                                                                I agree to the
+                                                                <a href="javascript:void(0);" onclick="openTermsModal(event)" style="color: var(--primary-color); font-weight: 500; text-decoration: underline;">
+                                                                    Terms and Conditions
+                                                                </a>
+                                                                and acknowledge the
+                                                                <a href="javascript:void(0);" onclick="openPrivacyModal(event)" style="color: var(--primary-color); font-weight: 500; text-decoration: underline;">
+                                                                    Privacy Policy
+                                                                </a>
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                <?php endif; ?>
+
                                                 <div class="form-actions">
-                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                    <button type="submit" id="save_corporation_btn" class="btn-modern btn-modern-primary"
+                                                        <?php if (empty($_GET['id'])): ?>
+                                                        disabled style="opacity: 0.5; cursor: not-allowed;"
+                                                        <?php endif; ?>>
                                                         <i class="fas fa-save"></i>
                                                         <?php if (empty($_GET['id'])): ?>
                                                             Save
@@ -1327,6 +1490,57 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                 </div>
             </div>
         </div>
+
+        <!-- Terms & Conditions Modal (content loaded via AJAX from terms.php) -->
+        <div id="termsModal" class="terms-modal-overlay" style="display: none;">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h5><i class="bi bi-file-earmark-text"></i> Terms of Use and Service Agreement</h5>
+                    <button type="button" class="terms-modal-close" onclick="closeTermsModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="terms-modal-body" id="terms-modal-body">
+                    <!-- Loaded via AJAX -->
+                    <div class="terms-loading">
+                        <i class="bi bi-arrow-repeat"></i> Loading Terms and Conditions…
+                    </div>
+                </div>
+
+                <div class="terms-modal-footer">
+                    <button type="button" class="btn-modern btn-modern-secondary" onclick="closeTermsModal()">Close</button>
+                    <button type="button" class="btn-modern btn-modern-primary" onclick="acceptTermsFromModal()">
+                        <i class="bi bi-check-lg"></i> I Agree
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Policy Modal (content loaded via AJAX from privacy.php) -->
+        <div id="privacyModal" class="terms-modal-overlay" style="display: none;">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h5><i class="bi bi-shield-lock"></i> Privacy Policy</h5>
+                    <button type="button" class="terms-modal-close" onclick="closePrivacyModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="terms-modal-body" id="privacy-modal-body">
+                    <div class="terms-loading">
+                        <i class="bi bi-arrow-repeat"></i> Loading Privacy Policy…
+                    </div>
+                </div>
+
+                <div class="terms-modal-footer">
+                    <button type="button" class="btn-modern btn-modern-secondary" onclick="closePrivacyModal()">Close</button>
+                    <button type="button" class="btn-modern btn-modern-primary" onclick="closePrivacyModal()">
+                        <i class="bi bi-check-lg"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <?php require_once('../includes/footer.php'); ?>
 
@@ -1339,6 +1553,16 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
 </body>
 
 <script>
+    // On Edit (no checkbox present), ensure the Update button is enabled
+    if (!document.getElementById('terms_checkbox')) {
+        const btn = document.getElementById('save_corporation_btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+    }
+
     $('.multi_sumo_select').SumoSelect({
         "okCancelInMulti": true,
         "search": true,
@@ -1730,6 +1954,166 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
             $('#SALES_TAX').attr('disabled', true);
             $('#sales_tax_div').slideUp();
         }
+    });
+
+    // Terms & Conditions checkbox toggle
+    $(document).on('change', '#terms_checkbox', function() {
+        const btn = document.getElementById('save_corporation_btn');
+        if (this.checked) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        } else {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        }
+    });
+
+    // Terms modal — loaded via AJAX once (cached in memory)
+    let _termsLoaded = false;
+    let _termsLoading = false;
+
+    function openTermsModal(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('termsModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Lazy-load the content only once
+        if (_termsLoaded || _termsLoading) return;
+        _termsLoading = true;
+
+        const body = document.getElementById('terms-modal-body');
+        fetch('terms.php', {
+                credentials: 'same-origin'
+            })
+            .then(r => r.text())
+            .then(html => {
+                // Extract only the <article> body to avoid nested <html>/<head>
+                const match = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
+                body.innerHTML = match ? match[1] : html;
+
+                // Pull the <style> tag from terms.php into the current document once
+                const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                if (styleMatch && !document.getElementById('terms-inline-styles')) {
+                    const styleEl = document.createElement('style');
+                    styleEl.id = 'terms-inline-styles';
+                    styleEl.innerHTML = styleMatch[1];
+                    document.head.appendChild(styleEl);
+                }
+
+                _termsLoaded = true;
+                _termsLoading = false;
+            })
+            .catch(err => {
+                body.innerHTML = '<p style="padding:24px;color:#991B1B;">Unable to load Terms. Please try again.</p>';
+                _termsLoading = false;
+            });
+    }
+
+    function closeTermsModal() {
+        document.getElementById('termsModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Accept from modal -> check the box automatically
+    function acceptTermsFromModal() {
+        document.getElementById('terms_checkbox').checked = true;
+        $('#terms_checkbox').trigger('change');
+        closeTermsModal();
+    }
+
+    // Close modal on overlay click / ESC
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'termsModal') {
+            closeTermsModal();
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('termsModal').style.display === 'flex') {
+            closeTermsModal();
+        }
+    });
+
+    // Guard form submission on server side as well (block if not agreed)
+    $(document).on('submit', 'form.form-material', function(e) {
+        const fn = $(this).find('input[name="FUNCTION_NAME"]').val();
+        if (fn === 'saveCorporationData') {
+            // Only enforce consent when the checkbox is actually present (create mode)
+            const checkbox = document.getElementById('terms_checkbox');
+            if (checkbox && !checkbox.checked) {
+                e.preventDefault();
+                alert('Please agree to the Terms and Conditions before saving.');
+                return false;
+            }
+        }
+    });
+
+    /* ---------- Privacy Policy Modal (AJAX, cached) ---------- */
+    let _privacyLoaded = false;
+    let _privacyLoading = false;
+
+    function openPrivacyModal(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('privacyModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        if (_privacyLoaded || _privacyLoading) return;
+        _privacyLoading = true;
+
+        const body = document.getElementById('privacy-modal-body');
+        fetch('privacy.php', {
+                credentials: 'same-origin'
+            })
+            .then(r => r.text())
+            .then(html => {
+                const match = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
+                body.innerHTML = match ? match[1] : html;
+
+                // Inject privacy.php's <style> once
+                const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                if (styleMatch && !document.getElementById('privacy-inline-styles')) {
+                    const styleEl = document.createElement('style');
+                    styleEl.id = 'privacy-inline-styles';
+                    styleEl.innerHTML = styleMatch[1];
+                    document.head.appendChild(styleEl);
+                }
+
+                // Wire up section anchors so they scroll inside the modal
+                body.querySelectorAll('.privacy-nav a').forEach(a => {
+                    a.addEventListener('click', e => {
+                        const target = body.querySelector(a.getAttribute('href'));
+                        if (!target) return;
+                        e.preventDefault();
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    });
+                });
+
+                _privacyLoaded = true;
+                _privacyLoading = false;
+            })
+            .catch(() => {
+                body.innerHTML = '<p style="padding:24px;color:#991B1B;">Unable to load Privacy Policy. Please try again.</p>';
+                _privacyLoading = false;
+            });
+    }
+
+    function closePrivacyModal() {
+        document.getElementById('privacyModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'privacyModal') closePrivacyModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        const m = document.getElementById('privacyModal');
+        if (e.key === 'Escape' && m && m.style.display === 'flex') closePrivacyModal();
     });
 </script>
 

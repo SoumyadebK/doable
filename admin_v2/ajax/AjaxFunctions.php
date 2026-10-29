@@ -1560,7 +1560,16 @@ function saveLocationData($RESPONSE_DATA)
         unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
 
         // Check if this is an update or insert
-        if (empty($_GET['id']) && (empty($RESPONSE_DATA['PK_LOCATION']) || $RESPONSE_DATA['PK_LOCATION'] == 0)) {
+        $is_new = empty($RESPONSE_DATA['PK_LOCATION']) || (int)$RESPONSE_DATA['PK_LOCATION'] === 0;
+
+        if ($is_new) {
+            if (empty($RESPONSE_DATA['terms_checkbox']) || $RESPONSE_DATA['terms_checkbox'] != '1') {
+                echo json_encode(['success' => false, 'message' => 'You must agree to the Terms and Privacy Policy.']);
+                exit;
+            }
+
+            unset($LOCATION_DATA['PK_LOCATION']);
+            unset($LOCATION_DATA['terms_checkbox']);
             // Insert new location
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
