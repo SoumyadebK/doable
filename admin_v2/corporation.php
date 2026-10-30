@@ -175,6 +175,7 @@ if (($AM_AMOUNT == '' || $AM_AMOUNT == 0.00) && ($NOT_AM_AMOUNT == '' || $NOT_AM
 if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     // Only enforce T&C acceptance for NEW corporations
     if (empty($_GET['id']) && (empty($_POST['terms_checkbox']) || $_POST['terms_checkbox'] != '1')) {
+        $_SESSION['error_message'] = "You must agree to the Terms and Privacy Policy.";
         header("location: all_corporations.php");
         exit;
     }
@@ -223,11 +224,27 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
         $CORPORATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $CORPORATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'insert');
+        $PK_CORPORATION = $db->Insert_ID();
     } else {
         $CORPORATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $CORPORATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $CORPORATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'update', " PK_CORPORATION =  '$_GET[id]'");
+    }
+
+    // After $PK_CORPORATION is created and you know it was successful
+    if (isset($_POST['terms_checkbox']) && $_POST['terms_checkbox'] == '1') {
+        $email = $db->Execute("SELECT EMAIL_ID FROM DOA_USERS WHERE PK_USER = " . $_SESSION['PK_USER']);
+        $CONSENT_DATA = [
+            'PK_USER' => $_SESSION['PK_USER'],
+            'USER_EMAIL' => $email->fields['EMAIL_ID'],
+            'PK_CORPORATION' => $PK_CORPORATION,
+            'PK_LOCATION' => '',
+            'IP_ADDRESS' => $_SERVER['REMOTE_ADDR'],
+            'TERMS_VERSION' => '2026-10-01',
+            'PRIVACY_VERSION' => '2026-10-01'
+        ];
+        db_perform('DOA_CONSENT_LOG', $CONSENT_DATA, 'insert');
     }
 
     header("location:all_corporations.php");
@@ -1322,6 +1339,20 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                 </a>
                                                             </span>
                                                         </label>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <?php
+                                                $consent_data = $db->Execute("SELECT * FROM DOA_CONSENT_LOG WHERE PK_CORPORATION = " . $PK_CORPORATION . " LIMIT 1");
+                                                if ($consent_data->RecordCount() > 0):
+                                                    $agreed_on = date('m/d/Y h:i A', strtotime($consent_data->fields['AGREED_ON']));
+                                                    $agreed_by = $consent_data->fields['USER_EMAIL'];
+                                                    $terms_ver = $consent_data->fields['TERMS_VERSION']; ?>
+                                                    <div style="margin-top: 24px; padding: 16px; background: #F0FDF4; border: 1px solid #A7F3D0; border-radius: 8px;">
+                                                        <p style="margin: 0; font-size: 14px; color: #065F46;">
+                                                            <i class="bi bi-shield-check"></i>
+                                                            <strong>Terms & Privacy Accepted:</strong> By <?= htmlspecialchars($agreed_by) ?> on <?= $agreed_on ?> (Terms v<?= $terms_ver ?>)
+                                                        </p>
                                                     </div>
                                                 <?php endif; ?>
 

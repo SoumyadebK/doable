@@ -1578,6 +1578,21 @@ function saveLocationData($RESPONSE_DATA)
 
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
             $PK_LOCATION = $db->insert_ID();
+
+            // After $PK_LOCATION is created and you know it was successful
+            if (isset($_POST['terms_checkbox']) && $_POST['terms_checkbox'] == '1') {
+                $email = $db->Execute("SELECT EMAIL_ID FROM DOA_USERS WHERE PK_USER = " . $_SESSION['PK_USER']);
+                $CONSENT_DATA = [
+                    'PK_USER' => $_SESSION['PK_USER'],
+                    'USER_EMAIL' => $email->fields['EMAIL_ID'],
+                    'PK_CORPORATION' => $_POST['PK_CORPORATION'],
+                    'PK_LOCATION' => $PK_LOCATION,
+                    'IP_ADDRESS' => $_SERVER['REMOTE_ADDR'],
+                    'TERMS_VERSION' => '2026-10-01',
+                    'PRIVACY_VERSION' => '2026-10-01'
+                ];
+                db_perform('DOA_CONSENT_LOG', $CONSENT_DATA, 'insert');
+            }
         } else {
             // Update existing location
             $PK_LOCATION = !empty($_GET['id']) ? $_GET['id'] : $RESPONSE_DATA['PK_LOCATION'];

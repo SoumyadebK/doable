@@ -469,7 +469,7 @@ require_once('../global/config.php');
             <div class="company-identity">
                 <strong>Doable LLC</strong>, a Wyoming limited liability company (d/b/a <strong>Doable.net</strong>)
                 <span class="dot">•</span> 1712 Pioneer Ave., Suite 783, Cheyenne, Wyoming 82001
-                <span class="dot">•</span> Info@doable.net
+                <span class="dot">•</span> All privacy requests go to Info@doable.net with the Subject line stated for each topic.
             </div>
             <p style="margin:16px 0 0; font-size:13px; color:var(--gray-600);">
                 This Privacy Policy describes how Doable LLC ("Doable," "we," "us," "our") collects, uses, discloses,
@@ -642,7 +642,7 @@ require_once('../global/config.php');
             <h3>6.2 After termination or expiration.</h3>
             <p>Consistent with Terms §§10.5 and 20, User Data remains available for export for 90 days after termination or expiration of your account. Request an export by emailing Info@doable.net, Subject: Data Export Request. After that 90-day period we delete or irreversibly de-identify User Data from active systems, and from backups within a further 35 days in the ordinary course of rotation, unless a longer period is required by law or needed to resolve a dispute or enforce the Terms. <em>Note: closing or canceling your account through the account settings interface is not the same as, and does not automatically constitute, a deletion request under applicable privacy law; to exercise a legal right to deletion, use the request process in Section 8.2.</em></p>
             <h3>6.3 Records kept longer:</h3>
-            <p>billing, tax and transaction records (generally up to seven years); security and audit logs (generally up to 12 months); records of privacy requests, consents, opt-outs and confidentiality</p>
+            <p>billing, tax and transaction records (generally up to seven years); security and audit logs (generally up to 12 months); records of privacy requests, consents, opt-outs and confidentiality incidents (as required by law, generally at least five years); and information subject to a legal hold. We then delete or de-identify it.</p>
             <h3>6.4</h3>
             <p>If you opt out of marketing, we keep your email address on a suppression list so we honor your choice.</p>
             <h3>6.5</h3>
@@ -666,7 +666,7 @@ require_once('../global/config.php');
             <h3>8.1</h3>
             <p>Depending on where you live, you may have the following rights, subject to verification and legal exceptions: to know and access the categories and specific pieces of Personal Information we hold; to correct inaccurate information; to delete; to obtain a portable copy; to opt out of sale, sharing, targeted advertising and certain profiling (we do none of these); to limit use of sensitive Personal Information (we do not use it beyond providing the Services); to receive a list of the categories of third parties to whom we have disclosed Personal Information; and to not be discriminated against for exercising these rights. These rights are provided under the California Consumer Privacy Act as amended by the California Privacy Rights Act (CCPA/CPRA) and the comprehensive privacy laws of other states, including Virginia, Colorado, Connecticut, Utah, Texas, Florida (for qualifying businesses), Oregon, Montana, Delaware, Iowa, Nebraska, New Hampshire, New Jersey, Tennessee, Indiana, Minnesota, Maryland, Rhode Island, Kentucky, and each other state whose comprehensive privacy law applies to us as it takes effect. To the extent permitted by law, we apply these rights to any U.S. resident who asks, regardless of state.</p>
             <h3>8.2 How to submit a request.</h3>
-            <p>Email Info@doable.net, Subject: Privacy Rights Request — [Your State]. State the right you wish to exercise. We verify identity by matching information you provide to information we hold, and may ask for more if needed. An authorized agent may submit on your behalf with written permission; we may verify the agent and you directly. You need not have an account and we do not charge for exercising your rights.</p>
+            <p>Email Info@doable.net, Subject: Privacy Rights Request — [Your State]. State the right you wish to exercise. We verify identity by matching information you provide to information we hold, and may ask for more if needed. An authorized agent may submit on your behalf with written permission; we may verify the agent and you directly. You need not have an account and we do not charge for requests, but may charge a reasonable fee or decline if requests are manifestly unfounded or excessive, as permitted by law.</p>
             <h3>8.3 Response times.</h3>
             <p>We confirm receipt within 10 business days and respond within 45 days; we may extend once by 45 days where reasonably necessary and will tell you why.</p>
             <h3>8.4 Appeals.</h3>
@@ -707,6 +707,8 @@ require_once('../global/config.php');
                 <li>consent is manifest, free, informed, specific to its purposes and requested separately from other information in clear and simple language; and</li>
                 <li>you may email Info@doable.net, Subject: Quebec Law 25 Privacy Request, and, if unsatisfied, file a complaint with the Commission d'accès à l'information du Québec (CAI), cai.gouv.qc.ca.</li>
             </ol>
+            <p>A French-language version of this Policy is available on request; the parties have expressly required that this Policy and related documents be drawn up in English, subject to Terms §19. (Les parties ont expressément exigé que la présente politique soit rédigée en anglais.)
+            </p>
             <h3>9.6 Transfers outside Canada / Quebec.</h3>
             <p>Personal Information is stored and processed in the United States by Doable and our service providers, and may be accessible to U.S. courts, law enforcement and national security authorities under U.S. law. Our providers are bound by contract to protect it comparably. You may ask about our practices regarding service providers outside Canada by emailing Info@doable.net, Subject: PIPEDA Privacy Request.</p>
             <h3>9.7 Complaints.</h3>

@@ -2283,6 +2283,20 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     </div>
                                                 <?php endif; ?>
 
+                                                <?php
+                                                $consent_data = $db->Execute("SELECT * FROM DOA_CONSENT_LOG WHERE PK_LOCATION > 0 AND PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+                                                if ($consent_data->RecordCount() > 0):
+                                                    $agreed_on = date('m/d/Y h:i A', strtotime($consent_data->fields['AGREED_ON']));
+                                                    $agreed_by = $consent_data->fields['USER_EMAIL'];
+                                                    $terms_ver = $consent_data->fields['TERMS_VERSION']; ?>
+                                                    <div style="margin-top: 24px; padding: 16px; background: #F0FDF4; border: 1px solid #A7F3D0; border-radius: 8px;">
+                                                        <p style="margin: 0; font-size: 14px; color: #065F46;">
+                                                            <i class="bi bi-shield-check"></i>
+                                                            <strong>Terms & Privacy Accepted:</strong> By <?= htmlspecialchars($agreed_by) ?> on <?= $agreed_on ?> (Terms v<?= $terms_ver ?>)
+                                                        </p>
+                                                    </div>
+                                                <?php endif; ?>
+
                                                 <div class="form-actions">
                                                     <button type="submit" id="save_location_btn" class="btn-modern btn-modern-primary"
                                                         <?php if (empty($_GET['id'])): ?>
