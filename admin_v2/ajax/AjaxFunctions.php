@@ -712,7 +712,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
             if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Weekly') {
                 $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " week", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
             } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
-                $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
+                $LEDGER_DATA['DUE_DATE'] = addMonthsClamped($RESPONSE_DATA['FIRST_DUE_DATE'], $i);
             } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Quarterly') {
                 $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i * 3 . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
             }
@@ -787,6 +787,23 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     echo json_encode($return_data);
+}
+
+function addMonthsClamped(string $date, int $months): string
+{
+    $d = new DateTime($date);
+
+    $day = (int) $d->format('j');
+
+    // Move to the 1st first so the month math can never overflow
+    $d->modify('first day of this month');
+    $d->modify(($months >= 0 ? '+' : '') . $months . ' month');
+
+    // Clamp to the last day of the target month
+    $lastDay = (int) $d->format('t');
+    $d->setDate((int) $d->format('Y'), (int) $d->format('n'), min($day, $lastDay));
+
+    return $d->format('Y-m-d');
 }
 
 function getCustomerDefaultCard($PK_USER_MASTER)

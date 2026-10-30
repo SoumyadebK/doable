@@ -5,13 +5,17 @@ global $db_account;
 global $master_database;
 global $upload_path;
 
-$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
     header("location:../login.php");
     exit;
 }
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 
 if (empty($_GET['id']))
     $title = "Add Enrollment";
@@ -2422,6 +2426,7 @@ $enrollment_type = 'Enrollment';
                 $('#down_payment_div').slideUp();
                 $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
                 $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
+                showSalesTax(total_bill);
                 $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
                 $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
             }
@@ -2438,8 +2443,11 @@ $enrollment_type = 'Enrollment';
                 $('#down_payment_div').slideDown();
                 $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
                 $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
-                $('#auto-pay-div').slideDown();
+                showSalesTax(total_bill);
+                $('#enrollment_payment_form #SALES_TAX').val(sales_tax.toFixed(2));
             }
+
+            $('#auto-pay-div').slideDown();
         });
 
         $(document).on('click', '.ACTIVE_AUTO_PAY', function() {
@@ -2628,15 +2636,18 @@ $enrollment_type = 'Enrollment';
                         if (payment_method === 'One Time') {
                             $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
                             $('#ACTUAL_AMOUNT').val(balance_payable.toFixed(2));
+                            showSalesTax(balance_payable);
                         } else {
                             if (down_payment > 0) {
                                 $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
                                 $('#ACTUAL_AMOUNT').val(down_payment.toFixed(2));
+                                showSalesTax(down_payment);
                             } else {
                                 if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
                                     let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
                                     $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
                                     $('#ACTUAL_AMOUNT').val(installment_amount.toFixed(2));
+                                    showSalesTax(installment_amount);
                                 }
                             }
                         }
@@ -2658,6 +2669,7 @@ $enrollment_type = 'Enrollment';
         function payNow(PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+            showSalesTax(BILLED_AMOUNT);
             $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
             $('#payment_confirmation_form_div').slideDown();
             $('#PK_PAYMENT_TYPE').val('');
@@ -2672,6 +2684,18 @@ $enrollment_type = 'Enrollment';
             let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
             for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
                 window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+            }
+        }
+
+        function showSalesTax(TOTAL_BILL) {
+            let SALES_TAX_PERCENT = parseFloat(<?= $SALES_TAX_PERCENT ?>);
+            if (SALES_TAX_PERCENT > 0) {
+                let SUB_TOTAL = parseFloat(TOTAL_BILL) / (1 + SALES_TAX_PERCENT / 100);
+                let sales_tax = parseFloat(TOTAL_BILL) - SUB_TOTAL;
+                let sub_total = parseFloat(SUB_TOTAL).toFixed(2);
+                $('#enrollment_payment_form #tax_div').show();
+                $('#enrollment_payment_form #SUB_TOTAL').val(sub_total);
+                $('#enrollment_payment_form #SALES_TAX').val(sales_tax.toFixed(2));
             }
         }
     </script>
