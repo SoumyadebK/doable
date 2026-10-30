@@ -21,6 +21,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     header("location:../login.php");
     exit;
 }
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 $PK_USER = $_GET['id'] ?? '';
 $PK_USER_MASTER = $_GET['master_id'] ?? '';
@@ -2926,6 +2927,7 @@ if ($PK_USER_MASTER > 0) {
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
         $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        showSalesTax(BILLED_AMOUNT);
         //$('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
         $('#enrollment_payment_modal').modal('show');
@@ -2954,9 +2956,23 @@ if ($PK_USER_MASTER > 0) {
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
         $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        showSalesTax(parseFloat(TOTAL).toFixed(2));
+
         //$('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
         $('#enrollment_payment_modal').modal('show');
+    }
+
+    function showSalesTax(TOTAL_BILL) {
+        let SALES_TAX_PERCENT = parseFloat(<?= $SALES_TAX_PERCENT ?>);
+        if (SALES_TAX_PERCENT > 0) {
+            let SUB_TOTAL = parseFloat(TOTAL_BILL) / (1 + SALES_TAX_PERCENT / 100);
+            let sales_tax = parseFloat(TOTAL_BILL) - SUB_TOTAL;
+            let sub_total = parseFloat(SUB_TOTAL).toFixed(2);
+            $('#enrollment_payment_form #tax_div').show();
+            $('#enrollment_payment_form #SUB_TOTAL').val(sub_total);
+            $('#enrollment_payment_form #SALES_TAX').val(sales_tax.toFixed(2));
+        }
     }
 
     function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {

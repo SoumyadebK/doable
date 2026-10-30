@@ -78,6 +78,25 @@
                     <input type="hidden" name="header" value="<?= $header ?>">
 
                     <div class="p-20">
+                        <div class="row mb-3" id="tax_div" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Sub Total</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="SUB_TOTAL" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Sales Tax</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="SALES_TAX" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row mb-3">
                             <div class="col-6">
                                 <div class="form-group">

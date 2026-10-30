@@ -5,15 +5,16 @@ global $db_account;
 global $master_database;
 global $upload_path;
 
-$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
-
-$title = "All Appointments";
-
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSION['PK_ROLES'], [1, 4]) && $_SESSION['PK_ROLES'] != 3)) {
     header("location:../login.php");
     exit;
 }
+
+$title = "All Appointments";
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 
 $redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'])) : "";
 $header = 'all_schedules.php';
@@ -986,6 +987,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
             $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+            showSalesTax(BILLED_AMOUNT);
             let PK_USER_MASTER = $('.PK_USER_MASTER').val();
             $('.CUSTOMER_ID').val(PK_USER_MASTER);
             //$('#payment_confirmation_form_div_customer').slideDown();
@@ -1020,9 +1022,22 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
             $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
             $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+            showSalesTax(parseFloat(TOTAL).toFixed(2));
             //$('#payment_confirmation_form_div_customer').slideDown();
             //openPaymentModel();
             $('#enrollment_payment_modal').modal('show');
+        }
+
+        function showSalesTax(TOTAL_BILL) {
+            let SALES_TAX_PERCENT = parseFloat(<?= $SALES_TAX_PERCENT ?>);
+            if (SALES_TAX_PERCENT > 0) {
+                let SUB_TOTAL = parseFloat(TOTAL_BILL) / (1 + SALES_TAX_PERCENT / 100);
+                let sales_tax = parseFloat(TOTAL_BILL) - SUB_TOTAL;
+                let sub_total = parseFloat(SUB_TOTAL).toFixed(2);
+                $('#enrollment_payment_form #tax_div').show();
+                $('#enrollment_payment_form #SUB_TOTAL').val(sub_total);
+                $('#enrollment_payment_form #SALES_TAX').val(sales_tax.toFixed(2));
+            }
         }
     </script>
 

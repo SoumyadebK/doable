@@ -4,6 +4,11 @@ global $db;
 global $db_account;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 ?>
 
 
@@ -18,29 +23,67 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
         </button> -->
     </div>
 
-    <div class="summary-row d-flex align-items-center">
-        <?php
-        $total_payments = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_STATUS = 'Success' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
-        ?>
-        <div class="flex-grow-1">
-            <div class="stat-label">Total Payments</div>
-            <div class="stat-value">$<?= number_format($total_payments->fields['TOTAL_AMOUNT_PAID'], 2) ?></div>
-        </div>
+    <div class="border-top border-bottom py-2 mb-3">
+        <div class="row text-center">
+            <?php
+            $total_payments = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_STATUS = 'Success' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
+            ?>
 
-        <div class="stat-divider"></div>
-        <?php
-        $payment_due = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_PAYMENT_DUE FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
-        ?>
-        <div class="flex-grow-1">
-            <div class="stat-label">Pending Payments</div>
-            <div class="stat-value">$<?= number_format($payment_due->fields['TOTAL_PAYMENT_DUE'], 2) ?></div>
-        </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between">
+                    <?php if ($SALES_TAX_PERCENT > 0) {
+                        $totalAmount = $total_payments->fields['TOTAL_AMOUNT_PAID'];
+                        $subTotal = $totalAmount / (1 + ($SALES_TAX_PERCENT / 100));
+                        $salesTax = $totalAmount - $subTotal;
+                    ?>
+                        <div>
+                            <div class="stat-label">Subtotal</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$subTotal, 2) ?></div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Sales Tax (<?= $SALES_TAX_PERCENT ?>%)</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$salesTax, 2) ?></div>
+                        </div>
+                    <?php } ?>
+                    <div>
+                        <div class="stat-label">Total Payments</div>
+                        <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$total_payments->fields['TOTAL_AMOUNT_PAID'], 2) ?></div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="stat-divider"></div>
-        <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) as CURRENT_BALANCE FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
-        <div class="flex-grow-1">
-            <div class="stat-label">Wallet Balance</div>
-            <div class="stat-value">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>
+            <?php
+            $payment_due = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_PAYMENT_DUE FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
+            ?>
+            <div class="col-md-4 border-start">
+                <div class="d-flex justify-content-between">
+                    <?php if ($SALES_TAX_PERCENT > 0) {
+                        $pendingTotal = $payment_due->fields['TOTAL_PAYMENT_DUE'];
+                        $pendingSubTotal = $pendingTotal / (1 + ($SALES_TAX_PERCENT / 100));
+                        $pendingSalesTax = $pendingTotal - $pendingSubTotal;
+                    ?>
+                        <div>
+                            <div class="stat-label">Subtotal</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$pendingSubTotal, 2) ?></div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Sales Tax (<?= $SALES_TAX_PERCENT ?>%)</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$pendingSalesTax, 2) ?></div>
+                        </div>
+                    <?php } ?>
+                    <div>
+                        <div class="stat-label">Pending Payments</div>
+                        <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$payment_due->fields['TOTAL_PAYMENT_DUE'], 2) ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) as CURRENT_BALANCE FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
+            <!-- Column 3: Wallet -->
+            <div class="col-md-4 border-start">
+                <div class="stat-label">Wallet Balance</div>
+                <div class="stat-value">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>
+            </div>
         </div>
     </div>
 

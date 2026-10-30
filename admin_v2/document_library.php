@@ -735,6 +735,8 @@ if (empty($_GET['id'])) {
                                                         <span class="tag-item" data-tag="{CO_CLIENT_GUARDIAN}">{CO_CLIENT_GUARDIAN}</span>
                                                         <span class="tag-item" data-tag="{VERIFIED_BY}">{VERIFIED_BY}</span>
                                                         <span class="tag-item" data-tag="{EXPIRATION_DATE}">{EXPIRATION_DATE}</span>
+                                                        <span class="tag-item" data-tag="{SALES_TAX}">{SALES_TAX}</span>
+                                                        <span class="tag-item" data-tag="{TAX_PERCENT}">{TAX_PERCENT}</span>
                                                     </div>
                                                     <div class="form-helper">Click on any tag to insert it into the template</div>
                                                 </div>

@@ -11,7 +11,11 @@ $PK_USER_MASTER = !empty($_GET['PK_USER_MASTER']) ? $_GET['PK_USER_MASTER'] : 0;
 $PK_ENROLLMENT_MASTER = !empty($_GET['PK_ENROLLMENT_MASTER']) ? $_GET['PK_ENROLLMENT_MASTER'] : 0;
 $ENROLLMENT_ID = !empty($_GET['ENROLLMENT_ID']) ? $_GET['ENROLLMENT_ID'] : 0;
 $type = !empty($_GET['type']) ? $_GET['type'] : 0;
+
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 
 
 if ($type == 'completed') {
@@ -76,6 +80,9 @@ while (!$serviceCodeData->EOF) {
             <th style="text-align: left; padding-left: 32px;">Due Date</th>
             <th style="text-align: center;">Transaction Type</th>
             <th style="text-align: center;">Billed Amount</th>
+            <?php if ($SALES_TAX_PERCENT > 0) { ?>
+                <th style="text-align: center;">Sales Tax (<?= $SALES_TAX_PERCENT ?>%)</th>
+            <?php } ?>
             <th style="text-align: center;">Paid Amount</th>
             <th style="text-align: center;">Tip Amount</th>
             <th style="text-align: center;">Payment Type</th>
@@ -110,6 +117,10 @@ while (!$serviceCodeData->EOF) {
                 </td>
                 <td style="text-align: center;"><?= $billing_details->fields['TRANSACTION_TYPE'] ?></td>
                 <td style="text-align: right; padding-right: 45px;"><?= $billing_details->fields['BILLED_AMOUNT'] ?></td>
+                <?php if ($SALES_TAX_PERCENT > 0) {
+                    $subTotal = $billing_details->fields['BILLED_AMOUNT'] / (1 + ($SALES_TAX_PERCENT / 100)); ?>
+                    <td style="text-align: right; padding-right: 45px;"><?= number_format($billing_details->fields['BILLED_AMOUNT'] - $subTotal, 2) ?></td>
+                <?php } ?>
                 <td style="text-align: center;"></td>
                 <td style="text-align: center;"></td>
                 <td style="text-align: center;"></td>
@@ -187,6 +198,10 @@ while (!$serviceCodeData->EOF) {
                         </td>
                         <td style="text-align: center;"><?= $payment_details->fields['TYPE'] ?></td>
                         <td></td>
+                        <?php if ($SALES_TAX_PERCENT > 0) {
+                            $subTotal = $payment_details->fields['AMOUNT'] / (1 + ($SALES_TAX_PERCENT / 100)); ?>
+                            <td style="text-align: right; padding-right: 45px;"><?= number_format($payment_details->fields['AMOUNT'] - $subTotal, 2) ?></td>
+                        <?php } ?>
                         <td style="text-align: right; padding-right: 45px;"><?= $payment_details->fields['AMOUNT'] ?></td>
                         <td style="text-align: right; padding-right: 45px;"><?= (($tips_data->RecordCount() > 0) && $tips_data->fields['TIP_AMOUNT'] > 0) ? $tips_data->fields['TIP_AMOUNT'] : '' ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
@@ -218,6 +233,10 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: left; width:18%;"><?= date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE'])) ?></td>
                 <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/ ?></td>
                 <td style="text-align: right; padding-right: 45px;"><?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?></td>
+                <?php if ($SALES_TAX_PERCENT > 0) {
+                    $subTotal = $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] / (1 + ($SALES_TAX_PERCENT / 100)); ?>
+                    <td style="text-align: right; padding-right: 45px;"><?= number_format($cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] - $subTotal, 2) ?></td>
+                <?php } ?>
                 <td style="text-align: right; padding-right: 45px;"></td>
                 <td style="text-align: right; padding-right: 45px;"></td>
                 <td style="text-align: center;"><?= $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] ?></td>
@@ -265,8 +284,12 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: left; width:18%;"><?= date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE'])) ?></td>
                         <td style="text-align: center;"><?= $cancelled_enrollment_payment_details->fields['TYPE'] ?></td>
                         <td></td>
+                        <?php if ($SALES_TAX_PERCENT > 0) {
+                            $subTotal = $cancelled_enrollment_payment_details->fields['AMOUNT'] / (1 + ($SALES_TAX_PERCENT / 100)); ?>
+                            <td style="text-align: right; padding-right: 45px;"><?= number_format($cancelled_enrollment_payment_details->fields['AMOUNT'] - $subTotal, 2) ?></td>
+                        <?php } ?>
                         <td></td>
-                        <td style="text-align: right; padding-right: 45px;"><?= $cancelled_enrollment_payment_details->fields['AMOUNT'] ?></td>
+                        <td style="text-align: right; padding-right: 45px;"><?= number_format($cancelled_enrollment_payment_details->fields['AMOUNT'], 2) ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right; padding-right: 45px;"></td>
                         <td style="text-align: right; padding-right: 45px;">
@@ -313,8 +336,12 @@ while (!$serviceCodeData->EOF) {
                     <td style="text-align: left; width:18%;"><?= date('m/d/Y', strtotime($adjusted_payment_details->fields['PAYMENT_DATE'])) ?></td>
                     <td style="text-align: center;"><?= $adjusted_payment_details->fields['TYPE'] ?></td>
                     <td></td>
+                    <?php if ($SALES_TAX_PERCENT > 0) {
+                        $subTotal = $adjusted_payment_details->fields['AMOUNT'] / (1 + ($SALES_TAX_PERCENT / 100)); ?>
+                        <td style="text-align: right; padding-right: 45px;"><?= number_format($adjusted_payment_details->fields['AMOUNT'] - $subTotal, 2) ?></td>
+                    <?php } ?>
                     <td></td>
-                    <td style="text-align: right; padding-right: 45px;"><?= $adjusted_payment_details->fields['AMOUNT'] ?></td>
+                    <td style="text-align: right; padding-right: 45px;"><?= number_format($adjusted_payment_details->fields['AMOUNT'], 2) ?></td>
                     <td style="text-align: center;"><?= $payment_type ?></td>
                     <td style="text-align: right; padding-right: 45px;"></td>
                     <td style="text-align: right; padding-right: 45px;">

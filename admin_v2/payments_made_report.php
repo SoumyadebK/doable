@@ -268,7 +268,7 @@ if (!empty($_GET['START_DATE'])) {
                                             <tbody>
                                                 <?php
                                                 // Get all payments first and separate regular payments from refunds
-                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID, COALESCE(DOA_ENROLLMENT_TIP.TIP_AMOUNT, 0) AS TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " GROUP BY DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID, COALESCE(DOA_ENROLLMENT_TIP.TIP_AMOUNT, 0) AS TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " GROUP BY DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
                                                 // Get gift certificate payments (both active and refunded)
                                                 $gift_payments = $db_account->Execute("SELECT
@@ -411,9 +411,20 @@ if (!empty($_GET['START_DATE'])) {
 
                                                     $enrollment_balance = !empty($payment['TOTAL_AMOUNT']) ? $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'] : 0;
 
+                                                    $PK_ENROLLMENT_MASTER = $payment['PK_ENROLLMENT_MASTER'] ?? 0;
+                                                    if ($PK_ENROLLMENT_MASTER > 0) {
+                                                        $PK_ENROLLMENT_PAYMENT = $payment['PK_ENROLLMENT_PAYMENT'] ?? 0;
+                                                        $PAYMENT_DATE = $payment['PAYMENT_DATE'] ?? '';
+                                                        $enr_paid_before_date = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " AND PAYMENT_DATE <= '" . $PAYMENT_DATE . "' AND PK_ENROLLMENT_PAYMENT <= " . $PK_ENROLLMENT_PAYMENT);
+                                                        $enr_paid_amount_before = $enr_paid_before_date->fields['TOTAL_PAID_AMOUNT'] ?? 0;
+                                                    } else {
+                                                        $enr_paid_amount_before = 0;
+                                                    }
+
+
                                                     // Get tip amount
                                                     $tip_amount = $payment['TIP_AMOUNT'] ?? 0;
-                                                    $total_payment = $payment['AMOUNT'] + $tip_amount;
+                                                    $total_payment = $payment['AMOUNT'];
                                                     $total_amount += $payment['AMOUNT'];
                                                     $total_tips += $tip_amount;
 
@@ -436,7 +447,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
                                                         $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
-                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $enr_paid_amount_before, 2) : '';
                                                     } elseif ($payment['PK_PAYMENT_TYPE'] == '2') {
                                                         $payment_info = json_decode($payment['PAYMENT_INFO']);
                                                         $payment_type = $payment['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
@@ -446,7 +457,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
                                                         $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
-                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $enr_paid_amount_before, 2) : '';
                                                     } elseif (in_array($payment['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                                                         $payment_info = json_decode($payment['PAYMENT_INFO']);
                                                         $payment_type = $payment['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
@@ -456,7 +467,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
                                                         $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
-                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $enr_paid_amount_before, 2) : '';
                                                     } else {
                                                         $payment_type = $payment['PAYMENT_TYPE'];
                                                         $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
@@ -465,7 +476,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
                                                         $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
-                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $enr_paid_amount_before, 2) : '';
                                                     }
 
                                                     // For non-gift certificate payments, set enrollment name
@@ -484,7 +495,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right">$<?= number_format($total_payment, 2) ?></td>
-                                                        <td style="text-align: right">$<?= number_format($payment['AMOUNT'], 2) ?></td>
+                                                        <td style="text-align: right">$<?= number_format(($payment['AMOUNT'] - $tip_amount), 2) ?></td>
                                                         <td style="text-align: right">$<?= number_format($tip_amount, 2) ?></td>
                                                         <td style="text-align: center"><?= $payment_type ?></td>
                                                         <td style="text-align: center"><?= $payment['PAYMENT_TYPE'] ?></td>

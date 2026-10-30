@@ -9,7 +9,11 @@ global $upload_path;
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 $PK_USER = !empty($_GET['pk_user']) ? $_GET['pk_user'] : 0;
 $type = !empty($_GET['type']) ? $_GET['type'] : 0;
+
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
@@ -61,38 +65,77 @@ if ($page == 1) { ?>
 
         <?php
         $misc_balance = 0;
+        $misc_tax = 0;
         $credit_balance = 0;
+        $credit_tax = 0;
         $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) as CURRENT_BALANCE FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
 
         if ($type == 'completed') {
-            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.SALES_TAX, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
         } else {
-            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT,  DOA_ENROLLMENT_SERVICE.SALES_TAX, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
         }
 
         while (!$enr_service_data->EOF) {
             if ($enr_service_data->fields['PK_SERVICE_CLASS'] == 5) {
                 $misc_balance += $enr_service_data->fields['FINAL_AMOUNT'];
+                $misc_tax += $enr_service_data->fields['SALES_TAX'];
             } else {
                 $credit_balance += $enr_service_data->fields['FINAL_AMOUNT'];
+                $credit_tax += $enr_service_data->fields['SALES_TAX'];
             }
             $enr_service_data->MoveNext();
         } ?>
 
-        <div class="d-flex align-items-center border-top border-bottom py-2 mb-3">
-            <div class="flex-grow-1">
-                <div class="stat-label">Total Amount Enrolled</div>
-                <div class="stat-value">$<?= number_format((float)$credit_balance, 2) ?></div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="flex-grow-1">
-                <div class="stat-label">Miscellaneous Amount</div>
-                <div class="stat-value">$<?= number_format((float)$misc_balance, 2) ?></div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="flex-grow-1">
-                <div class="stat-label">Wallet Balance</div>
-                <div class="stat-value">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>
+        <div class="border-top border-bottom py-2 mb-3">
+            <div class="row text-center">
+
+                <!-- Column 1: Enrolled -->
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-between">
+                        <?php if ($SALES_TAX_PERCENT > 0) { ?>
+                            <div>
+                                <div class="stat-label">Total Amount Enrolled</div>
+                                <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$credit_balance, 2) ?></div>
+                            </div>
+                            <div>
+                                <div class="stat-label">Sales Tax (<?= $SALES_TAX_PERCENT ?>%)</div>
+                                <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$credit_tax, 2) ?></div>
+                            </div>
+                        <?php } ?>
+                        <div>
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)($credit_balance + $credit_tax), 2) ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Miscellaneous -->
+                <div class="col-md-4 border-start">
+                    <div class="d-flex justify-content-between">
+                        <?php if ($SALES_TAX_PERCENT > 0) { ?>
+                            <div>
+                                <div class="stat-label">Miscellaneous Amount</div>
+                                <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$misc_balance, 2) ?></div>
+                            </div>
+                            <div>
+                                <div class="stat-label">Sales Tax (<?= $SALES_TAX_PERCENT ?>%)</div>
+                                <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)$misc_tax, 2) ?></div>
+                            </div>
+                        <?php } ?>
+                        <div>
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)($misc_balance + $misc_tax), 2) ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Wallet -->
+                <div class="col-md-4 border-start">
+                    <div class="stat-label">Wallet Balance</div>
+                    <div class="stat-value" style="font-size: 20px;">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>
+                </div>
+
             </div>
         </div>
 
