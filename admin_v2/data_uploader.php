@@ -346,6 +346,7 @@ function handleCustomerEnrollmentsUpload()
     //   16 $ Amount Paid Ahead or Amount Behind
     //   17 Partner First Name
     //   18 Partner Last Name
+    //   19 Status (Active, Inactive, etc.)
     // ==========================================================
     while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
         if ($lineNumber === 1) {
@@ -391,6 +392,8 @@ function handleCustomerEnrollmentsUpload()
 
         $partner_first = isset($getData[17]) ? trim($getData[17]) : '';
         $partner_last  = isset($getData[18]) ? trim($getData[18]) : '';
+
+        $status = isset($getData[19]) ? trim($getData[19]) : '';
 
         // =====================================================
         // CUSTOMER: split lookup (UNIQUE_ID first, then EMAIL) — no OR scan
@@ -450,7 +453,13 @@ function handleCustomerEnrollmentsUpload()
             $USER_DATA['PK_COUNTRY']        = 1;
             $USER_DATA['PK_STATES']         = 0;
             $USER_DATA['IS_DELETED']        = 0;
-            $USER_DATA['ACTIVE']            = 1;
+            // Default to Active (1) if empty or missing
+            $USER_DATA['ACTIVE'] = 1;
+
+            // Check for 0, "Inactive", or "0"
+            if ($status === '0' || strcasecmp($status, 'Inactive') == 0) {
+                $USER_DATA['ACTIVE'] = 0;
+            }
             if ($MINDBODY_CLIENT_ID_INT > 0) {
                 $USER_DATA['UNIQUE_ID'] = $MINDBODY_CLIENT_ID_INT;
             }
@@ -545,7 +554,8 @@ function handleCustomerEnrollmentsUpload()
                 $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
                 $TOTAL_COST        = $cost_completed;
-                $PRICE_PER_SESSION = ($priv_completed > 0) ? $TOTAL_COST / $priv_completed : 0;
+                $total_sessions_completed = $priv_completed + $grp_completed + $party_completed + $coach_completed;
+                $PRICE_PER_SESSION = ($total_sessions_completed > 0) ? $TOTAL_COST / $total_sessions_completed : 0;
 
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
@@ -578,11 +588,16 @@ function handleCustomerEnrollmentsUpload()
                 db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
                 $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
+                // Determine where to place the total cost if there are no private lessons
+                $grp_total_comp = ($priv_completed == 0 && $grp_completed > 0) ? $TOTAL_COST : 0;
+                $pty_total_comp = ($priv_completed == 0 && $grp_completed == 0 && $party_completed > 0) ? $TOTAL_COST : 0;
+                $cch_total_comp = ($priv_completed == 0 && $grp_completed == 0 && $party_completed == 0 && $coach_completed > 0) ? $TOTAL_COST : 0;
+
                 $services = [
                     ['col' => $priv_completed,  'code' => 'PRI',  'price' => $PRICE_PER_SESSION, 'total' => $TOTAL_COST, 'paid' => $TOTAL_COST],
-                    ['col' => $grp_completed,   'code' => 'GRP',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $party_completed, 'code' => 'Pty',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $coach_completed, 'code' => 'CCH',  'price' => 0,                  'total' => 0,          'paid' => 0],
+                    ['col' => $grp_completed,   'code' => 'GRP',  'price' => ($grp_completed > 0 ? ($grp_total_comp / $grp_completed) : 0), 'total' => $grp_total_comp, 'paid' => $grp_total_comp],
+                    ['col' => $party_completed, 'code' => 'Pty',  'price' => ($party_completed > 0 ? ($pty_total_comp / $party_completed) : 0), 'total' => $pty_total_comp, 'paid' => $pty_total_comp],
+                    ['col' => $coach_completed, 'code' => 'CCH',  'price' => ($coach_completed > 0 ? ($cch_total_comp / $coach_completed) : 0), 'total' => $cch_total_comp, 'paid' => $cch_total_comp],
                 ];
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
@@ -760,35 +775,74 @@ function handleCustomerEnrollmentsUpload()
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                // $cen = $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'];
-                // if ($cen <= 1)        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                // else if ($cen == 2)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                // else if ($cen == 3)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
-                // else                  $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
-
                 $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
-                $TOTAL_COST        = $cost_active;
-                $PRICE_PER_SESSION = ($priv_active > 0) ? $TOTAL_COST / $priv_active : 0;
+                // Read the new value columns (indices 20, 21, 22, 23)
+                $val_priv = isset($getData[20]) && trim($getData[20]) !== '' ? (float)$getData[20] : null;
+                $val_grp  = isset($getData[21]) && trim($getData[21]) !== '' ? (float)$getData[21] : null;
+                $val_pty  = isset($getData[22]) && trim($getData[22]) !== '' ? (float)$getData[22] : null;
+                $val_cch  = isset($getData[23]) && trim($getData[23]) !== '' ? (float)$getData[23] : null;
+
+                $has_new_value_columns = ($val_priv !== null || $val_grp !== null || $val_pty !== null || $val_cch !== null);
+
+                $TOTAL_COST = 0;
+                $priv_price = 0;
+                $grp_price = 0;
+                $pty_price = 0;
+                $cch_price = 0;
+                $priv_total = 0;
+                $grp_total = 0;
+                $pty_total = 0;
+                $cch_total = 0;
+
+                if ($has_new_value_columns) {
+                    // NEW LOGIC: Use the specific values from the CSV
+                    $val_priv = $val_priv ?? 0;
+                    $val_grp  = $val_grp ?? 0;
+                    $val_pty  = $val_pty ?? 0;
+                    $val_cch  = $val_cch ?? 0;
+
+                    $TOTAL_COST = $val_priv + $val_grp + $val_pty + $val_cch;
+
+                    // If the sum of new columns is 0, but there was a total cost, fallback to total cost
+                    if ($TOTAL_COST == 0 && $cost_active > 0) {
+                        $TOTAL_COST = $cost_active;
+                        $val_priv = $cost_active;
+                    }
+
+                    $priv_total = $val_priv;
+                    $grp_total  = $val_grp;
+                    $pty_total  = $val_pty;
+                    $cch_total  = $val_cch;
+
+                    $priv_price = ($priv_active > 0) ? ($priv_total / $priv_active) : 0;
+                    $grp_price  = ($grp_active > 0) ? ($grp_total / $grp_active) : 0;
+                    $pty_price  = ($party_active > 0) ? ($pty_total / $party_active) : 0;
+                    $cch_price  = ($coach_active > 0) ? ($cch_total / $coach_active) : 0;
+                } else {
+                    // OLD LOGIC (Backward Compatibility): Put everything on Private
+                    $TOTAL_COST = $cost_active;
+                    $total_sessions = $priv_active + $grp_active + $party_active + $coach_active;
+                    $PRICE_PER_SESSION = ($total_sessions > 0) ? $TOTAL_COST / $total_sessions : 0;
+
+                    $priv_total = $TOTAL_COST;
+                    $priv_price = $PRICE_PER_SESSION;
+                    // grp, pty, cch remain 0
+                }
 
                 // Initialize variables to track the extra debt
                 $amount_owed_for_misc = 0;
 
                 if ($amount_paid_active === null) {
-                    // If we have a specific "Amount Owed" from the CSV
                     if ($amount_owed_remaining > 0) {
                         if ($amount_owed_remaining > $TOTAL_COST) {
-                            // If they owe MORE than the lessons cost, 
-                            // the lessons are 100% unpaid, and the rest goes to MISC
                             $prepaid_lessons_value = 0;
                             $amount_owed_for_misc = $amount_owed_remaining - $TOTAL_COST;
                         } else {
-                            // They owe less than or equal to the lessons cost
                             $prepaid_lessons_value = $TOTAL_COST - $amount_owed_remaining;
                             $amount_owed_for_misc = 0;
                         }
                     } else {
-                        // Fallback: If no amount owed is specified, assume it's fully paid
                         $prepaid_lessons_value = $TOTAL_COST;
                         $amount_owed_for_misc = 0;
                     }
@@ -802,6 +856,19 @@ function handleCustomerEnrollmentsUpload()
 
                 $TOTAL_PAID      = $prepaid_lessons_value;
                 $TOTAL_REMAINING = max(0, $TOTAL_COST - $prepaid_lessons_value);
+
+                // Distribute the paid amount proportionally across the service lines
+                $priv_paid = 0;
+                $grp_paid = 0;
+                $pty_paid = 0;
+                $cch_paid = 0;
+
+                if ($TOTAL_COST > 0) {
+                    $priv_paid = ($priv_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $grp_paid  = ($grp_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $pty_paid  = ($pty_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $cch_paid  = ($cch_total / $TOTAL_COST) * $TOTAL_PAID;
+                }
 
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
@@ -835,11 +902,12 @@ function handleCustomerEnrollmentsUpload()
                 $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
                 $services = [
-                    ['col' => $priv_active,  'code' => 'PRI',  'price' => $PRICE_PER_SESSION, 'total' => $TOTAL_COST, 'paid' => $TOTAL_PAID],
-                    ['col' => $grp_active,   'code' => 'GRP',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $party_active, 'code' => 'Pty',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $coach_active, 'code' => 'CCH',  'price' => 0,                  'total' => 0,          'paid' => 0],
+                    ['col' => $priv_active,  'code' => 'PRI',  'price' => $priv_price, 'total' => $priv_total, 'paid' => $priv_paid],
+                    ['col' => $grp_active,   'code' => 'GRP',  'price' => $grp_price,  'total' => $grp_total,  'paid' => $grp_paid],
+                    ['col' => $party_active, 'code' => 'Pty',  'price' => $pty_price,  'total' => $pty_total,  'paid' => $pty_paid],
+                    ['col' => $coach_active, 'code' => 'CCH',  'price' => $cch_price,  'total' => $cch_total,  'paid' => $cch_paid],
                 ];
+
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
                     $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], false);
@@ -872,8 +940,8 @@ function handleCustomerEnrollmentsUpload()
                         'ENROLLMENT_LEDGER_PARENT' => 0,
                         'DUE_DATE'                 => date('Y-m-d'),
                         'BILLED_AMOUNT'            => $prepaid_lessons_value,
-                        'PAID_AMOUNT'              => 0,
-                        'BALANCE'                  => $prepaid_lessons_value,
+                        'PAID_AMOUNT'              => $prepaid_lessons_value,
+                        'BALANCE'                  => 0,
                         'IS_PAID'                  => 1,
                         'STATUS'                   => 'A',
                         'IS_DOWN_PAYMENT'          => 0,
@@ -1195,7 +1263,6 @@ function handleAppointmentsUpload()
 
     $IDX_MINDBODY_CLIENT_ID  = 0;
     $IDX_GROUP_NAME          = 6;
-    $IDX_PK_SCHEDULING_CODE  = 9;
     $IDX_DATE                = 11;
     $IDX_START_TIME          = 12;
     $IDX_END_TIME            = 13;
@@ -1206,8 +1273,6 @@ function handleAppointmentsUpload()
     $IDX_IS_PAID             = 24;
     $IDX_IS_CHARGED          = 25;
     $IDX_APPOINTMENT_TYPE    = 26;
-    $IDX_CUSTOMER_EMAIL      = 33;
-    $IDX_CUSTOMER_NAME       = 34;
     $IDX_SERVICE_PROVIDER    = 36;
     $IDX_SP_EMAIL            = 37;
     $IDX_SERVICE_CODE        = 38;
@@ -1221,8 +1286,7 @@ function handleAppointmentsUpload()
     $lineNumber = 1;
 
     // =====================================================
-    // SERVICE LOOKUP (for AD-HOC service resolution only)
-    // Try exact code, then prefix-stripped code.
+    // SERVICE LOOKUP (by text code)
     // =====================================================
     $findServiceByCode = function ($db_account, $PK_LOCATION, $service_code) {
         $code_safe = addslashes($service_code);
@@ -1241,6 +1305,9 @@ function handleAppointmentsUpload()
         ");
     };
 
+    // =====================================================
+    // SCHEDULING CODE LOOKUP (by text code)
+    // =====================================================
     $findSchedulingCodeByName = function ($db_account, $PK_LOCATION, $sched_code) {
         $code_safe = addslashes($sched_code);
         return $db_account->Execute("
@@ -1267,7 +1334,7 @@ function handleAppointmentsUpload()
         }
 
         // =====================================================
-        // CUSTOMER — MINDBODY_CLIENT_ID → UNIQUE_ID only.
+        // CUSTOMER
         // =====================================================
         $mb_id_raw = trim($getData[$IDX_MINDBODY_CLIENT_ID] ?? '');
         $mb_id_int = ($mb_id_raw === '') ? 0 : (int)$mb_id_raw;
@@ -1296,49 +1363,18 @@ function handleAppointmentsUpload()
         $PK_USER_MASTER = $cust->fields['PK_USER_MASTER'];
 
         // =====================================================
-        // KIND from CSV service-code prefix
+        // SCHEDULING CODE — from CSV Text (e.g. PRI45)
         // =====================================================
-        $csv_svc = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
-        if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
-
-        if (strpos($csv_svc, 'PRI') === 0) {
-            $kind = 'PRI';
-            $kind_like = 'PRI';
-            $kind_is_group = 0;
-        } elseif (strpos($csv_svc, 'GRP') === 0) {
-            $kind = 'GRP';
-            $kind_like = 'GRP';
-            $kind_is_group = 1;
-        } elseif (strpos($csv_svc, 'PTY') === 0) {
-            $kind = 'Pty';
-            $kind_like = 'Pty';
-            $kind_is_group = 1;
-        } elseif (strpos($csv_svc, 'CCH') === 0) {
-            $kind = 'CCH';
-            $kind_like = 'CCH';
-            $kind_is_group = 0;
-        } else {
-            $kind = 'PRI';
-            $kind_like = 'PRI';
-            $kind_is_group = 0;
-        }
-
-        // =====================================================
-        // SCHEDULING CODE — from CSV (PRI45, PRI30, ...)
-        // =====================================================
-        $sched_label  = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
-        $sched_pk_csv = (int)($getData[$IDX_PK_SCHEDULING_CODE] ?? 0);
+        $sched_label = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
         $PK_SCHEDULING_CODE = 0;
+
         if ($sched_label !== '') {
             $sched_row = $findSchedulingCodeByName($db_account, $PK_LOCATION, $sched_label);
             if ($sched_row && $sched_row->RecordCount() > 0) {
                 $PK_SCHEDULING_CODE = $sched_row->fields['PK_SCHEDULING_CODE'];
             }
         }
-        if ($PK_SCHEDULING_CODE == 0 && $sched_pk_csv > 0) {
-            $chk = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . intval($sched_pk_csv));
-            if ($chk && $chk->RecordCount() > 0) $PK_SCHEDULING_CODE = $chk->fields['PK_SCHEDULING_CODE'];
-        }
+
         if ($PK_SCHEDULING_CODE == 0) {
             $skipped_rows[] = "Line $lineNumber — scheduling code '{$sched_label}' not found in location {$PK_LOCATION}";
             $lineNumber++;
@@ -1351,39 +1387,47 @@ function handleAppointmentsUpload()
         $sp_email = trim($getData[$IDX_SP_EMAIL] ?? '');
         $sp_name  = trim($getData[$IDX_SERVICE_PROVIDER] ?? '');
         $PK_SERVICE_PROVIDER = 0;
+
+        // Try by Email first (Strictly checking Staff roles)
         if ($sp_email !== '') {
             $sp_email_esc = addslashes($sp_email);
             $sp = $db->Execute("
-                SELECT DOA_USERS.PK_USER
-                FROM DOA_USERS
-                INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                WHERE DOA_USERS.EMAIL_ID = '$sp_email_esc'
-                  AND DOA_USER_LOCATION.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND DOA_USERS.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                SELECT U.PK_USER
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_LOCATION UL ON U.PK_USER = UL.PK_USER
+                INNER JOIN DOA_USER_ROLES UR ON U.PK_USER = UR.PK_USER
+                WHERE U.EMAIL_ID = '$sp_email_esc'
+                  AND UL.PK_LOCATION = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                  AND UR.PK_ROLES NOT IN (4) -- 4 is typically Customer role
                 LIMIT 1
             ");
             if ($sp && $sp->RecordCount() > 0) {
                 $PK_SERVICE_PROVIDER = $sp->fields['PK_USER'];
             }
         }
+
+        // Fallback to Name (Strictly checking Staff roles)
         if ($PK_SERVICE_PROVIDER == 0 && $sp_name !== '') {
             $parts = preg_split('/\s+/', $sp_name, 2);
             $fn = addslashes($parts[0]);
             $ln = isset($parts[1]) ? addslashes($parts[1]) : '';
             $sp = $db->Execute("
-                SELECT DOA_USERS.PK_USER
-                FROM DOA_USERS
-                INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                WHERE DOA_USERS.FIRST_NAME = '$fn' AND DOA_USERS.LAST_NAME = '$ln'
-                  AND DOA_USER_LOCATION.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND DOA_USERS.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                SELECT U.PK_USER
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_LOCATION UL ON U.PK_USER = UL.PK_USER
+                INNER JOIN DOA_USER_ROLES UR ON U.PK_USER = UR.PK_USER
+                WHERE U.FIRST_NAME = '$fn' AND U.LAST_NAME = '$ln'
+                  AND UL.PK_LOCATION = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                  AND UR.PK_ROLES NOT IN (4)
                 LIMIT 1
             ");
             if ($sp && $sp->RecordCount() > 0) {
                 $PK_SERVICE_PROVIDER = $sp->fields['PK_USER'];
             }
         }
+
         if ($PK_SERVICE_PROVIDER == 0) {
             $skipped_rows[] = "Line $lineNumber — service provider not found for '{$sp_name}' / '{$sp_email}'";
             $lineNumber++;
@@ -1402,102 +1446,55 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // 1. Check if the CSV explicitly provided a PK_ENROLLMENT_MASTER
+        // =====================================================
+        // SERVICE CODE — from CSV Text (e.g. PRI, GRP, CCH)
+        // =====================================================
+        $csv_svc = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
+        if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
+
+        $svc_details = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
+        if (!$svc_details || $svc_details->RecordCount() == 0) {
+            $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' not found in location {$PK_LOCATION}";
+            $lineNumber++;
+            continue;
+        }
+
+        $PK_SERVICE_MASTER = $svc_details->fields['PK_SERVICE_MASTER'];
+        $PK_SERVICE_CODE   = $svc_details->fields['PK_SERVICE_CODE'];
+        $is_group_svc      = (int)$svc_details->fields['IS_GROUP'];
+
+        // =====================================================
+        // ENROLLMENT LINK
+        // =====================================================
         $PK_ENROLLMENT_MASTER = 0;
         $PK_ENROLLMENT_SERVICE = 0;
-        $PK_SERVICE_MASTER = 0;
-        $PK_SERVICE_CODE = 0;
         $derived_type = 'AD-HOC';
 
-        if ($sched_pk_csv > 0) {
-            $specific_enr = $db_account->Execute("
-                SELECT EM.PK_ENROLLMENT_MASTER,
-                       ES.PK_ENROLLMENT_SERVICE,
-                       ES.PK_SERVICE_MASTER,
-                       ES.PK_SERVICE_CODE,
-                       ES.NUMBER_OF_SESSION,
-                       SC.SERVICE_CODE,
-                       (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
-                         WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
-                           AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
-                FROM DOA_ENROLLMENT_MASTER EM
-                INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
-                WHERE EM.PK_ENROLLMENT_MASTER = " . intval($sched_pk_csv) . "
-                  AND EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND EM.STATUS = 'A'
-                ORDER BY ES.PK_ENROLLMENT_SERVICE DESC
-                LIMIT 1
-            ");
+        // Find an active enrollment that matches the service type
+        $enr = $db_account->Execute("
+            SELECT EM.PK_ENROLLMENT_MASTER,
+                   ES.PK_ENROLLMENT_SERVICE,
+                   ES.NUMBER_OF_SESSION,
+                   (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
+                     WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
+                       AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
+            FROM DOA_ENROLLMENT_MASTER EM
+            INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
+            WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+              AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
+              AND EM.STATUS         = 'A'
+              AND ES.PK_SERVICE_CODE = " . intval($PK_SERVICE_CODE) . "
+            ORDER BY EM.PK_ENROLLMENT_MASTER DESC, ES.PK_ENROLLMENT_SERVICE DESC
+            LIMIT 1
+        ");
 
-            if ($specific_enr && $specific_enr->RecordCount() > 0) {
+        if ($enr && $enr->RecordCount() > 0) {
+            $remaining = (float)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
+            if ($remaining > 0) {
                 $derived_type          = 'NORMAL';
-                $PK_ENROLLMENT_MASTER  = $specific_enr->fields['PK_ENROLLMENT_MASTER'];
-                $PK_ENROLLMENT_SERVICE = $specific_enr->fields['PK_ENROLLMENT_SERVICE'];
-                $PK_SERVICE_MASTER     = $specific_enr->fields['PK_SERVICE_MASTER'];
-                $PK_SERVICE_CODE       = $specific_enr->fields['PK_SERVICE_CODE'];
+                $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
+                $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
             }
-        }
-
-        // 2. If no specific ID was provided (or it failed), run the original fallback search prioritizing PRI over MISC
-        if ($PK_ENROLLMENT_MASTER == 0) {
-            $group_kind_sql = '';
-            if ($kind_is_group === 1) {
-                $group_kind_sql = " OR SC.IS_GROUP = 1 ";
-            } elseif ($kind_is_group === 0) {
-                $group_kind_sql = " OR SC.IS_GROUP = 0 ";
-            }
-
-            $enr = $db_account->Execute("
-                SELECT EM.PK_ENROLLMENT_MASTER,
-                       ES.PK_ENROLLMENT_SERVICE,
-                       ES.PK_SERVICE_MASTER,
-                       ES.PK_SERVICE_CODE,
-                       ES.NUMBER_OF_SESSION,
-                       SC.SERVICE_CODE,
-                       (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
-                         WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
-                           AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
-                FROM DOA_ENROLLMENT_MASTER EM
-                INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
-                WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
-                  AND EM.STATUS         = 'A'
-                  AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
-                ORDER BY 
-                    (SC.SERVICE_CODE = 'MISC') ASC, 
-                    (SC.SERVICE_CODE = 'MIS') ASC, 
-                    EM.PK_ENROLLMENT_MASTER DESC, 
-                    ES.PK_ENROLLMENT_SERVICE DESC
-                LIMIT 1
-            ");
-
-            if ($enr && $enr->RecordCount() > 0) {
-                $remaining = (float)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
-                if ($remaining > 0) {
-                    $derived_type          = 'NORMAL';
-                    $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
-                    $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
-                    $PK_SERVICE_MASTER     = $enr->fields['PK_SERVICE_MASTER'];
-                    $PK_SERVICE_CODE       = $enr->fields['PK_SERVICE_CODE'];
-                }
-            }
-        }
-
-        // AD-HOC: resolve service from CSV code (try exact, then prefix)
-        if ($derived_type === 'AD-HOC') {
-            $svc = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
-            if (!$svc || $svc->RecordCount() == 0) {
-                $svc = $findServiceByCode($db_account, $PK_LOCATION, $kind_like);
-            }
-            if (!$svc || $svc->RecordCount() == 0) {
-                $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' (or '{$kind_like}') not found in location {$PK_LOCATION}";
-                $lineNumber++;
-                continue;
-            }
-            $PK_SERVICE_MASTER = $svc->fields['PK_SERVICE_MASTER'];
-            $PK_SERVICE_CODE   = $svc->fields['PK_SERVICE_CODE'];
         }
 
         // =====================================================
@@ -1513,24 +1510,29 @@ function handleAppointmentsUpload()
         $internal   = trim($getData[$IDX_INTERNAL_COMMENT] ?? '');
         $group_name = trim($getData[$IDX_GROUP_NAME] ?? '');
 
-        $is_group = ($kind_is_group === 1) || ($group_name !== '');
+        $is_group = ($is_group_svc === 1) || ($group_name !== '');
 
-        if (!$is_group) {
-            $dup = $db_account->Execute("
-                SELECT AM.PK_APPOINTMENT_MASTER
-                FROM DOA_APPOINTMENT_MASTER AM
-                INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
-                WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND AM.DATE = '" . addslashes($date) . "'
-                  AND AM.START_TIME = '" . addslashes($start_time) . "'
-                  AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
-                LIMIT 1
-            ");
-            if ($dup && $dup->RecordCount() > 0) {
-                $dup_rows[] = "Line $lineNumber — duplicate appointment for client ID {$mb_id_int} on {$date} {$start_time}";
-                $lineNumber++;
-                continue;
-            }
+        // =====================================================
+        // DUPLICATE CHECK
+        // Allow duplicate if it's a different teacher for the same customer
+        // =====================================================
+        $dup = $db_account->Execute("
+            SELECT AM.PK_APPOINTMENT_MASTER
+            FROM DOA_APPOINTMENT_MASTER AM
+            INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON ASP.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+              AND AM.DATE = '" . addslashes($date) . "'
+              AND AM.START_TIME = '" . addslashes($start_time) . "'
+              AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
+              AND ASP.PK_USER = " . intval($PK_SERVICE_PROVIDER) . "
+            LIMIT 1
+        ");
+
+        if ($dup && $dup->RecordCount() > 0) {
+            $dup_rows[] = "Line $lineNumber — duplicate appointment for client ID {$mb_id_int} with this teacher on {$date} {$start_time}";
+            $lineNumber++;
+            continue;
         }
 
         // =====================================================
@@ -1539,7 +1541,7 @@ function handleAppointmentsUpload()
         $PK_APPOINTMENT_MASTER = 0;
 
         if ($is_group) {
-            $gkey = strtolower($group_name) . '|' . $date . '|' . $start_time;
+            $gkey = strtolower($group_name) . '|' . $date . '|' . $start_time . '|' . $PK_SERVICE_MASTER . '|' . $PK_SCHEDULING_CODE;
             if (isset($group_cache[$gkey])) {
                 $PK_APPOINTMENT_MASTER = $group_cache[$gkey];
             }
@@ -1589,19 +1591,17 @@ function handleAppointmentsUpload()
                 continue;
             }
 
-            // db_perform_account doesn't return an ID; look the row back up
-            // by its unique fingerprint (location + service + schedule + date + time).
             $row_back = $db_account->Execute("
-    SELECT PK_APPOINTMENT_MASTER
-    FROM DOA_APPOINTMENT_MASTER
-    WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
-      AND PK_SERVICE_MASTER   = " . intval($PK_SERVICE_MASTER) . "
-      AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
-      AND DATE                = '" . addslashes($date) . "'
-      AND START_TIME          = '" . addslashes($start_time) . "'
-    ORDER BY PK_APPOINTMENT_MASTER DESC
-    LIMIT 1
-");
+                SELECT PK_APPOINTMENT_MASTER
+                FROM DOA_APPOINTMENT_MASTER
+                WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+                  AND PK_SERVICE_MASTER   = " . intval($PK_SERVICE_MASTER) . "
+                  AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+                  AND DATE                = '" . addslashes($date) . "'
+                  AND START_TIME          = '" . addslashes($start_time) . "'
+                ORDER BY PK_APPOINTMENT_MASTER DESC
+                LIMIT 1
+            ");
 
             if (!$row_back || $row_back->RecordCount() == 0) {
                 $warn_rows[] = "Line $lineNumber — inserted appointment but could not re-fetch its PK";
