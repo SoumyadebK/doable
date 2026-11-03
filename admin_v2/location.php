@@ -1,0 +1,3994 @@
+<?php
+require_once('../global/config.php');
+require_once("../global/stripe-php/init.php");
+
+global $db;
+global $db_account;
+global $upload_path;
+global $AMI_ENABLE;
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
+
+if (empty($_GET['id']))
+    $title = "Add Location";
+else
+    $title = "Edit Location";
+
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
+    header("location:../login.php");
+    exit;
+}
+
+$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+$PK_USER = $_SESSION['PK_USER'];
+
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
+if ($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
+
+$SA_PAYMENT_GATEWAY_TYPE = '';
+$SA_GATEWAY_MODE = '';
+$SA_SECRET_KEY = '';
+$SA_PUBLISHABLE_KEY = '';
+$SA_ACCESS_TOKEN = '';
+$SA_SQUARE_APP_ID = '';
+$SA_SQUARE_LOCATION_ID = '';
+
+$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+if ($payment_gateway_setting->RecordCount() > 0) {
+    $SA_PAYMENT_GATEWAY_TYPE = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
+    $SA_GATEWAY_MODE = $payment_gateway_setting->fields['GATEWAY_MODE'];
+    $SA_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+    $SA_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+    $SA_ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
+    $SA_SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
+    $SA_SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
+}
+
+if (empty($_GET['id'])) {
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '22'");
+    $PK_LOCATION = 0;
+    $PK_CORPORATION = $res->fields['PK_CORPORATION'];
+    $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = '';
+    $LOCATION_NAME = '';
+    $LOCATION_CODE = '';
+    $ADDRESS = '';
+    $ADDRESS_1 = '';
+    $PK_COUNTRY = '';
+    $PK_STATES = '';
+    $CITY = '';
+    $ZIP_CODE = '';
+    $PHONE = '';
+    $EMAIL = '';
+    $IMAGE_PATH = '';
+    $PK_TIMEZONE = '';
+    $TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
+    $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
+    $OPERATION_TAB_TITLE    = $res->fields['OPERATION_TAB_TITLE'];
+    $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
+    $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
+    $MISCELLANEOUS_ID_CHAR  = $res->fields['MISCELLANEOUS_ID_CHAR'];
+    $MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
+    $APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
+    $HOUR                   = $res->fields['HOUR'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
+    $ACTIVE = $res->fields['ACTIVE'];
+
+    $PAYMENT_GATEWAY_TYPE = '';
+    $GATEWAY_MODE = '';
+    $SECRET_KEY = '';
+    $PUBLISHABLE_KEY = '';
+    $ACCESS_TOKEN = '';
+    $SQUARE_APP_ID = '';
+    $SQUARE_LOCATION_ID = '';
+    $LOGIN_ID = '';
+    $TRANSACTION_KEY = '';
+    $AUTHORIZE_CLIENT_KEY = '';
+    $MERCHANT_ID = '';
+    $API_KEY = '';
+    $PUBLIC_API_KEY = '';
+
+
+    $AM_USER_NAME = '';
+    $AM_PASSWORD = '';
+    $AM_REFRESH_TOKEN = '';
+    $ENABLE_SALES_TAX = '';
+    $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
+    $TEXTING_FEATURE_ENABLED = '';
+    $ENABLE_AI_VOICE_AGENT = '';
+    $TWILIO_ACCOUNT_TYPE = '';
+    $SID = '';
+    $TOKEN = '';
+    $TWILIO_PHONE_NO = '';
+    $FOCUSBIZ_API_KEY = '';
+    $USER_INACTIVE_DAYS = '';
+    $USERNAME_PREFIX = '';
+
+    $SMTP_HOST = '';
+    $SMTP_PORT = '';
+    $SMTP_USERNAME = '';
+    $SMTP_PASSWORD = '';
+
+    $START_DATE = '';
+    $PAYMENT_FROM = '';
+    $SUBSCRIPTION_START_DATE = '';
+    $NEXT_RENEWAL_DATE = '';
+    $SUBSCRIPTION_AMOUNT = '';
+
+    $IS_MORNING = 0;
+    $PK_USER_MORNING = '';
+    $IS_AFTERNOON = 0;
+    $PK_USER_AFTERNOON = '';
+    $IS_EVENING = 0;
+    $PK_USER_EVENING = '';
+    $IS_NIGHT = 0;
+    $PK_USER_NIGHT = '';
+    $CONCIERGE_SCRIPT = '';
+
+    $WELCOME_MESSAGE = '';
+    $AVATAR_EMOJI = '';
+    $PRIMARY_COLOR = '';
+    $OFFERING_LABEL = '';
+    $OFFERING_TYPE = '';
+    $PK_TAG = '';
+} else {
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
+    if ($res->RecordCount() == 0) {
+        header("location:all_locations.php");
+        exit;
+    }
+
+    $PK_LOCATION = $_GET['id'];
+    $PK_CORPORATION = $res->fields['PK_CORPORATION'];
+    $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = $res->fields['FRANCHISE'];
+    $LOCATION_NAME = $res->fields['LOCATION_NAME'];
+    $LOCATION_CODE = $res->fields['LOCATION_CODE'];
+    $ADDRESS = $res->fields['ADDRESS'];
+    $ADDRESS_1 = $res->fields['ADDRESS_1'];
+    $PK_COUNTRY = $res->fields['PK_COUNTRY'];
+    $PK_STATES = $res->fields['PK_STATES'];
+    $CITY = $res->fields['CITY'];
+    $ZIP_CODE = $res->fields['ZIP_CODE'];
+    $PHONE = $res->fields['PHONE'];
+    $EMAIL = $res->fields['EMAIL'];
+    $IMAGE_PATH = $res->fields['IMAGE_PATH'];
+    $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
+    $TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
+    $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
+    $OPERATION_TAB_TITLE    = $res->fields['OPERATION_TAB_TITLE'];
+    $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
+    $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
+    $MISCELLANEOUS_ID_CHAR  = $res->fields['MISCELLANEOUS_ID_CHAR'];
+    $MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
+    $APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
+    $HOUR                   = $res->fields['HOUR'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
+    $ACTIVE = $res->fields['ACTIVE'];
+
+    $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+    $GATEWAY_MODE           = $res->fields['GATEWAY_MODE'];
+    $SECRET_KEY             = $res->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
+    $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID          = $res->fields['APP_ID'];
+    $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
+    $LOGIN_ID               = $res->fields['LOGIN_ID'];
+    $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+    $MERCHANT_ID            = $res->fields['MERCHANT_ID'];
+    $API_KEY                = $res->fields['API_KEY'];
+    $PUBLIC_API_KEY         = $res->fields['PUBLIC_API_KEY'];
+
+    $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
+    $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
+    $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
+    $ENABLE_SALES_TAX       = $res->fields['ENABLE_SALES_TAX'];
+    $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
+    $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
+    $ENABLE_AI_VOICE_AGENT  = $res->fields['ENABLE_AI_VOICE_AGENT'];
+    $TWILIO_ACCOUNT_TYPE    = $res->fields['TWILIO_ACCOUNT_TYPE'];
+    $SID                    = $res->fields['SID'];
+    $TOKEN                  = $res->fields['TOKEN'];
+    $TWILIO_PHONE_NO        = $res->fields['TWILIO_PHONE_NO'];
+
+    $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
+    $USER_INACTIVE_DAYS = $res->fields['USER_INACTIVE_DAYS'];
+    $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
+
+    $SMTP_HOST = $res->fields['SMTP_HOST'];
+    $SMTP_PORT = $res->fields['SMTP_PORT'];
+    $SMTP_USERNAME = $res->fields['SMTP_USERNAME'];
+    $SMTP_PASSWORD = $res->fields['SMTP_PASSWORD'];
+
+    $START_DATE = $res->fields['CREATED_ON'];
+    $PAYMENT_FROM = $res->fields['PAYMENT_FROM'];
+    $SUBSCRIPTION_START_DATE = $res->fields['SUBSCRIPTION_START_DATE'];
+    $NEXT_RENEWAL_DATE = $res->fields['NEXT_RENEWAL_DATE'];
+    $SUBSCRIPTION_AMOUNT = $res->fields['SUBSCRIPTION_AMOUNT'];
+
+    $IS_MORNING = $res->fields['IS_MORNING'];
+    $PK_USER_MORNING = $res->fields['PK_USER_MORNING'];
+    $IS_AFTERNOON = $res->fields['IS_AFTERNOON'];
+    $PK_USER_AFTERNOON = $res->fields['PK_USER_AFTERNOON'];
+    $IS_EVENING = $res->fields['IS_EVENING'];
+    $PK_USER_EVENING = $res->fields['PK_USER_EVENING'];
+    $IS_NIGHT = $res->fields['IS_NIGHT'];
+    $PK_USER_NIGHT = $res->fields['PK_USER_NIGHT'];
+    $CONCIERGE_SCRIPT = $res->fields['CONCIERGE_SCRIPT'];
+
+    $WELCOME_MESSAGE = $res->fields['WELCOME_MESSAGE'];
+    $AVATAR_EMOJI = $res->fields['AVATAR_EMOJI'];
+    $PRIMARY_COLOR = $res->fields['PRIMARY_COLOR'];
+    $OFFERING_LABEL = $res->fields['OFFERING_LABEL'];
+    $OFFERING_TYPE = $res->fields['OFFERING_TYPE'];
+    $PK_TAG = $res->fields['PK_TAG'];
+}
+
+$user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
+
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = " . $PK_ACCOUNT_MASTER);
+
+$RENEWAL_INTERVAL = $account_data->fields['RENEWAL_INTERVAL'];
+
+$AM_AMOUNT = $account_data->fields['AM_AMOUNT'];
+$NOT_AM_AMOUNT = $account_data->fields['NOT_AM_AMOUNT'];
+
+if (($AM_AMOUNT == '' || $AM_AMOUNT == 0.00) && ($NOT_AM_AMOUNT == '' || $NOT_AM_AMOUNT == 0.00)) {
+    $res = $db->Execute("SELECT * FROM `DOA_OTHER_SETTING`");
+    if ($res->RecordCount() > 0) {
+        $AM_AMOUNT       = $res->fields['AM_AMOUNT'];
+        $NOT_AM_AMOUNT   = $res->fields['NOT_AM_AMOUNT'];
+    }
+}
+$AMOUNT = ($FRANCHISE == 1) ? $AM_AMOUNT : $NOT_AM_AMOUNT;
+
+if (!empty($_POST)) {
+    if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
+        unset($_POST['FUNCTION_NAME']);
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+        $db->Execute("DELETE FROM `DOA_LOCATION_HOLIDAY_LIST` WHERE `PK_LOCATION` = " . $PK_LOCATION);
+        for ($i = 0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
+            $HOLIDAY_LIST_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
+            $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
+            db_perform('DOA_LOCATION_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
+        }
+    }
+
+    if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+
+        $db->Execute("DELETE FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
+
+        if (!empty($_POST['TAB_NAME']) && is_array($_POST['TAB_NAME'])) {
+            foreach ($_POST['TAB_NAME'] as $i => $tab_name) {
+                $permission = isset($_POST['PERMISSION'][$i]) ? 1 : 0;
+
+                $PERMISSION_DATA = [
+                    'PK_LOCATION' => $PK_LOCATION,
+                    'TAB_NAME' => $tab_name,
+                    'PERMISSION' => $permission
+                ];
+
+                db_perform('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
+            }
+        }
+    }
+
+    if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveConciergeSetting') {
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+
+        // Get checkbox values (1 if checked, 0 if not)
+        $IS_MORNING = isset($_POST['IS_MORNING']) ? 1 : 0;
+        $IS_AFTERNOON = isset($_POST['IS_AFTERNOON']) ? 1 : 0;
+        $IS_EVENING = isset($_POST['IS_EVENING']) ? 1 : 0;
+        $IS_NIGHT = isset($_POST['IS_NIGHT']) ? 1 : 0;
+
+        // Get selected users (implode arrays to comma-separated strings)
+        $PK_USER_MORNING = (isset($_POST['PK_USER_MORNING']) && $IS_MORNING == 1) ? implode(',', $_POST['PK_USER_MORNING']) : '';
+        $PK_USER_AFTERNOON = (isset($_POST['PK_USER_AFTERNOON']) && $IS_AFTERNOON == 1) ? implode(',', $_POST['PK_USER_AFTERNOON']) : '';
+        $PK_USER_EVENING = (isset($_POST['PK_USER_EVENING']) && $IS_EVENING == 1) ? implode(',', $_POST['PK_USER_EVENING']) : '';
+        $PK_USER_NIGHT = (isset($_POST['PK_USER_NIGHT']) && $IS_NIGHT == 1) ? implode(',', $_POST['PK_USER_NIGHT']) : '';
+
+        // Update the location record
+        $update_data = array(
+            'IS_MORNING' => $IS_MORNING,
+            'PK_USER_MORNING' => $PK_USER_MORNING,
+            'IS_AFTERNOON' => $IS_AFTERNOON,
+            'PK_USER_AFTERNOON' => $PK_USER_AFTERNOON,
+            'IS_EVENING' => $IS_EVENING,
+            'PK_USER_EVENING' => $PK_USER_EVENING,
+            'IS_NIGHT' => $IS_NIGHT,
+            'PK_USER_NIGHT' => $PK_USER_NIGHT,
+            'CONCIERGE_SCRIPT' => $_POST['CONCIERGE_SCRIPT'],
+            'WELCOME_MESSAGE' => $_POST['WELCOME_MESSAGE'],
+            'AVATAR_EMOJI' => $_POST['AVATAR_EMOJI'],
+            'PRIMARY_COLOR' => $_POST['PRIMARY_COLOR'],
+            'OFFERING_LABEL' => $_POST['OFFERING_LABEL'],
+            'OFFERING_TYPE' => $_POST['OFFERING_TYPE'],
+            'PK_TAG' => $_POST['PK_TAG'],
+            'EDITED_ON' => date('Y-m-d H:i:s'),
+            'EDITED_BY' => $_SESSION['PK_USER']
+        );
+
+        $where = "PK_LOCATION = " . $PK_LOCATION;
+        db_perform('DOA_LOCATION', $update_data, 'update', $where);
+
+        // Insert new offerings
+        if (isset($_POST['OFFERING'])) {
+            // Delete existing offerings
+            $db->Execute("DELETE FROM DOA_LOCATION_OFFERINGS WHERE PK_LOCATION = '$PK_LOCATION'");
+
+            $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $offerings = $_POST['OFFERING'];
+            $description = $_POST['DESCRIPTION'];
+            for ($i = 0; $i < count($offerings); $i++) {
+                $INSERT_DATA['OFFERING'] = $offerings[$i];
+                $INSERT_DATA['DESCRIPTION'] = $description[$i];
+                db_perform('DOA_LOCATION_OFFERINGS', $INSERT_DATA, 'insert');
+            }
+        }
+
+        // Set success message and redirect back
+        $_SESSION['success_message'] = 'Concierge settings saved successfully!';
+        header("Location: location.php?id=" . $PK_LOCATION);
+        exit;
+    }
+
+    header("location:all_locations.php");
+}
+
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting') {
+    $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+    // Insert new questions
+    if (isset($_POST['QUESTION'])) {
+        // Delete existing questions
+        $db->Execute("DELETE FROM DOA_LOCATION_FAQ WHERE PK_LOCATION = '$PK_LOCATION'");
+
+        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
+        $questions = $_POST['QUESTION'];
+        $answers = $_POST['ANSWER'];
+        for ($i = 0; $i < count($questions); $i++) {
+            $INSERT_DATA['QUESTION'] = $questions[$i];
+            $INSERT_DATA['ANSWER'] = $answers[$i];
+            db_perform('DOA_LOCATION_FAQ', $INSERT_DATA, 'insert');
+        }
+    }
+
+    $_SESSION['success_message'] = 'Concierge settings saved successfully!';
+    header("Location: location.php?id=" . $PK_LOCATION);
+}
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <?php include 'layout/header_script.php'; ?>
+    <?php require_once('../includes/header.php'); ?>
+    <?php include 'layout/header.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/setup-styles.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #39B54A;
+            --primary-light: #5DCB6E;
+            --primary-dark: #2D8F3B;
+            --primary-rgb: 57, 181, 74;
+            --success-color: #39B54A;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --radius-pill: 50px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--gray-50);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Keep original header styles */
+        .page-wrapper {
+            padding-top: 0px !important;
+            background: var(--gray-50);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .breadcrumb-wrapper h4 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+
+        .breadcrumb-wrapper h4 .badge-location {
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--gray-200);
+            color: var(--gray-700);
+            padding: 4px 14px;
+            border-radius: 50px;
+            margin-left: 12px;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .breadcrumb-nav a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            color: var(--primary-dark);
+        }
+
+        .breadcrumb-nav .separator {
+            color: var(--gray-300);
+        }
+
+        .breadcrumb-nav .current {
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        /* Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container-fluid {
+                padding: 16px !important;
+            }
+        }
+
+        .card-modern {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            overflow: visible;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card-modern:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-modern .card-header {
+            padding: 20px 24px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-modern .card-header h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        .card-modern .card-header h5 i {
+            color: var(--primary-color);
+        }
+
+        .card-modern .card-header .location-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .card-modern .card-body {
+            padding: 24px;
+        }
+
+        /* Tabs - Updated without scroll */
+        .tabs-modern {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--gray-200);
+            padding-bottom: 0;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            /* Changed from nowrap to wrap */
+        }
+
+        /* Remove scrollbar styles */
+        .tabs-modern::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tabs-modern::-webkit-scrollbar-thumb {
+            display: none;
+        }
+
+        .tabs-modern .tab-item {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 0;
+        }
+
+        .tabs-modern .tab-item:hover {
+            color: var(--gray-700);
+            background: var(--gray-50);
+        }
+
+        .tabs-modern .tab-item.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tabs-modern .tab-item i {
+            font-size: 16px;
+        }
+
+        .tab-content-modern {
+            padding: 4px 0;
+        }
+
+        .tab-pane-modern {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane-modern.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 24px;
+        }
+
+        .form-grid.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid.three-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group-modern .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-700);
+            letter-spacing: 0.01em;
+        }
+
+        .form-group-modern .form-label .required {
+            color: var(--danger-color);
+            margin-left: 2px;
+        }
+
+        .form-group-modern .form-label .helper {
+            font-weight: 400;
+            color: var(--gray-400);
+            font-size: 12px;
+        }
+
+        .form-control-modern {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: var(--gray-800);
+            background: #fff;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .form-control-modern:hover {
+            border-color: var(--gray-300);
+        }
+
+        .form-control-modern::placeholder {
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+
+        .form-control-modern.is-invalid {
+            border-color: var(--danger-color);
+        }
+
+        .form-control-modern.is-invalid:focus {
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-control-modern:disabled {
+            background: var(--gray-100);
+            cursor: not-allowed;
+        }
+
+        select.form-control-modern {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        /* Radio & Checkbox */
+        .radio-group-modern {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+        }
+
+        .radio-group-modern .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        .radio-group-modern .radio-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-group-modern {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        .checkbox-group-modern input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Toggle Switch */
+        .switch-modern {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch-modern input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-modern .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .switch-modern .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .switch-modern input:checked+.slider {
+            background-color: var(--primary-color);
+        }
+
+        .switch-modern input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .switch-modern input:focus+.slider {
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+        }
+
+        /* Buttons - Rounded Pill */
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .btn-modern-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-modern-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+        .btn-modern-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-modern-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-modern-secondary:hover {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-modern-success {
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .btn-modern-success:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+        .btn-modern-danger {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        .btn-modern-danger:hover {
+            background: #DC2626;
+            color: #fff;
+        }
+
+        .btn-modern-sm {
+            padding: 6px 18px;
+            font-size: 13px;
+        }
+
+        .btn-modern .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-200);
+            flex-wrap: wrap;
+        }
+
+        /* Help Card */
+        .help-card {
+            background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+            border: 1px solid #A7F3D0;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: sticky;
+            top: 24px;
+        }
+
+        .help-card .help-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .help-card h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0 0 12px 0;
+        }
+
+        .help-card p {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            margin: 8px 0 20px 0;
+            border: 1px solid var(--gray-200);
+        }
+
+        .section-header i {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .section-header span {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Operational Hours */
+        .hours-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 12px 16px;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .hours-grid:last-child {
+            border-bottom: none;
+        }
+
+        .hours-grid .day-label {
+            font-weight: 500;
+            color: var(--gray-700);
+            font-size: 14px;
+        }
+
+        .hours-grid .closed-label {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        @media (max-width: 768px) {
+            .hours-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .hours-grid .day-label {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* Payment Register - Updated */
+        .table-modern {
+            width: 100% !important;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 600px;
+        }
+
+        .table-modern thead th {
+            background: var(--gray-50);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+            border-bottom: 2px solid var(--gray-200);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+        .table-modern tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .table-modern .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .table-modern .status-badge.success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .table-modern .status-badge.failed {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .table-modern .status-badge.pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        /* DataTable wrapper fixes */
+        .dataTables_wrapper {
+            width: 100% !important;
+            overflow-x: auto;
+        }
+
+        .dataTables_wrapper .dataTables_scroll {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper .dataTables_scrollBody {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 6px 12px;
+            margin-left: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            margin: 0 4px;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            color: var(--gray-500);
+            font-size: 13px;
+            padding-top: 8px;
+        }
+
+        /* DataTable responsive for small screens */
+        @media (max-width: 768px) {
+            .table-modern {
+                font-size: 13px;
+                min-width: 500px;
+            }
+
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 8px 12px;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                max-width: 150px;
+            }
+        }
+
+        /* Holiday List */
+        .holiday-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .holiday-row .remove-btn {
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            transition: transform 0.2s;
+            border-radius: 50%;
+        }
+
+        .holiday-row .remove-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* Permission Toggle */
+        .permission-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .permission-row:last-child {
+            border-bottom: none;
+        }
+
+        .permission-row .tab-name {
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        /* Credit Card */
+        #card-element,
+        .StripeElement {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        #card-element:focus,
+        .StripeElement--focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .StripeElement--invalid {
+            border-color: var(--danger-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .breadcrumb-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .tabs-modern .tab-item {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .card-modern .card-body {
+                padding: 16px;
+            }
+        }
+
+        /* Input group with percentage */
+        .input-group-modern {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .input-group-modern:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .input-group-modern .form-control-modern {
+            border: none;
+            border-radius: 0;
+            flex: 1;
+        }
+
+        .input-group-modern .form-control-modern:focus {
+            box-shadow: none;
+        }
+
+        .input-group-modern .input-group-text {
+            padding: 10px 14px;
+            background: var(--gray-50);
+            color: var(--gray-500);
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 1px solid var(--gray-200);
+        }
+
+        /* Image preview */
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 2px solid var(--gray-200);
+            margin-top: 8px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview a {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Payment status messages */
+        .alert-modern {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            margin: 12px 0;
+        }
+
+        .alert-modern.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        .alert-modern.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        .alert-modern.warning {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
+        /* Card list */
+        .credit-card-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+        }
+
+        .credit-card-item:hover {
+            border-color: var(--primary-color);
+            background: var(--gray-50);
+        }
+
+        .credit-card-item.selected {
+            border-color: var(--primary-color);
+            background: #F0FDF4;
+        }
+
+        .credit-card-item i {
+            font-size: 24px;
+            color: var(--gray-400);
+        }
+
+        .credit-card-item .card-details {
+            flex: 1;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .credit-card-item .card-details .card-brand {
+            font-weight: 600;
+        }
+
+        /* Booking Periods Grid - Horizontal */
+        .booking-grid {
+            display: flex;
+            gap: 121px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+
+        .period-label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .period-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Service Providers Grid - Horizontal */
+        .service-providers-grid {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+
+        .provider-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 160px;
+            flex: 1;
+        }
+
+        .provider-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .provider-group .multi_sumo_select {
+            width: 100%;
+            min-width: 160px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .booking-grid {
+                gap: 15px;
+            }
+
+            .service-providers-grid {
+                gap: 20px;
+            }
+
+            .provider-group {
+                min-width: 100%;
+            }
+        }
+
+        /* Offering Card (keeps theme consistent with other cards) */
+        .offering-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            padding: 18px;
+            margin-top: 24px;
+        }
+
+        .offering-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .offering-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .offering-sub {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .offering-card .service-table-wrapper {
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        /* Adjust grid specifically for offering rows (two inputs + action) */
+        .offering-card .service-table-wrapper .table-header,
+        .offering-card .service-table-wrapper .service-row {
+            grid-template-columns: 2fr 3fr 0.5fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .offering-card .service-table-wrapper .service-row .form-control-modern {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .offering-card .service-table-wrapper .table-header {
+                display: none;
+            }
+
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 12px;
+                border: 1px solid var(--gray-200);
+                border-radius: var(--radius-sm);
+                background: #fff;
+                margin-bottom: 8px;
+            }
+        }
+
+        /* Offering-specific column widths for a simpler 3-column layout */
+        .offering-card .service-table-wrapper .table-header,
+        .offering-card .service-table-wrapper .service-row {
+            grid-template-columns: 2fr 3fr 60px !important;
+            gap: 12px;
+            padding: 8px 4px;
+        }
+
+        .offering-card .service-table-wrapper .service-row .form-control-modern {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 992px) {
+
+            .offering-card .service-table-wrapper .table-header,
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr 1fr 60px !important;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .offering-card .service-table-wrapper .table-header {
+                display: none;
+            }
+
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr !important;
+                gap: 8px;
+                padding: 12px;
+                background: #fff;
+                border: 1px solid var(--gray-200);
+                border-radius: var(--radius-sm);
+                margin-bottom: 8px;
+            }
+
+            .offering-card .service-table-wrapper .service-row .form-control-modern {
+                width: 100%;
+            }
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-modern.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Password field enhancements */
+        input[type="password"] {
+            padding-right: 40px !important;
+        }
+
+        input[type="password"]+button {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+        }
+
+        input[type="password"]:focus+button {
+            color: var(--primary-color) !important;
+        }
+
+        /* Ensure the password toggle button doesn't interfere with form submission */
+        input[type="password"]+button[type="button"] {
+            pointer-events: auto;
+        }
+
+        input[type="password"] {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+            letter-spacing: 2px;
+        }
+
+        /* ============ Terms & Privacy Modals ============ */
+        .terms-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .terms-modal-box {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            animation: modalPop 0.25s ease;
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .terms-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            flex-shrink: 0;
+        }
+
+        .terms-modal-header h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terms-modal-header h5 i {
+            color: var(--primary-color);
+        }
+
+        .terms-modal-close {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            color: var(--gray-500);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .terms-modal-close:hover {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .terms-modal-body {
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 200px;
+            background: var(--gray-50);
+        }
+
+        .terms-modal-body .terms-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 60px 20px;
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        .terms-modal-body .terms-loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .terms-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 14px 24px;
+            border-top: 1px solid var(--gray-200);
+            background: #fff;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .terms-modal-footer {
+                flex-direction: column;
+            }
+
+            .terms-modal-footer .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .terms-modal-box {
+                max-height: 95vh;
+            }
+        }
+    </style>
+    </style>
+</head>
+
+<body class="skin-default-dark fixed-layout">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <!-- Keep original header include - DO NOT CHANGE -->
+        <?php require_once('../includes/header.php'); ?>
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
+
+                <!-- Main Grid -->
+                <div class="row g-4">
+                    <!-- Sidebar -->
+                    <div class="col-12 col-md-4 col-xl-2">
+                        <?php include 'layout/setup_sidebar.php'; ?>
+                    </div>
+
+                    <!-- Main Form -->
+                    <div class="col-12 col-md-8 col-xl-10">
+                        <div class="main-grid">
+                            <!-- Main Content -->
+                            <div class="card-modern">
+                                <div class="card-header">
+                                    <h5>
+                                        <i class="bi bi-geo-alt me-2" style="color: #39b54a;"></i>
+                                        <?= !empty($_GET['id']) ?  $LOCATION_NAME : 'Create New Location' ?>
+                                    </h5>
+                                    <?php if (!empty($_GET['id'])): ?>
+                                        <span class="location-name">
+                                            <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px; margin-right: 6px;"></i>
+                                            <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Tabs -->
+                                    <div class="tabs-modern" role="tablist">
+                                        <button class="tab-item active" data-tab="location_div" role="tab">
+                                            <i class="fas fa-location-dot"></i> Location
+                                        </button>
+                                        <button class="tab-item" data-tab="operational_hours" role="tab">
+                                            <i class="fas fa-clock"></i> Hours
+                                        </button>
+                                        <?php if (!empty($_GET['id'])): ?>
+                                            <button class="tab-item" data-tab="holiday_list" role="tab">
+                                                <i class="fas fa-calendar-days"></i> Holidays
+                                            </button>
+                                            <button class="tab-item" data-tab="customer_tab_permissions" role="tab">
+                                                <i class="fas fa-check-circle"></i> Permissions
+                                            </button>
+                                            <button class="tab-item" data-tab="payment_register" role="tab">
+                                                <i class="fas fa-receipt"></i> Payments
+                                            </button>
+                                            <button class="tab-item" data-tab="billing" role="tab">
+                                                <i class="fas fa-credit-card"></i> Billing
+                                            </button>
+                                            <button class="tab-item" data-tab="credit_card" role="tab" onclick="getSavedCreditCardList('save_card');">
+                                                <i class="fas fa-credit-card"></i> Card
+                                            </button>
+                                            <?php if ($account_data->fields['IS_CONCIERGE'] == 1) {  ?>
+                                                <button class="tab-item" data-tab="concierge" role="tab">
+                                                    <i class="fas fa-gear"></i> Concierge
+                                                </button>
+                                                <button class="tab-item" data-tab="faq" role="tab">
+                                                    <i class="fas fa-question"></i> FAQ
+                                                </button>
+                                            <?php } ?>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Tab Content -->
+                                    <div class="tab-content-modern">
+                                        <!-- Location Tab -->
+                                        <div class="tab-pane-modern active" id="location_div" role="tabpanel">
+                                            <form id="location_form" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div class="form-grid">
+                                                    <!-- Corporation -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Corporation <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                            <option value="">Select Corporation</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?= $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['CORPORATION_NAME']) ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Account Type -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Account Type <span class="required">*</span></label>
+                                                        <div class="radio-group-modern">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                            while (!$row->EOF) { ?>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
+                                                                    <?= htmlspecialchars($row->fields['ACCOUNT_TYPE']) ?>
+                                                                </label>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Franchise -->
+                                                    <?php if ($AMI_ENABLE == 1): ?>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Arthur Murray Franchise</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Location Name -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="LOCATION_NAME" placeholder="Enter Location Name" required value="<?= htmlspecialchars($LOCATION_NAME) ?>">
+                                                    </div>
+
+                                                    <!-- Location Code -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location Code <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="LOCATION_CODE" placeholder="Enter Location Code" required value="<?= htmlspecialchars($LOCATION_CODE) ?>">
+                                                    </div>
+
+                                                    <!-- Address -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Address</label>
+                                                        <input type="text" class="form-control-modern" name="ADDRESS" placeholder="Enter Address" value="<?= htmlspecialchars($ADDRESS) ?>">
+                                                    </div>
+
+                                                    <!-- Address 1 -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Apt/Ste</label>
+                                                        <input type="text" class="form-control-modern" name="ADDRESS_1" placeholder="Enter Apartment or Suite" value="<?= htmlspecialchars($ADDRESS_1) ?>">
+                                                    </div>
+
+                                                    <!-- Country -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Country <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                            <option value="">Select Country</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?= $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['COUNTRY_NAME']) ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- State -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">State <span class="required">*</span></label>
+                                                        <div id="State_div"></div>
+                                                    </div>
+
+                                                    <!-- City -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">City</label>
+                                                        <input type="text" class="form-control-modern" name="CITY" placeholder="Enter City" value="<?= htmlspecialchars($CITY) ?>">
+                                                    </div>
+
+                                                    <!-- ZIP -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Postal / Zip Code</label>
+                                                        <input type="text" class="form-control-modern" name="ZIP_CODE" placeholder="Enter Postal / Zip Code" value="<?= htmlspecialchars($ZIP_CODE) ?>">
+                                                    </div>
+
+                                                    <!-- Phone -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Phone</label>
+                                                        <input type="text" class="form-control-modern" name="PHONE" placeholder="Enter Phone No." value="<?= htmlspecialchars($PHONE) ?>">
+                                                    </div>
+
+                                                    <!-- Email -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control-modern" name="EMAIL" placeholder="Enter Email Address" value="<?= htmlspecialchars($EMAIL) ?>">
+                                                    </div>
+
+                                                    <!-- Image -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location Image</label>
+                                                        <input type="file" class="form-control-modern" name="IMAGE_PATH" accept="image/*">
+                                                        <?php if ($IMAGE_PATH != ''): ?>
+                                                            <div class="image-preview">
+                                                                <a class="fancybox" href="<?= $IMAGE_PATH; ?>" data-fancybox-group="gallery">
+                                                                    <img src="<?= $IMAGE_PATH; ?>" alt="Location Image">
+                                                                </a>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+
+                                                    <!-- Timezone -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Timezone <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_TIMEZONE" required>
+                                                            <option value="">Select</option>
+                                                            <?php
+                                                            $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                            while (!$res_type->EOF) { ?>
+                                                                <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?php if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected'; ?>><?= htmlspecialchars($res_type->fields['NAME']) ?></option>
+                                                            <?php $res_type->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Time Interval -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Time Interval for Calendar Rows</label>
+                                                        <select class="form-control-modern" name="TIME_SLOT_INTERVAL">
+                                                            <option value="">Select</option>
+                                                            <?php for ($i = 5; $i <= 60; $i += 5): ?>
+                                                                <option value="00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00" <?= ($TIME_SLOT_INTERVAL == '00:' . str_pad($i, 2, '0', STR_PAD_LEFT) . ':00') ? 'selected' : '' ?>>
+                                                                    00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00
+                                                                </option>
+                                                            <?php endfor; ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Service Provider Title -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Title for Service Provider</label>
+                                                        <input type="text" class="form-control-modern" name="SERVICE_PROVIDER_TITLE" placeholder="Title for Service Provider" value="<?= htmlspecialchars($SERVICE_PROVIDER_TITLE) ?>">
+                                                    </div>
+
+                                                    <!-- Operation Tab Title -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Name of the Tab for Charging Services</label>
+                                                        <input type="text" class="form-control-modern" name="OPERATION_TAB_TITLE" placeholder="Name of the Tab for Charging Services" value="<?= htmlspecialchars($OPERATION_TAB_TITLE) ?>">
+                                                    </div>
+
+                                                    <!-- Enrollment Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Enrollment Prefix</label>
+                                                        <input type="text" class="form-control-modern" name="ENROLLMENT_ID_CHAR" placeholder="Enrollment Prefix" value="<?= htmlspecialchars($ENROLLMENT_ID_CHAR) ?>">
+                                                    </div>
+
+                                                    <!-- Starting Enrollment -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Starting Enrollment Number</label>
+                                                        <input type="number" class="form-control-modern" name="ENROLLMENT_ID_NUM" placeholder="Starting Enrollment Number" value="<?= htmlspecialchars($ENROLLMENT_ID_NUM) ?>">
+                                                    </div>
+
+                                                    <!-- Misc Enrollment Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Misc Enrollment Prefix</label>
+                                                        <input type="text" class="form-control-modern" name="MISCELLANEOUS_ID_CHAR" placeholder="Misc Enrollment Prefix" value="<?= htmlspecialchars($MISCELLANEOUS_ID_CHAR) ?>">
+                                                    </div>
+
+                                                    <!-- Starting Misc Enrollment -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Starting Misc Enrollment Number</label>
+                                                        <input type="number" class="form-control-modern" name="MISCELLANEOUS_ID_NUM" placeholder="Starting Misc Enrollment Number" value="<?= htmlspecialchars($MISCELLANEOUS_ID_NUM) ?>">
+                                                    </div>
+
+                                                    <!-- Royalty Percentage -->
+                                                    <!-- <div class="form-group-modern">
+                                                        <label class="form-label">Royalty Percentage</label>
+                                                        <div class="input-group-modern">
+                                                            <input type="text" class="form-control-modern" name="ROYALTY_PERCENTAGE" value="<?= htmlspecialchars($ROYALTY_PERCENTAGE) ?>">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                    </div> -->
+
+                                                    <!-- Sales Tax -->
+                                                    <div class="form-group-modern">
+                                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                                            <label class="form-label mb-0">Sales Tax</label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="1"
+                                                                    <?= $ENABLE_SALES_TAX === '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> Yes
+                                                            </label>
+
+                                                            <label class="radio-item d-flex align-items-center gap-1 mb-0">
+                                                                <input type="radio" class="mt-0 ENABLE_SALES_TAX" name="ENABLE_SALES_TAX" value="0"
+                                                                    <?= $ENABLE_SALES_TAX !== '1' ? 'checked' : '' ?> style="width: 15px; height: 15px;"> No
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="input-group-modern" id="sales_tax_div" style="display: <?= $ENABLE_SALES_TAX === '1' ? 'flex' : 'none' ?>;">
+                                                            <input type="text" class="form-control-modern" name="SALES_TAX" id="SALES_TAX"
+                                                                value="<?= htmlspecialchars($SALES_TAX) ?>"
+                                                                <?= $ENABLE_SALES_TAX !== '1' ? 'disabled' : '' ?>>
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Receipt Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Receipt Prefix <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="RECEIPT_CHARACTER" placeholder="Receipt Prefix" required value="<?= htmlspecialchars($RECEIPT_CHARACTER) ?>">
+                                                    </div>
+
+                                                    <!-- Focusbiz API Key -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Focusbiz API Key</label>
+                                                        <input type="hidden" name="FOCUSBIZ_API_KEY_OLD" value="<?= $FOCUSBIZ_API_KEY ? $FOCUSBIZ_API_KEY : '' ?>">
+                                                        <input type="text" class="form-control-modern" name="FOCUSBIZ_API_KEY" placeholder="Enter Focusbiz API Key" value="<?= htmlspecialchars($FOCUSBIZ_API_KEY) ?>">
+                                                    </div>
+
+                                                    <!-- User Inactive Days -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">User Inactive Days</label>
+                                                        <select class="form-control-modern" name="USER_INACTIVE_DAYS">
+                                                            <option value="">Select</option>
+                                                            <option value="30" <?= ($USER_INACTIVE_DAYS == '30') ? 'selected' : '' ?>>30 Days</option>
+                                                            <option value="60" <?= ($USER_INACTIVE_DAYS == '60') ? 'selected' : '' ?>>60 Days</option>
+                                                            <option value="90" <?= ($USER_INACTIVE_DAYS == '90') ? 'selected' : '' ?>>90 Days</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Appointment Reminder -->
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Send an Appointment Reminder Text message.</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="APPOINTMENT_REMINDER" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);"> Yes
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="APPOINTMENT_REMINDER" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);"> No
+                                                            </label>
+                                                        </div>
+                                                        <div id="hour_box" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? 'block' : 'none' ?>; margin-top: 8px;">
+                                                            <label class="form-label" style="font-weight: 400;">How many hours before the appointment?</label>
+                                                            <input type="text" class="form-control-modern" name="HOUR" value="<?= htmlspecialchars($HOUR) ?>" style="max-width: 200px;">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Texting Feature -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Texting Feature Enabled?</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TEXTING_FEATURE_ENABLED" value="1" <?php if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked'; ?>> Yes
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TEXTING_FEATURE_ENABLED" value="0" <?php if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked'; ?>> No
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1): ?>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Enable AI Voice Agent?</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="1" <?php if ($ENABLE_AI_VOICE_AGENT == 1) echo 'checked'; ?>> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="0" <?php if ($ENABLE_AI_VOICE_AGENT == 0) echo 'checked'; ?>> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Twilio Account Type -->
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Which Twilio Account You Want to Use?</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="0" <?php if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Doable's Twilio account
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="1" <?php if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Your own Twilio Account
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Twilio Settings -->
+                                                    <div id="twilio_setting_div" style="display: <?= ($TWILIO_ACCOUNT_TYPE == 1) ? 'grid' : 'none' ?>; grid-column: 1 / -1; gap: 16px; padding-top: 8px;">
+                                                        <div class="section-header">
+                                                            <i class="fas fa-phone"></i>
+                                                            <span>Twilio Settings</span>
+                                                        </div>
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SID</label>
+                                                                <input type="text" class="form-control-modern" name="SID" placeholder="Enter SID" value="<?= htmlspecialchars($SID) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Token</label>
+                                                                <input type="text" class="form-control-modern" name="TOKEN" placeholder="Enter Token" value="<?= htmlspecialchars($TOKEN) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Phone No.</label>
+                                                                <input type="text" class="form-control-modern" name="TWILIO_PHONE_NO" placeholder="Enter Phone No." value="<?= htmlspecialchars($TWILIO_PHONE_NO) ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Payment Gateway -->
+                                                    <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1): ?>
+                                                        <div style="grid-column: 1 / -1;">
+                                                            <div class="section-header">
+                                                                <i class="fas fa-credit-card"></i>
+                                                                <span>Electronic Connection to Merchant Service</span>
+                                                            </div>
+                                                            <div class="form-grid">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Payment Gateway</label>
+                                                                    <div class="radio-group-modern">
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Stripe
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Square
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Authorized.net
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Clover
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="None" <?= ($PAYMENT_GATEWAY_TYPE == 'None') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> None
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Gateway Mode</label>
+                                                                    <div class="radio-group-modern">
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="GATEWAY_MODE" value="test" <?= ($GATEWAY_MODE == 'test' || $GATEWAY_MODE == null || $GATEWAY_MODE == '') ? 'checked' : '' ?>> Test
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="GATEWAY_MODE" value="live" <?= ($GATEWAY_MODE == 'live') ? 'checked' : '' ?>> Live
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Stripe -->
+                                                            <div id="stripe" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Secret Key</label>
+                                                                    <input type="text" class="form-control-modern" name="SECRET_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? maskSecretKey($SECRET_KEY) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Publishable Key</label>
+                                                                    <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? maskSecretKey($PUBLISHABLE_KEY) : '' ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Square -->
+                                                            <div id="square" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Application ID</label>
+                                                                    <input type="text" class="form-control-modern" name="APP_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($SQUARE_APP_ID) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Location ID</label>
+                                                                    <input type="text" class="form-control-modern" name="LOCATION_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($SQUARE_LOCATION_ID) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Access Token</label>
+                                                                    <input type="text" class="form-control-modern" name="ACCESS_TOKEN" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? maskSecretKey($ACCESS_TOKEN) : '' ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Authorized.net -->
+                                                            <div id="authorized" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Login ID</label>
+                                                                    <input type="text" class="form-control-modern" name="LOGIN_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($LOGIN_ID) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Transaction Key</label>
+                                                                    <input type="text" class="form-control-modern" name="TRANSACTION_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($TRANSACTION_KEY) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Authorize Client Key</label>
+                                                                    <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? maskSecretKey($AUTHORIZE_CLIENT_KEY) : '' ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Clover -->
+                                                            <div id="Clover" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Merchant ID</label>
+                                                                    <input type="text" class="form-control-modern" name="MERCHANT_ID" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($MERCHANT_ID) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Private Token</label>
+                                                                    <input type="text" class="form-control-modern" name="API_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($API_KEY) : '' ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Public Token</label>
+                                                                    <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" placeholder="<?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? maskSecretKey($PUBLIC_API_KEY) : '' ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <div id="None" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'None') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern mt-2">
+                                                                    <label class="form-label" style="font-size: 14px;">No Payment Gateway Selected</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Email Settings -->
+                                                    <div style="grid-column: 1 / -1;">
+                                                        <div class="section-header">
+                                                            <i class="fas fa-envelope"></i>
+                                                            <span>Email Connection</span>
+                                                        </div>
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Host</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_HOST" id="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Port</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_PORT" id="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Username</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_USERNAME" id="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Password</label>
+                                                                <input type="password" class="form-control-modern" name="SMTP_PASSWORD" id="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-actions" style="border-top: none; padding-top: 0px; float: right;">
+                                                            <a href="javascript:void(0)" class="btn-modern btn-modern-primary" id="test-smtp-btn" onclick="testSmtpSetting()">Test SMTP Setting</a>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Arthur Murray API -->
+                                                    <?php if ($AMI_ENABLE == 1): ?>
+                                                        <!-- <div id="arthur_murray_setup" style="grid-column: 1 / -1; display: <?= ($FRANCHISE == '1') ? 'block' : 'none' ?>;">
+                                                            <div class="section-header">
+                                                                <i class="fas fa-cog"></i>
+                                                                <span>Arthur Murray API Setup</span>
+                                                            </div>
+                                                            <div class="form-grid">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">User Name</label>
+                                                                    <input type="text" class="form-control-modern" name="AM_USER_NAME" value="<?= htmlspecialchars($AM_USER_NAME) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Password</label>
+                                                                    <input type="password" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div> -->
+                                                    <?php endif; ?>
+
+                                                    <!-- Active Status -->
+                                                    <?php if (!empty($_GET['id'])): ?>
+                                                        <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                            <label class="form-label">Active</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ACTIVE" value="1" <?php if ($ACTIVE == 1) echo 'checked'; ?>> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ACTIVE" value="0" <?php if ($ACTIVE == 0) echo 'checked'; ?>> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <!-- Terms and Conditions Checkbox — only for new locations -->
+                                                <?php if (empty($_GET['id'])): ?>
+                                                    <div class="terms-checkbox-wrapper" style="grid-column: 1 / -1; margin-top: 24px; padding: 16px 20px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-sm);">
+                                                        <label class="checkbox-group-modern" style="cursor: pointer;">
+                                                            <input type="checkbox" id="location_terms_checkbox" name="terms_checkbox" value="1">
+                                                            <span style="font-size: 14px; color: var(--gray-700);">
+                                                                I agree to the
+                                                                <a href="javascript:void(0);" onclick="openTermsModal(event)" style="color: var(--primary-color); font-weight: 500; text-decoration: underline;">
+                                                                    Terms and Conditions
+                                                                </a>
+                                                                and acknowledge the
+                                                                <a href="javascript:void(0);" onclick="openPrivacyModal(event)" style="color: var(--primary-color); font-weight: 500; text-decoration: underline;">
+                                                                    Privacy Policy
+                                                                </a>
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <?php
+                                                $consent_data = $db->Execute("SELECT * FROM DOA_CONSENT_LOG WHERE PK_LOCATION > 0 AND PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+                                                if ($consent_data->RecordCount() > 0):
+                                                    $agreed_on = date('m/d/Y h:i A', strtotime($consent_data->fields['AGREED_ON']));
+                                                    $agreed_by = $consent_data->fields['USER_EMAIL'];
+                                                    $terms_ver = $consent_data->fields['TERMS_VERSION']; ?>
+                                                    <div style="margin-top: 24px; padding: 16px; background: #F0FDF4; border: 1px solid #A7F3D0; border-radius: 8px;">
+                                                        <p style="margin: 0; font-size: 14px; color: #065F46;">
+                                                            <i class="bi bi-shield-check"></i>
+                                                            <strong>Terms & Privacy Accepted:</strong> By <?= htmlspecialchars($agreed_by) ?> on <?= $agreed_on ?> (Terms v<?= $terms_ver ?>)
+                                                        </p>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" id="save_location_btn" class="btn-modern btn-modern-primary"
+                                                        <?php if (empty($_GET['id'])): ?>
+                                                        disabled style="opacity: 0.5; cursor: not-allowed;"
+                                                        <?php endif; ?>>
+                                                        <i class="fas fa-save"></i> <?= empty($_GET['id']) ? 'Create Location' : 'Update Location' ?>
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Operational Hours Tab -->
+                                        <div class="tab-pane-modern" id="operational_hours" role="tabpanel">
+                                            <form id="operational_hours_form" method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div style="margin-bottom: 20px;">
+                                                    <label class="checkbox-group-modern">
+                                                        <input type="checkbox" name="ALL_DAYS" onclick="applyToAllDays(this)">
+                                                        Apply to All Days
+                                                    </label>
+                                                </div>
+
+                                                <?php
+                                                $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                                $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                if ($operational_hours->RecordCount() > 0) {
+                                                    $i = 0;
+                                                    while (!$operational_hours->EOF) {
+                                                        $dayIndex = (int)$operational_hours->fields['DAY_NUMBER'] - 1;
+                                                ?>
+                                                        <div class="hours-grid">
+                                                            <div class="day-label"><?= $days[$dayIndex] ?? 'Day ' . $operational_hours->fields['DAY_NUMBER'] ?></div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                            </div>
+                                                            <label class="checkbox-group-modern closed-label">
+                                                                <input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>>
+                                                                Closed
+                                                            </label>
+                                                        </div>
+                                                    <?php
+                                                        $operational_hours->MoveNext();
+                                                        $i++;
+                                                    }
+                                                } else {
+                                                    for ($i = 1; $i <= 7; $i++) {
+                                                    ?>
+                                                        <div class="hours-grid">
+                                                            <div class="day-label"><?= $days[$i - 1] ?></div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" readonly>
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" readonly>
+                                                            </div>
+                                                            <label class="checkbox-group-modern closed-label">
+                                                                <input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)">
+                                                                Closed
+                                                            </label>
+                                                        </div>
+                                                <?php
+                                                    }
+                                                }
+                                                ?>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Hours
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Holiday List Tab -->
+                                        <div class="tab-pane-modern" id="holiday_list" role="tabpanel">
+                                            <form method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div id="holiday_list_section">
+                                                    <?php
+                                                    $holiday_list = $db->Execute("SELECT * FROM DOA_LOCATION_HOLIDAY_LIST WHERE PK_LOCATION = " . $PK_LOCATION);
+                                                    if ($holiday_list->RecordCount() > 0) {
+                                                        while (!$holiday_list->EOF) {
+                                                    ?>
+                                                            <div class="holiday-row">
+                                                                <div>
+                                                                    <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]" value="<?= date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE'])) ?>">
+                                                                </div>
+                                                                <div>
+                                                                    <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]" value="<?= htmlspecialchars($holiday_list->fields['HOLIDAY_NAME']) ?>">
+                                                                </div>
+                                                                <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
+                                                            </div>
+                                                        <?php
+                                                            $holiday_list->MoveNext();
+                                                        }
+                                                    } else {
+                                                        ?>
+                                                        <div class="holiday-row">
+                                                            <div>
+                                                                <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]">
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]">
+                                                            </div>
+                                                            <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+
+                                                <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreHoliday();" style="margin: 12px 0;">
+                                                    <i class="fas fa-plus"></i> Add More
+                                                </button>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Holidays
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='business_profile.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Customer Tab Permissions -->
+                                        <div class="tab-pane-modern" id="customer_tab_permissions" role="tabpanel">
+                                            <form method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div style="margin-bottom: 16px;">
+                                                    <div class="permission-row" style="grid-template-columns: 1fr auto; font-weight: 600; color: var(--gray-600); font-size: 13px; border-bottom: 2px solid var(--gray-200);">
+                                                        <span>Customer Tab</span>
+                                                        <span>Visible in Customer Login</span>
+                                                    </div>
+                                                    <?php
+                                                    $tab_options = [
+                                                        'Profile' => 'Profile',
+                                                        'Family' => 'Family',
+                                                        'Documents' => 'Documents',
+                                                        'Active Enrollments' => 'Active Enrollments',
+                                                        'Completed Enrollments' => 'Completed Enrollments',
+                                                        'Payment Register' => 'Payment Register',
+                                                        'Appointments' => 'Appointments',
+                                                        'For Record Only' => 'For Record Only',
+                                                        'Comments' => 'Comments',
+                                                        'Credit Card' => 'Credit Card',
+                                                        'Wallet' => 'Wallet',
+                                                        'Delete' => 'Delete'
+                                                    ];
+
+                                                    $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
+                                                    $existing_permissions = [];
+                                                    while (!$customer_tabs->EOF) {
+                                                        $existing_permissions[$customer_tabs->fields['TAB_NAME']] = $customer_tabs->fields['PERMISSION'];
+                                                        $customer_tabs->MoveNext();
+                                                    }
+
+                                                    $i = 0;
+                                                    foreach ($tab_options as $tab_key => $tab_label) {
+                                                        $is_checked = isset($existing_permissions[$tab_key]) ? ($existing_permissions[$tab_key] == 1) : true;
+                                                    ?>
+                                                        <div class="permission-row">
+                                                            <span class="tab-name"><?= htmlspecialchars($tab_label) ?></span>
+                                                            <input type="hidden" name="TAB_NAME[]" value="<?= $tab_key ?>">
+                                                            <label class="switch-modern">
+                                                                <input type="checkbox" name="PERMISSION[<?= $i ?>]" value="1" <?= $is_checked ? 'checked' : '' ?>>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </div>
+                                                    <?php
+                                                        $i++;
+                                                    }
+                                                    ?>
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Permissions
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Payment Register -->
+                                        <div class="tab-pane-modern" id="payment_register" role="tabpanel">
+                                            <div style="margin-bottom: 16px;">
+                                                <h5 style="font-weight: 600; color: var(--gray-800);">
+                                                    <i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                                    Payment History
+                                                </h5>
+                                            </div>
+                                            <div style="overflow-x: auto; width: 100%;">
+                                                <table class="table-modern" id="payment_table" style="width: 100% !important;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 20%;">Date</th>
+                                                            <th style="width: 15%;">Status</th>
+                                                            <th style="width: 15%;">Amount</th>
+                                                            <th style="width: 25%;">Info</th>
+                                                            <th style="width: 25%;">Details</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE PK_LOCATION = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
+                                                        if ($location_payments->RecordCount() > 0) {
+                                                            while (!$location_payments->EOF) {
+                                                                $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
+                                                                $payment_type = (isset($payment_info->LAST4)) ? 'Credit Card #' . $payment_info->LAST4 : $location_payments->fields['PAYMENT_INFO'];
+                                                                $statusClass = ($location_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'failed' : (($location_payments->fields['PAYMENT_STATUS'] == 'Pending') ? 'pending' : 'success');
+                                                        ?>
+                                                                <tr>
+                                                                    <td><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
+                                                                    <td><span class="status-badge <?= $statusClass ?>"><?= $location_payments->fields['PAYMENT_STATUS'] ?></span></td>
+                                                                    <td>$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
+                                                                    <td><?= htmlspecialchars($payment_type) ?></td>
+                                                                    <td><?= ($location_payments->fields['PAYMENT_FROM'] == 'corporation') ? 'Corporation' : 'Location' ?></td>
+                                                                </tr>
+                                                            <?php
+                                                                $location_payments->MoveNext();
+                                                            }
+                                                        } else {
+                                                            ?>
+                                                            <tr>
+                                                                <td colspan="5" style="text-align: center; padding: 32px; color: var(--gray-400);">No payment records found.</td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Billing Tab -->
+                                        <div class="tab-pane-modern" id="billing" role="tabpanel">
+                                            <form id="location_payment_form" method="post">
+                                                <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                                <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                <input type="hidden" class="PK_CORPORATION" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
+                                                <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+
+                                                <div class="form-grid">
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Subscription Start Date</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <?= (($SUBSCRIPTION_START_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))) : date('m/d/Y', strtotime($SUBSCRIPTION_START_DATE))) ?>
+                                                        </p>
+                                                    </div>
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Next Renewal Date</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>
+                                                        </p>
+                                                    </div>
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Status</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                                                <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px;"></i>
+                                                                <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                                            </span>
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Payment From</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= (trim($PAYMENT_FROM) == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Location
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= (trim($PAYMENT_FROM) == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Corporation
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Amount</label>
+                                                        <div style="position: relative;">
+                                                            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--gray-500);">$</span>
+                                                            <input type="text" class="form-control-modern" style="padding-left: 32px;" value="<?= number_format(($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT, 2) ?>" disabled>
+                                                            <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Payment Details -->
+                                                <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? 'block' : 'none' ?>;">
+                                                    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+                                                        <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                        <div class="form-group-modern" style="margin: 16px 0;">
+                                                            <label class="form-label">Card Details</label>
+                                                            <div id="card_div">
+                                                                <div id="card-element"></div>
+                                                                <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
+                                                            </div>
+                                                        </div>
+                                                    <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
+                                                        <input type="hidden" name="square_token" class="square_token" value="">
+                                                        <div class="form-group-modern" style="margin: 16px 0;">
+                                                            <label class="form-label">Card Details</label>
+                                                            <div id="payment-card-container" style="padding: 8px 0;"></div>
+                                                            <div id="payment-status-container"></div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    <div class="card_list_div"></div>
+                                                </div>
+
+                                                <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? 'block' : 'none' ?>; margin: 16px 0;">
+                                                    <div id="corporation_card_list"></div>
+                                                </div>
+
+                                                <div id="location_payment_status"></div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" id="location-payment-btn" class="btn-modern btn-modern-success">
+                                                        <i class="fas fa-check"></i> Process Payment
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Credit Card Tab -->
+                                        <div class="tab-pane-modern" id="credit_card" role="tabpanel">
+                                            <form id="credit_card_form" method="post">
+                                                <input type="hidden" name="PK_LOCATION" id="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                <input type="hidden" name="FROM" value="location">
+
+                                                <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+                                                    <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                    <div class="form-group-modern" style="margin: 16px 0;">
+                                                        <label class="form-label">Card Details</label>
+                                                        <div id="card_div">
+                                                            <div id="card-element"></div>
+                                                            <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
+                                                        </div>
+                                                    </div>
+                                                <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
+                                                    <input type="hidden" name="square_token" class="square_token" value="">
+                                                    <div class="form-group-modern" style="margin: 16px 0;">
+                                                        <label class="form-label">Card Details</label>
+                                                        <div id="save_card-card-container" style="padding: 8px 0;"></div>
+                                                        <div id="save_card-status-container"></div>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <div id="save_card_payment_status"></div>
+                                                <div class="card_list_div" style="margin: 16px 0;"></div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" id="save_card-pay-button" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Card
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Concierge Setting Tab -->
+                                        <div class="tab-pane-modern" id="concierge" role="tabpanel">
+                                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveConciergeSetting">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+
+
+                                                <!-- Welcome Message -->
+                                                <div class="row">
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Welcome Message <span class="required">*</span></label>
+                                                        <input type="text" name="WELCOME_MESSAGE" class="form-control-modern" placeholder="Enter Welcome Message" required value="<?php echo htmlspecialchars($WELCOME_MESSAGE) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-2">
+                                                        <label class="form-label">Avatar Emoji</label>
+                                                        <input type="text" name="AVATAR_EMOJI" class="form-control-modern" placeholder="Enter Avatar Emoji" value="<?php echo htmlspecialchars($AVATAR_EMOJI) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-2">
+                                                        <label class="form-label">Primary Color</label>
+                                                        <input type="color" name="PRIMARY_COLOR" class="form-control-modern" placeholder="Enter Primary Color" value="<?php echo htmlspecialchars($PRIMARY_COLOR) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Tags</label>
+                                                        <select name="PK_TAG" class="form-control-modern">
+                                                            <option value="">Select Tag</option>
+                                                            <?php $tag_data = $db_account->Execute("SELECT * FROM DOA_TAG WHERE ACTIVE = 1");
+                                                            $tag_options = '';
+                                                            while (!$tag_data->EOF) {
+                                                                $tag_options .= '<option value="' . $tag_data->fields['PK_TAG'] . '" ' . ($tag_data->fields['PK_TAG'] == $PK_TAG ? 'selected' : '') . '>' . $tag_data->fields['TAG_NAME'] . '</option>';
+                                                                $tag_data->MoveNext();
+                                                            }
+                                                            echo $tag_options;
+                                                            ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+
+
+                                                <!-- Booking Periods Section -->
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px;">Booking Periods</div>
+
+                                                <!-- Booking Periods Grid -->
+                                                <div class="row" style="padding: 10px 0">
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_MORNING" id="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning (05:00 AM - 09:59 AM)
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_AFTERNOON" id="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon (12:00 PM - 04:59 PM)
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_EVENING" id="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening (05:00 PM - 08:59 PM)
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_NIGHT" id="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 AM)
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Service Providers Section -->
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px;">Service Providers</div>
+
+                                                <!-- Service Providers Grid -->
+                                                <div class="service-providers-grid row">
+                                                    <!-- Morning -->
+                                                    <div class="provider-group col-3">
+                                                        <label class="provider-label">Morning</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_MORNING[]" id="PK_USER_MORNING" multiple>
+                                                            <?php
+                                                            $selected_morning = !empty($PK_USER_MORNING) ? explode(',', $PK_USER_MORNING) : array();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_morning)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Afternoon -->
+                                                    <div class="provider-group col-3">
+                                                        <label class="provider-label">Afternoon</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" id="PK_USER_AFTERNOON" multiple>
+                                                            <?php
+                                                            $selected_afternoon = !empty($PK_USER_AFTERNOON) ? explode(',', $PK_USER_AFTERNOON) : array();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_afternoon)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Evening -->
+                                                    <div class="provider-group col-3">
+                                                        <label class="provider-label">Evening</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_EVENING[]" id="PK_USER_EVENING" multiple>
+                                                            <?php
+                                                            $selected_evening = !empty($PK_USER_EVENING) ? explode(',', $PK_USER_EVENING) : array();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_evening)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Night -->
+                                                    <div class="provider-group col-3">
+                                                        <label class="provider-label">Night</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_NIGHT[]" id="PK_USER_NIGHT" multiple>
+                                                            <?php
+                                                            $selected_night = !empty($PK_USER_NIGHT) ? explode(',', $PK_USER_NIGHT) : array();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_night)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-grid-modern mt-3">
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Concierge Script</label>
+                                                        <?php
+                                                        $conciergeScript = ($CONCIERGE_SCRIPT == '')
+                                                            ? '<script src="http://52.36.228.0/chatbot/chatbot-location-loader.js" data-account="' . $PK_ACCOUNT_MASTER . '" data-location="' . $LOCATION_CODE . '"></script>'
+                                                            : $CONCIERGE_SCRIPT;
+                                                        ?>
+                                                        <input type="text" class="form-control-modern" name="CONCIERGE_SCRIPT" value="<?= htmlspecialchars($conciergeScript, ENT_QUOTES, 'UTF-8') ?>">
+                                                    </div>
+                                                </div>
+
+
+                                                <!-- Offering Section -->
+                                                <div class="offering-card">
+                                                    <div class="offering-header">
+                                                        <div class="offering-title">
+                                                            <i class="bi bi-box-seam" style="color: var(--primary-color); font-size:18px;"></i>
+                                                            Offering
+                                                        </div>
+                                                        <div class="offering-sub">Configure the concierge offerings shown to customers</div>
+                                                    </div>
+
+                                                    <div class="offering-body">
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Offering Label</label>
+                                                                <input type="text" name="OFFERING_LABEL" class="form-control-modern" placeholder="Enter Offering Name" required value="<?php echo htmlspecialchars($OFFERING_LABEL) ?>">
+                                                            </div>
+
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Offering Type</label>
+                                                                <input type="text" name="OFFERING_TYPE" class="form-control-modern" placeholder="Enter Offering Type" value="<?php echo htmlspecialchars($OFFERING_TYPE) ?>">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="service-table-wrapper" style="margin-top:12px; padding:12px 16px;">
+                                                            <!-- Table Header -->
+                                                            <div class="table-header">
+                                                                <span>Offerings</span>
+                                                                <span>Description</span>
+                                                                <span></span>
+                                                            </div>
+
+                                                            <!-- Service Rows -->
+                                                            <div id="append_service_div">
+                                                                <?php
+                                                                $offering_data = $db->Execute("SELECT * FROM DOA_LOCATION_OFFERINGS WHERE PK_LOCATION = '$PK_LOCATION'");
+                                                                if ($offering_data->RecordCount() > 0) {
+                                                                    while (!$offering_data->EOF) { ?>
+                                                                        <div class="service-row row from-grid-modern">
+                                                                            <div class="col-3">
+                                                                                <input type="text" class="form-control-modern OFFERING" name="OFFERING[]" value="<?= htmlspecialchars($offering_data->fields['OFFERING']) ?>">
+                                                                            </div>
+                                                                            <div class="col-7">
+                                                                                <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]" value="<?= htmlspecialchars($offering_data->fields['DESCRIPTION']) ?>">
+                                                                            </div>
+                                                                            <div class="col-1">
+                                                                                <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php $offering_data->MoveNext();
+                                                                    }
+                                                                } else { ?>
+                                                                    <div class="service-row row from-grid-modern">
+                                                                        <div class="col-3">
+                                                                            <input type="text" class="form-control-modern OFFERING" name="OFFERING[]">
+                                                                        </div>
+                                                                        <div class="col-7">
+                                                                            <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]">
+                                                                        </div>
+                                                                        <div class="col-1">
+                                                                            <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Action Row -->
+                                                        <div class="action-row" style="margin-top:12px;">
+                                                            <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreOffering();">
+                                                                <i class="fas fa-plus"></i> Add More
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+
+
+
+                                        <!-- FAQ Setting Tab -->
+                                        <div class="tab-pane-modern" id="faq" role="tabpanel">
+                                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveFAQSetting">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div class="card-body">
+                                                    <div class="offering-card">
+                                                        <div class="offering-body service-table-wrapper">
+                                                            <!-- FAQ Rows -->
+                                                            <div id="append_faq_div">
+                                                                <?php
+                                                                $faq_data = $db->Execute("SELECT * FROM DOA_LOCATION_FAQ WHERE PK_LOCATION = $PK_LOCATION");
+                                                                if ($faq_data->RecordCount() > 0) {
+                                                                    while (!$faq_data->EOF) { ?>
+                                                                        <div class="service-row row from-grid-modern">
+                                                                            <div class="form-group-modern col-4">
+                                                                                <label class="form-label">Question <span class="required">*</span></label>
+                                                                                <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required value="<?= $faq_data->fields['QUESTION'] ?>">
+                                                                            </div>
+                                                                            <div class="form-group-modern col-6">
+                                                                                <label class="form-label">Answer <span class="required">*</span></label>
+                                                                                <input type="text" class="form-control-modern ANSWER" name="ANSWER[]" required value="<?= $faq_data->fields['ANSWER'] ?>">
+                                                                            </div>
+                                                                            <div class="col-1">
+                                                                                <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php $faq_data->MoveNext();
+                                                                    }
+                                                                } else { ?>
+                                                                    <div class="service-row row from-grid-modern">
+                                                                        <div class="form-group-modern col-4">
+                                                                            <label class="form-label">Question <span class="required">*</span></label>
+                                                                            <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required>
+                                                                        </div>
+                                                                        <div class="form-group-modern col-6">
+                                                                            <label class="form-label">Answer <span class="required">*</span></label>
+                                                                            <input type="text" class="form-control-modern ANSWER" name="ANSWER[]">
+                                                                        </div>
+                                                                        <div class="col-1">
+                                                                            <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                            <!-- Action Row -->
+                                                            <div class="action-row" style="margin-top:12px;">
+                                                                <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreFAQ();">
+                                                                    <i class="fas fa-plus"></i> Add More
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Form Actions -->
+                                                    <div class="form-actions">
+                                                        <button type="submit" class="btn-modern btn-modern-primary">
+                                                            <i class="fas fa-save"></i> Continue
+                                                        </button>
+                                                        <button type="button" id="cancel_button" class="btn-modern btn-modern-secondary">
+                                                            <i class="fas fa-times"></i> Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Help Sidebar -->
+                            <div>
+                                <div class="help-card">
+                                    <div class="help-icon">
+                                        <i class="fas fa-question"></i>
+                                    </div>
+                                    <h5><?= $help_title ?></h5>
+                                    <p><?= $help_description ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms & Conditions Modal -->
+        <div id="termsModal" class="terms-modal-overlay" style="display: none;">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h5><i class="bi bi-file-earmark-text"></i> Terms of Use and Service Agreement</h5>
+                    <button type="button" class="terms-modal-close" onclick="closeTermsModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="terms-modal-body" id="terms-modal-body">
+                    <div class="terms-loading">
+                        <i class="bi bi-arrow-repeat"></i> Loading Terms and Conditions…
+                    </div>
+                </div>
+                <div class="terms-modal-footer">
+                    <button type="button" class="btn-modern btn-modern-secondary" onclick="closeTermsModal()">Close</button>
+                    <button type="button" class="btn-modern btn-modern-primary" onclick="acceptTermsFromModal()">
+                        <i class="bi bi-check-lg"></i> I Agree
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Policy Modal -->
+        <div id="privacyModal" class="terms-modal-overlay" style="display: none;">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h5><i class="bi bi-shield-lock"></i> Privacy Policy</h5>
+                    <button type="button" class="terms-modal-close" onclick="closePrivacyModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="terms-modal-body" id="privacy-modal-body">
+                    <div class="terms-loading">
+                        <i class="bi bi-arrow-repeat"></i> Loading Privacy Policy…
+                    </div>
+                </div>
+                <div class="terms-modal-footer">
+                    <button type="button" class="btn-modern btn-modern-secondary" onclick="closePrivacyModal()">Close</button>
+                    <button type="button" class="btn-modern btn-modern-primary" onclick="closePrivacyModal()">
+                        <i class="bi bi-check-lg"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <?php require_once('../includes/footer.php'); ?>
+
+        <script>
+            $('.multi_sumo_select').SumoSelect({
+                "okCancelInMulti": false,
+                "search": true,
+                "searchText": 'Search here.',
+                "placeholder": 'Select',
+                "selectAll": true,
+                "csvDispCount": 3,
+                "captionFormat": '{0} Selected',
+                "captionFormatAllSelected": 'All Selected.',
+
+            });
+
+            // Initialize DataTable with proper settings
+            $(document).ready(function() {
+                // Check if table has data before initializing
+                if ($('#payment_table tbody tr').length > 0) {
+                    // Use retrieve: true to prevent re-initialization errors
+                    $('#payment_table').DataTable({
+                        retrieve: true,
+                        order: [
+                            [0, 'desc']
+                        ],
+                        columnDefs: [{
+                            type: 'date',
+                            targets: 0
+                        }],
+                        pageLength: 10,
+                        responsive: true,
+                        autoWidth: false,
+                        scrollX: true,
+                        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                            '<"row"<"col-sm-12"tr>>' +
+                            '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                        language: {
+                            emptyTable: "No payment records found."
+                        }
+                    });
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane-modern').forEach(p => p.classList.remove('active'));
+
+                    this.classList.add('active');
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                });
+            });
+
+            // Datepicker
+            $('.datepicker-normal').datepicker({
+                format: 'mm/dd/yyyy',
+            });
+
+            // Timepicker
+            $('.time-picker').timepicker({
+                timeFormat: 'hh:mm p',
+                interval: 30,
+                dynamic: false,
+                dropdown: true,
+                scrollbar: true
+            });
+
+            function closeThisDay(param) {
+                const row = param.closest('.hours-grid');
+                const inputs = row.querySelectorAll('.time-picker');
+                if (param.checked) {
+                    inputs.forEach(input => {
+                        input.value = '';
+                        input.style.pointerEvents = 'none';
+                    });
+                } else {
+                    inputs.forEach(input => {
+                        input.style.pointerEvents = '';
+                    });
+                }
+            }
+
+            function applyToAllDays(param) {
+                const openTimes = document.querySelectorAll('.OPEN_TIME');
+                const closeTimes = document.querySelectorAll('.CLOSE_TIME');
+                if (param.checked) {
+                    const firstOpen = openTimes[0]?.value || '';
+                    const firstClose = closeTimes[0]?.value || '';
+                    openTimes.forEach((el, i) => {
+                        if (i > 0) el.value = firstOpen;
+                    });
+                    closeTimes.forEach((el, i) => {
+                        if (i > 0) el.value = firstClose;
+                    });
+                } else {
+                    openTimes.forEach((el, i) => {
+                        if (i > 0) el.value = '';
+                    });
+                    closeTimes.forEach((el, i) => {
+                        if (i > 0) el.value = '';
+                    });
+                }
+            }
+
+            function fetch_state(PK_COUNTRY) {
+                const data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+                $.ajax({
+                    url: "ajax/state.php",
+                    type: "POST",
+                    data: data,
+                    success: function(result) {
+                        document.getElementById('State_div').innerHTML = result;
+                    }
+                });
+            }
+
+            function showPaymentGateway(radio) {
+                // Hide all payment gateway divs
+                const gatewayDivs = ['stripe', 'square', 'authorized', 'Clover', 'None'];
+                gatewayDivs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.display = 'none';
+                    }
+                });
+
+                // Show the selected one based on radio value
+                const value = radio.value;
+                let targetId = '';
+
+                if (value === 'Stripe') {
+                    targetId = 'stripe';
+                } else if (value === 'Square') {
+                    targetId = 'square';
+                } else if (value === 'Authorized.net') {
+                    targetId = 'authorized';
+                } else if (value === 'Clover') {
+                    targetId = 'Clover';
+                } else if (value === 'None') {
+                    targetId = 'None';
+                }
+
+                if (targetId) {
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.style.display = 'grid';
+                    }
+                }
+            }
+
+            function showTwilioSetting(radio) {
+                const div = document.getElementById('twilio_setting_div');
+                if (radio.value == '1') {
+                    div.style.display = 'grid';
+                } else {
+                    div.style.display = 'none';
+                }
+            }
+
+            function showArthurMurraySetup(radio) {
+                const div = document.getElementById('arthur_murray_setup');
+                if (radio.value == '1') {
+                    div.style.display = 'block';
+                } else {
+                    div.style.display = 'none';
+                }
+            }
+
+            function showHourBox(radio) {
+                const box = document.getElementById('hour_box');
+                if (radio.value == '1') {
+                    box.style.display = 'block';
+                } else {
+                    box.style.display = 'none';
+                }
+            }
+
+            function addMoreHoliday() {
+                const section = document.getElementById('holiday_list_section');
+                const row = document.createElement('div');
+                row.className = 'holiday-row';
+                row.innerHTML = `
+                <div><input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]"></div>
+                <div><input type="text" class="form-control-modern" name="HOLIDAY_NAME[]"></div>
+                <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
+            `;
+                section.appendChild(row);
+                $('.datepicker-normal').datepicker({
+                    format: 'mm/dd/yyyy',
+                });
+            }
+
+            function removeThis(el) {
+                el.closest('.holiday-row').remove();
+            }
+
+            function changePaymentFrom(param) {
+                const paymentDetails = document.getElementById('payment_details_div');
+                const corporationCard = document.getElementById('corporation_card_div');
+                if (param.value == 'corporation') {
+                    paymentDetails.style.display = 'none';
+                    corporationCard.style.display = 'block';
+                    getCorporationSavedCreditCardList();
+                } else {
+                    paymentDetails.style.display = 'block';
+                    corporationCard.style.display = 'none';
+                    getSavedCreditCardList('payment');
+                }
+            }
+
+            function getSavedCreditCardList(type) {
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+                if (gateway == 'Square') {
+                    squarePaymentFunction(type);
+                } else if (gateway == 'Stripe') {
+                    stripePaymentFunction(type);
+                }
+                $.ajax({
+                    url: "ajax/get_credit_card_list_from_master.php",
+                    type: 'POST',
+                    data: {
+                        PK_VALUE: '<?= $PK_LOCATION ?>',
+                        class: 'location'
+                    },
+                    success: function(data) {
+                        document.querySelectorAll('.card_list_div').forEach(el => {
+                            el.style.display = 'block';
+                            el.innerHTML = data;
+                        });
+                    }
+                });
+            }
+
+            function getCorporationSavedCreditCardList() {
+                $.ajax({
+                    url: "ajax/get_credit_card_list_from_master.php",
+                    type: 'POST',
+                    data: {
+                        PK_VALUE: '<?= $PK_CORPORATION ?>',
+                        class: 'corporation'
+                    },
+                    success: function(data) {
+                        const div = document.getElementById('corporation_card_list');
+                        div.style.display = 'block';
+                        div.innerHTML = data;
+                    }
+                });
+            }
+
+            // Init
+            $(document).ready(function() {
+                fetch_state(<?= $PK_COUNTRY; ?>);
+                const checkedPaymentFrom = document.querySelector('.PAYMENT_FROM:checked');
+                if (checkedPaymentFrom) {
+                    changePaymentFrom(checkedPaymentFrom);
+                }
+            });
+        </script>
+
+        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+            <script src="https://js.stripe.com/v3/"></script>
+            <script>
+                const stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
+                const elements = stripe.elements();
+
+                const style = {
+                    base: {
+                        fontSize: '14px',
+                        color: '#1F2937',
+                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                        '::placeholder': {
+                            color: '#9CA3AF'
+                        }
+                    },
+                    invalid: {
+                        color: '#EF4444',
+                        iconColor: '#EF4444'
+                    }
+                };
+
+                const stripe_card = elements.create('card', {
+                    style: style
+                });
+
+                function stripePaymentFunction(type) {
+                    if (document.getElementById('card-element')) {
+                        stripe_card.mount('#card-element');
+                    }
+                    stripe_card.addEventListener('change', function(event) {
+                        const displayError = document.getElementById('card-errors');
+                        if (event.error) {
+                            displayError.textContent = event.error.message;
+                        } else {
+                            displayError.textContent = '';
+                            addStripeTokenOnForm();
+                        }
+                    });
+                }
+
+                function addStripeTokenOnForm() {
+                    stripe.createToken(stripe_card).then(function(result) {
+                        if (result.error) {
+                            const errorElement = document.getElementById('card-errors');
+                            errorElement.textContent = result.error.message;
+                        } else {
+                            document.getElementById('stripe_token').value = result.token.id;
+                        }
+                    });
+                }
+            </script>
+        <?php endif; ?>
+
+        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Square'):
+            if ($SA_GATEWAY_MODE == 'live')
+                $URL = "https://web.squarecdn.com/v1/square.js";
+            else
+                $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+        ?>
+            <script src="<?= $URL ?>"></script>
+            <script>
+                let square_card;
+
+                async function squarePaymentFunction(type) {
+                    const square_appId = '<?= $SA_SQUARE_APP_ID ?>';
+                    const square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
+                    const payments = Square.payments(square_appId, square_locationId);
+                    square_card = await payments.card();
+                    const container = document.getElementById(type + '-card-container');
+                    if (container) {
+                        container.innerHTML = '';
+                        await square_card.attach('#' + type + '-card-container');
+                    }
+                }
+
+                // Returns true if a token was generated, false otherwise
+                async function addSquareTokenOnForm(type) {
+                    const statusContainer = document.getElementById(type + '-status-container');
+                    if (statusContainer) statusContainer.innerHTML = '';
+
+                    try {
+                        if (!square_card) {
+                            throw new Error('Card form is not loaded. Please refresh the page and try again.');
+                        }
+
+                        const result = await square_card.tokenize();
+
+                        if (result.status === 'OK' && result.token) {
+                            document.querySelectorAll('.square_token').forEach(el => el.value = result.token);
+                            return true;
+                        }
+
+                        // Build a user-friendly message from Square's errors
+                        let message = 'Please enter valid card details.';
+                        if (result.errors && result.errors.length) {
+                            message = result.errors.map(e => e.message).join(' ');
+                        }
+                        throw new Error(message);
+                    } catch (e) {
+                        console.error(e);
+                        if (statusContainer) {
+                            statusContainer.innerHTML = `<p class="alert-modern error">Payment Failed: ${e.message}</p>`;
+                        }
+                        return false;
+                    }
+                }
+            </script>
+        <?php endif; ?>
+
+        <script>
+            function getPaymentMethodId(param) {
+                $('.credit-card-div').css("opacity", "1");
+                document.querySelectorAll('.credit-card-item').forEach(el => el.classList.remove('selected'));
+                param.closest('.credit-card-item')?.classList.add('selected');
+                document.getElementById('PAYMENT_METHOD_ID').value = param.getAttribute('id') || '';
+                $(param).css("opacity", "0.6");
+            }
+
+            function resetLocationPaymentButton() {
+                const btn = document.getElementById('location-payment-btn');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Process Payment';
+            }
+
+            $(document).on('submit', '#location_payment_form', async function(event) {
+                event.preventDefault();
+
+                const btn = document.getElementById('location-payment-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+
+                if (gateway == 'Square') {
+                    const methodId = document.getElementById('PAYMENT_METHOD_ID').value;
+
+                    // Only tokenize when no saved payment method is selected
+                    if (!methodId) {
+                        const tokenOk = await addSquareTokenOnForm('payment');
+                        if (!tokenOk) {
+                            resetLocationPaymentButton();
+                            return; // STOP: do not submit the form
+                        }
+                    }
+                }
+
+                submitLocationPaymentForm();
+            });
+
+            function submitLocationPaymentForm() {
+                const form_data = $('#location_payment_form').serialize();
+                $.ajax({
+                    url: "includes/process_location_payment.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        const statusDiv = document.getElementById('location_payment_status');
+                        if (data.STATUS === 'Failed') {
+                            statusDiv.innerHTML = `<p class="alert-modern error">${data.PAYMENT_INFO}</p>`;
+                            resetLocationPaymentButton();
+                        } else {
+                            statusDiv.innerHTML = `<p class="alert-modern success">Payment Successful, page will refresh automatically.</p>`;
+                            setTimeout(() => location.reload(), 3000);
+                        }
+                    },
+                    error: function() {
+                        const statusDiv = document.getElementById('location_payment_status');
+                        statusDiv.innerHTML = `<p class="alert-modern error">Something went wrong. Please try again.</p>`;
+                        resetLocationPaymentButton();
+                    }
+                });
+            }
+
+            function resetSaveCardButton() {
+                const btn = document.getElementById('save_card-pay-button');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Card';
+            }
+
+            $(document).on('submit', '#credit_card_form', async function(event) {
+                event.preventDefault();
+
+                const btn = document.getElementById('save_card-pay-button');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+
+                if (gateway == 'Square') {
+                    const tokenOk = await addSquareTokenOnForm('save_card');
+                    if (!tokenOk) {
+                        resetSaveCardButton();
+                        return; // STOP: do not submit the form
+                    }
+                }
+
+                submitCreditCardForm();
+            });
+
+            function submitCreditCardForm() {
+                const form_data = $('#credit_card_form').serialize();
+                $.ajax({
+                    url: "includes/save_corporation_credit_card.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        const statusDiv = document.getElementById('save_card_payment_status');
+                        if (data.STATUS == false) {
+                            statusDiv.innerHTML = `<p class="alert-modern error">${data.MESSAGE}</p>`;
+                            resetSaveCardButton();
+                        } else {
+                            statusDiv.innerHTML = `<p class="alert-modern success">Credit Card Successfully Saved.</p>`;
+                            setTimeout(() => location.reload(), 3000);
+                        }
+                    },
+                    error: function() {
+                        const statusDiv = document.getElementById('save_card_payment_status');
+                        statusDiv.innerHTML = `<p class="alert-modern error">Something went wrong. Please try again.</p>`;
+                        resetSaveCardButton();
+                    }
+                });
+            }
+
+            $('#payment_table').DataTable({
+                order: [
+                    [0, 'desc']
+                ],
+                columnDefs: [{
+                    type: 'date',
+                    targets: 0
+                }],
+                pageLength: 10,
+                responsive: true
+            });
+        </script>
+
+        <!-- Location Form AJAX -->
+        <script>
+            $(document).on('submit', '#location_form', function(event) {
+
+                // Consent check only when the checkbox exists (create mode)
+                const checkbox = document.getElementById('location_terms_checkbox');
+                if (checkbox && !checkbox.checked) {
+                    event.preventDefault();
+                    alert('Please agree to the Terms and Conditions before saving.');
+                    return false;
+                }
+
+                event.preventDefault();
+
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const form_data = new FormData(this);
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            document.querySelectorAll('input[name="PK_LOCATION"]').forEach(el => el.value = response.PK_LOCATION);
+                            if (window.location.href.indexOf('id=') === -1 && response.PK_LOCATION) {
+                                document.querySelector('[data-tab="operational_hours"]')?.click();
+                            } else {
+                                window.location.href = 'location.php?id=' + response.PK_LOCATION;
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Failed to save location',
+                                confirmButtonColor: '#39B54A'
+                            });
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while saving the location.',
+                            confirmButtonColor: '#39B54A'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
+            });
+        </script>
+
+        <!-- Operational Hours AJAX -->
+        <script>
+            $(document).on('submit', '#operational_hours_form', function(event) {
+                event.preventDefault();
+
+                let isValid = true;
+                let errorMessage = '';
+
+                document.querySelectorAll('.hours-grid').forEach(row => {
+                    const isClosed = row.querySelector('input[type="checkbox"]')?.checked;
+                    const openTime = row.querySelector('.OPEN_TIME')?.value;
+                    const closeTime = row.querySelector('.CLOSE_TIME')?.value;
+
+                    if (!isClosed) {
+                        if (!openTime || openTime === '') {
+                            isValid = false;
+                            errorMessage = 'Please select open time for all days (or mark as closed)';
+                            row.querySelector('.OPEN_TIME')?.classList.add('is-invalid');
+                        } else {
+                            row.querySelector('.OPEN_TIME')?.classList.remove('is-invalid');
+                        }
+                        if (!closeTime || closeTime === '') {
+                            isValid = false;
+                            errorMessage = 'Please select close time for all days (or mark as closed)';
+                            row.querySelector('.CLOSE_TIME')?.classList.add('is-invalid');
+                        } else {
+                            row.querySelector('.CLOSE_TIME')?.classList.remove('is-invalid');
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validation Error',
+                        text: errorMessage,
+                        confirmButtonColor: '#39B54A'
+                    });
+                    return;
+                }
+
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const form_data = $(this).serialize();
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            window.location.href = 'all_locations.php';
+                        } else {
+                            alert('Error: ' + (response.message || 'Failed to save operational hours'));
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while saving operational hours.');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            $(document).ready(function() {
+
+                function toggleProvider(checkboxId, selectId) {
+                    if ($(checkboxId).is(':checked')) {
+                        $(selectId).prop('disabled', false);
+                    } else {
+                        $(selectId).prop('disabled', true);
+                    }
+
+                    // Refresh SumoSelect
+                    if ($(selectId)[0].sumo) {
+                        $(selectId)[0].sumo.reload();
+                    }
+                }
+
+                // Initial state
+                toggleProvider('#IS_MORNING', '#PK_USER_MORNING');
+                toggleProvider('#IS_AFTERNOON', '#PK_USER_AFTERNOON');
+                toggleProvider('#IS_EVENING', '#PK_USER_EVENING');
+                toggleProvider('#IS_NIGHT', '#PK_USER_NIGHT');
+
+                // On checkbox change
+                $('#IS_MORNING').change(function() {
+                    toggleProvider('#IS_MORNING', '#PK_USER_MORNING');
+                });
+
+                $('#IS_AFTERNOON').change(function() {
+                    toggleProvider('#IS_AFTERNOON', '#PK_USER_AFTERNOON');
+                });
+
+                $('#IS_EVENING').change(function() {
+                    toggleProvider('#IS_EVENING', '#PK_USER_EVENING');
+                });
+
+                $('#IS_NIGHT').change(function() {
+                    toggleProvider('#IS_NIGHT', '#PK_USER_NIGHT');
+                });
+
+            });
+
+            function addMoreOffering() {
+                $('#append_service_div').append(`<div class="service-row row from-grid-modern">
+                                                <div class="col-3">
+                                                    <input type="text" class="form-control-modern OFFERING" name="OFFERING[]">
+                                                </div>
+                                                <div class="col-7">
+                                                    <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]">
+                                                </div>
+                                                <div class="col-1">
+                                                    <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>`);
+            }
+
+            function removeThisServiceProvider(param) {
+                $(param).closest('.service-row').remove();
+            }
+
+            function addMoreFAQ() {
+                $('#append_faq_div').append(`<div class="service-row row from-grid-modern">
+                                                <div class="form-group-modern col-4">
+                                                    <label class="form-label">Question <span class="required">*</span></label>
+                                                    <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required>
+                                                </div>
+                                                <div class="form-group-modern col-6">
+                                                    <label class="form-label">Answer <span class="required">*</span></label>
+                                                    <input type="text" class="form-control-modern ANSWER" name="ANSWER[]">
+                                                </div>
+                                                <div class="col-1">
+                                                    <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>`);
+            }
+
+            function removeThisFAQ(param) {
+                $(param).closest('.service-row').remove();
+            }
+
+            let smtpTestInProgress = false; // guard flag to prevent double clicks
+
+            function testSmtpSetting() {
+                if (smtpTestInProgress) return; // ignore clicks while already running
+
+                const host = $('#SMTP_HOST').val();
+                const port = $('#SMTP_PORT').val();
+                const username = $('#SMTP_USERNAME').val();
+                const password = $('#SMTP_PASSWORD').val();
+
+                if (!host || !port || !username || !password) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validation Error',
+                        text: 'Please fill in all fields.',
+                        confirmButtonColor: '#39B54A'
+                    });
+                    return;
+                }
+
+                const data = {
+                    HOST: host,
+                    PORT: port,
+                    USERNAME: username,
+                    PASSWORD: password,
+                    FUNCTION_NAME: 'testSmtpSetting'
+                };
+
+                const $btn = $('#test-smtp-btn');
+                const originalHtml = $btn.html();
+
+                // Simulate disabled state for an <a> tag
+                smtpTestInProgress = true;
+                $btn.addClass('disabled')
+                    .css('pointer-events', 'none')
+                    .attr('aria-disabled', 'true')
+                    .html('<span class="btn-spinner"></span> Testing...');
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: data,
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Details',
+                            html: response,
+                            confirmButtonColor: '#39B54A'
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            html: '<p>An error occurred while testing SMTP settings.</p>',
+                            confirmButtonColor: '#39B54A'
+                        });
+                    },
+                    complete: function() {
+                        smtpTestInProgress = false;
+                        $btn.removeClass('disabled')
+                            .css('pointer-events', '')
+                            .removeAttr('aria-disabled')
+                            .html(originalHtml);
+                    }
+                });
+            }
+
+            $(document).on('click', '.ENABLE_SALES_TAX', function() {
+                if ($(this).is(':checked') && $(this).val() === '1') {
+                    $('#SALES_TAX').attr('disabled', false);
+                    $('#sales_tax_div').slideDown();
+                } else {
+                    $('#SALES_TAX').attr('disabled', true);
+                    $('#sales_tax_div').slideUp();
+                }
+            });
+
+            // Enable the Create button only when the consent checkbox is checked
+            $(document).on('change', '#location_terms_checkbox', function() {
+                const btn = document.getElementById('save_location_btn');
+                if (!btn) return;
+                if (this.checked) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        </script>
+        <script>
+            /* ---------- Terms & Privacy Modal logic ---------- */
+
+            // Terms modal
+            let _termsLoaded = false;
+            let _termsLoading = false;
+
+            function openTermsModal(e) {
+                if (e) e.preventDefault();
+                const modal = document.getElementById('termsModal');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                if (_termsLoaded || _termsLoading) return;
+                _termsLoading = true;
+
+                const body = document.getElementById('terms-modal-body');
+                fetch('terms.php', {
+                        credentials: 'same-origin'
+                    })
+                    .then(r => r.text())
+                    .then(html => {
+                        const match = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
+                        body.innerHTML = match ? match[1] : html;
+
+                        const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                        if (styleMatch && !document.getElementById('terms-inline-styles')) {
+                            const styleEl = document.createElement('style');
+                            styleEl.id = 'terms-inline-styles';
+                            styleEl.innerHTML = styleMatch[1];
+                            document.head.appendChild(styleEl);
+                        }
+
+                        // Re-wire the sticky nav inside the modal
+                        body.querySelectorAll('.terms-nav a').forEach(a => {
+                            a.addEventListener('click', ev => {
+                                const target = body.querySelector(a.getAttribute('href'));
+                                if (!target) return;
+                                ev.preventDefault();
+                                target.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            });
+                        });
+
+                        _termsLoaded = true;
+                        _termsLoading = false;
+                    })
+                    .catch(() => {
+                        body.innerHTML = '<p style="padding:24px;color:#991B1B;">Unable to load Terms. Please try again.</p>';
+                        _termsLoading = false;
+                    });
+            }
+
+            function closeTermsModal() {
+                document.getElementById('termsModal').style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            function acceptTermsFromModal() {
+                const cb = document.getElementById('location_terms_checkbox');
+                if (cb) {
+                    cb.checked = true;
+                    $(cb).trigger('change');
+                }
+                closeTermsModal();
+            }
+
+            // Privacy modal
+            let _privacyLoaded = false;
+            let _privacyLoading = false;
+
+            function openPrivacyModal(e) {
+                if (e) e.preventDefault();
+                const modal = document.getElementById('privacyModal');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                if (_privacyLoaded || _privacyLoading) return;
+                _privacyLoading = true;
+
+                const body = document.getElementById('privacy-modal-body');
+                fetch('privacy.php', {
+                        credentials: 'same-origin'
+                    })
+                    .then(r => r.text())
+                    .then(html => {
+                        const match = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
+                        body.innerHTML = match ? match[1] : html;
+
+                        const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                        if (styleMatch && !document.getElementById('privacy-inline-styles')) {
+                            const styleEl = document.createElement('style');
+                            styleEl.id = 'privacy-inline-styles';
+                            styleEl.innerHTML = styleMatch[1];
+                            document.head.appendChild(styleEl);
+                        }
+
+                        body.querySelectorAll('.privacy-nav a').forEach(a => {
+                            a.addEventListener('click', ev => {
+                                const target = body.querySelector(a.getAttribute('href'));
+                                if (!target) return;
+                                ev.preventDefault();
+                                target.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            });
+                        });
+
+                        _privacyLoaded = true;
+                        _privacyLoading = false;
+                    })
+                    .catch(() => {
+                        body.innerHTML = '<p style="padding:24px;color:#991B1B;">Unable to load Privacy Policy. Please try again.</p>';
+                        _privacyLoading = false;
+                    });
+            }
+
+            function closePrivacyModal() {
+                document.getElementById('privacyModal').style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            // Overlay-click and ESC close
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'termsModal') closeTermsModal();
+                if (e.target && e.target.id === 'privacyModal') closePrivacyModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                const t = document.getElementById('termsModal');
+                const p = document.getElementById('privacyModal');
+                if (e.key === 'Escape') {
+                    if (t && t.style.display === 'flex') closeTermsModal();
+                    if (p && p.style.display === 'flex') closePrivacyModal();
+                }
+            });
+        </script>
+
+</body>
+
+</html>

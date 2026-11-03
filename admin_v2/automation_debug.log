@@ -1,0 +1,196 @@
+2026-06-05 19:12:32 - POST Data:
+Array
+(
+    [TITLE] => Trial Class Follow Up
+    [IS_ACTIVE] => 1
+    [TRIGGER_TYPE] => customer_completes_class
+    [TRIGGER_VALUE] => trial_class
+    [CONDITION_TYPE] => customer_not_purchased_contract
+    [START_REMINDER_VALUE] => 3
+    [START_REMINDER_UNIT] => Days
+    [MAX_REMINDERS] => 5
+    [SCHEDULE_TYPE] => custom
+    [NOTIFY_SERVICE_PROVIDER] => 1
+    [NOTIFY_STUDIO_MANAGER] => 1
+)
+
+
+Array
+(
+    [post_data] => Array
+        (
+            [TITLE] => Trial Class Follow Up
+            [IS_ACTIVE] => 1
+            [TRIGGER_TYPE] => customer_completes_class
+            [TRIGGER_VALUE] => trial_class
+            [CONDITION_TYPE] => customer_not_purchased_contract
+            [START_REMINDER_VALUE] => 3
+            [START_REMINDER_UNIT] => Days
+            [MAX_REMINDERS] => 5
+            [SCHEDULE_TYPE] => custom
+            [NOTIFY_SERVICE_PROVIDER] => 1
+            [NOTIFY_STUDIO_MANAGER] => 1
+        )
+
+    [reminders_json] => 
+    [messages_json] => 
+)
+Insert result: success, ID: 17
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => TITLE
+    [1] => IS_ACTIVE
+    [2] => TRIGGER_TYPE
+    [3] => TRIGGER_VALUE
+    [4] => CONDITION_TYPE
+    [5] => START_REMINDER_VALUE
+    [6] => START_REMINDER_UNIT
+    [7] => MAX_REMINDERS
+    [8] => SCHEDULE_TYPE
+    [9] => NOTIFY_SERVICE_PROVIDER
+    [10] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: 
+MESSAGES: 
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Hi <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span> this is <span class=\"variable-badge\" contenteditable=\"false\">Service Provide
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Hi <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span> this is <span class=\"variable-badge\" contenteditable=\"false\">Service Provide
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Hi <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span> this is <span class=\"variable-badge\" contenteditable=\"false\">Service Provide
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Hi <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span> this is <span class=\"variable-badge\" contenteditable=\"false\">Service Provide
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Hi <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span> this is <span class=\"variable-badge\" contenteditable=\"false\">Service Provide
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Just following up again! <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span>, we have limited spots. Let me know if you have any questi
+=== FORM SUBMISSION ===
+POST keys: Array
+(
+    [0] => CUSTOM_REMINDERS
+    [1] => MESSAGES
+    [2] => TITLE
+    [3] => IS_ACTIVE
+    [4] => TRIGGER_TYPE
+    [5] => TRIGGER_VALUE
+    [6] => CONDITION_TYPE
+    [7] => START_REMINDER_VALUE
+    [8] => START_REMINDER_UNIT
+    [9] => MAX_REMINDERS
+    [10] => SCHEDULE_TYPE
+    [11] => NOTIFY_SERVICE_PROVIDER
+    [12] => NOTIFY_STUDIO_MANAGER
+)
+
+CUSTOM_REMINDERS: [{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"},{"enabled":true,"value":5,"unit":"Days"},{"enabled":true,"value":3,"unit":"Days"}]
+MESSAGES: ["\n                                    Just following up again! <span class=\"variable-badge\" contenteditable=\"false\">Student Name</span>, we have limited spots. Let me know if you have any questi

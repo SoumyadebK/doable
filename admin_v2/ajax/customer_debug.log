@@ -1,0 +1,378 @@
+
+=== 2026-06-29 10:34:43 ===
+POST DATA:
+Array
+(
+    [FIRST_NAME] => Roumyadeb
+    [LAST_NAME] => Karmakar
+    [EMAIL_ID] => roumya.karmakar.01@gmail.com
+    [PHONE] => (077) 974-7426
+    [GENDER] => 
+    [DOB] => 
+    [PK_LOCATION] => 13
+    [NOTES] => 
+    [ADDRESS] => Vill+PO- Bidyanandapur
+    [ADDRESS_1] => 
+    [PK_COUNTRY] => 2
+    [PK_STATES] => 65
+    [CITY] => 
+    [ZIP] => 
+    [ATTENDING_WITH] => Solo
+    [PARTNER_FIRST_NAME] => 
+    [PARTNER_LAST_NAME] => 
+    [PARTNER_PHONE] => 
+    [PARTNER_EMAIL] => 
+    [PARTNER_GENDER] => 
+    [PARTNER_DOB] => 
+    [ADDITIONAL_PHONES] => Array
+        (
+            [0] => 
+        )
+
+    [ADDITIONAL_EMAILS] => Array
+        (
+            [0] => 
+        )
+
+    [SPECIAL_DATE_NAMES] => Array
+        (
+            [0] => 
+        )
+
+    [SPECIAL_DATES] => Array
+        (
+            [0] => 
+        )
+
+)
+
+USER_DATA: Array
+(
+    [PK_ACCOUNT_MASTER] => 1010
+    [FIRST_NAME] => Roumyadeb
+    [LAST_NAME] => Karmakar
+    [EMAIL_ID] => roumya.karmakar.01@gmail.com
+    [PHONE] => 0779747426
+    [CREATE_LOGIN] => 0
+    [APPEAR_IN_CALENDAR] => 0
+    [TYPE] => 2
+    [GENDER] => 
+    [DOB] => 0000-00-00
+    [ADDRESS] => Vill+PO- Bidyanandapur
+    [ADDRESS_1] => 
+    [PK_COUNTRY] => 2
+    [PK_STATES] => 65
+    [CITY] => 
+    [ZIP] => 
+    [NOTES] => 
+    [IS_DELETED] => 0
+    [ACTIVE] => 1
+    [JOINING_DATE] => 2026-06-29 10:34
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:34
+)
+
+Generated UNIQUE_ID: 302886
+INSERTING INTO DOA_USERS...
+PK_USER: 130559
+USER_DATA_ACCOUNT: Array
+(
+    [PK_ACCOUNT_MASTER] => 1010
+    [FIRST_NAME] => Roumyadeb
+    [LAST_NAME] => Karmakar
+    [EMAIL_ID] => roumya.karmakar.01@gmail.com
+    [PHONE] => 0779747426
+    [PK_USER_MASTER_DB] => 130559
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:34
+)
+
+INSERTING INTO account DOA_USERS...
+PK_USER_ACCOUNT_DB: 0
+USER_MASTER_DATA: Array
+(
+    [PK_USER] => 130559
+    [PK_ACCOUNT_MASTER] => 1010
+    [PRIMARY_LOCATION_ID] => 13
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:34
+)
+
+INSERTING INTO DOA_USER_MASTER...
+PK_USER_MASTER: 128871
+USER_ROLE_DATA: Array
+(
+    [PK_USER] => 130559
+    [PK_ROLES] => 4
+)
+
+INSERTING INTO DOA_USER_ROLES...
+USER_LOCATION_DATA (primary): Array
+(
+    [PK_USER] => 130559
+    [PK_LOCATION] => 13
+)
+
+INSERTING INTO DOA_USER_LOCATION (primary)...
+CUSTOMER_DATA: Array
+(
+    [PK_USER_MASTER] => 128871
+    [IS_PRIMARY] => 1
+    [FIRST_NAME] => Roumyadeb
+    [LAST_NAME] => Karmakar
+    [PHONE] => 0779747426
+    [EMAIL] => roumya.karmakar.01@gmail.com
+    [GENDER] => 
+    [DOB] => 0000-00-00
+    [CALL_PREFERENCE] => 
+    [REMINDER_OPTION] => 
+    [ATTENDING_WITH] => Solo
+    [PARTNER_FIRST_NAME] => 
+    [PARTNER_LAST_NAME] => 
+    [PARTNER_PHONE] => 
+    [PARTNER_EMAIL] => 
+    [PARTNER_GENDER] => 
+    [PARTNER_DOB] => 0000-00-00
+)
+
+INSERTING INTO DOA_CUSTOMER_DETAILS...
+PK_CUSTOMER_DETAILS: 15367
+ADDITIONAL_PHONES: Array
+(
+    [0] => 
+)
+
+ADDITIONAL_EMAILS: Array
+(
+    [0] => 
+)
+
+SPECIAL_DATE_NAMES: Array
+(
+    [0] => 
+)
+
+SPECIAL_DATES: Array
+(
+    [0] => 
+)
+
+=== SUCCESS ===
+PK_USER: 130559
+PK_USER_MASTER: 128871
+PK_CUSTOMER_DETAILS: 15367
+
+=== 2026-06-29 10:38:02 ===
+POST DATA:
+Array
+(
+    [FIRST_NAME] => test
+    [LAST_NAME] => testing
+    [EMAIL_ID] => test@gmail.com
+    [PHONE] => (654) 987-3125
+    [GENDER] => Other
+    [DOB] => 06/27/2026
+    [PK_LOCATION] => 27
+    [PK_LOCATIONS] => Array
+        (
+            [0] => 13
+            [1] => 27
+            [2] => 212
+        )
+
+    [REMINDER_OPTION] => Array
+        (
+            [0] => Text Message
+            [1] => Phone Call
+        )
+
+    [PK_TAGS] => Array
+        (
+            [0] => 1
+        )
+
+    [NOTES] => hello. test.
+    [ADDRESS] => Vill+PO- Bidyanandapur
+    [ADDRESS_1] => Karmakar Para
+    [PK_COUNTRY] => 1
+    [PK_STATES] => 17
+    [CITY] => Asansol
+    [ZIP] => 713371
+    [ATTENDING_WITH] => With a Partner
+    [PARTNER_FIRST_NAME] => Roumya
+    [PARTNER_LAST_NAME] => Karmakar
+    [PARTNER_PHONE] => (077) 974-7426
+    [PARTNER_EMAIL] => roumya.karmakar.01@gmail.com
+    [PARTNER_GENDER] => Male
+    [PARTNER_DOB] => 06/06/2026
+    [ADDITIONAL_PHONES] => Array
+        (
+            [0] => (077) 974-7426
+            [1] => (077) 974-4265
+        )
+
+    [ADDITIONAL_EMAILS] => Array
+        (
+            [0] => roumya.karmakar.01@gmail.com
+            [1] => roumya.karmakdsfgar.01@gmail.com
+        )
+
+    [SPECIAL_DATE_NAMES] => Array
+        (
+            [0] => Birthfay
+            [1] => dfghdsf
+        )
+
+    [SPECIAL_DATES] => Array
+        (
+            [0] => 06/02/2026
+            [1] => 06/11/2026
+        )
+
+)
+
+USER_DATA: Array
+(
+    [PK_ACCOUNT_MASTER] => 1010
+    [FIRST_NAME] => test
+    [LAST_NAME] => testing
+    [EMAIL_ID] => test@gmail.com
+    [PHONE] => 6549873125
+    [CREATE_LOGIN] => 0
+    [APPEAR_IN_CALENDAR] => 0
+    [TYPE] => 2
+    [GENDER] => Other
+    [DOB] => 2026-06-27
+    [ADDRESS] => Vill+PO- Bidyanandapur
+    [ADDRESS_1] => Karmakar Para
+    [PK_COUNTRY] => 1
+    [PK_STATES] => 17
+    [CITY] => Asansol
+    [ZIP] => 713371
+    [NOTES] => hello. test.
+    [IS_DELETED] => 0
+    [ACTIVE] => 1
+    [JOINING_DATE] => 2026-06-29 10:38
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:38
+)
+
+Generated UNIQUE_ID: 302887
+INSERTING INTO DOA_USERS...
+PK_USER: 130560
+USER_DATA_ACCOUNT: Array
+(
+    [PK_ACCOUNT_MASTER] => 1010
+    [FIRST_NAME] => test
+    [LAST_NAME] => testing
+    [EMAIL_ID] => test@gmail.com
+    [PHONE] => 6549873125
+    [PK_USER_MASTER_DB] => 130560
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:38
+)
+
+INSERTING INTO account DOA_USERS...
+PK_USER_ACCOUNT_DB: 0
+USER_MASTER_DATA: Array
+(
+    [PK_USER] => 130560
+    [PK_ACCOUNT_MASTER] => 1010
+    [PRIMARY_LOCATION_ID] => 27
+    [CREATED_BY] => 4860
+    [CREATED_ON] => 2026-06-29 10:38
+)
+
+INSERTING INTO DOA_USER_MASTER...
+PK_USER_MASTER: 128872
+USER_ROLE_DATA: Array
+(
+    [PK_USER] => 130560
+    [PK_ROLES] => 4
+)
+
+INSERTING INTO DOA_USER_ROLES...
+USER_LOCATION_DATA (primary): Array
+(
+    [PK_USER] => 130560
+    [PK_LOCATION] => 27
+)
+
+INSERTING INTO DOA_USER_LOCATION (primary)...
+Secondary locations: Array
+(
+    [0] => 13
+    [1] => 27
+    [2] => 212
+)
+
+Inserted secondary location: 13
+Inserted secondary location: 212
+CUSTOMER_DATA: Array
+(
+    [PK_USER_MASTER] => 128872
+    [IS_PRIMARY] => 1
+    [FIRST_NAME] => test
+    [LAST_NAME] => testing
+    [PHONE] => 6549873125
+    [EMAIL] => test@gmail.com
+    [GENDER] => Other
+    [DOB] => 2026-06-27
+    [CALL_PREFERENCE] => 
+    [REMINDER_OPTION] => Array
+        (
+            [0] => Text Message
+            [1] => Phone Call
+        )
+
+    [ATTENDING_WITH] => With a Partner
+    [PARTNER_FIRST_NAME] => Roumya
+    [PARTNER_LAST_NAME] => Karmakar
+    [PARTNER_PHONE] => (077) 974-7426
+    [PARTNER_EMAIL] => roumya.karmakar.01@gmail.com
+    [PARTNER_GENDER] => Male
+    [PARTNER_DOB] => 2026-06-06
+)
+
+INSERTING INTO DOA_CUSTOMER_DETAILS...
+PK_CUSTOMER_DETAILS: 15368
+ADDITIONAL_PHONES: Array
+(
+    [0] => (077) 974-7426
+    [1] => (077) 974-4265
+)
+
+Inserted additional phone: 0779747426
+Inserted additional phone: 0779744265
+ADDITIONAL_EMAILS: Array
+(
+    [0] => roumya.karmakar.01@gmail.com
+    [1] => roumya.karmakdsfgar.01@gmail.com
+)
+
+Inserted additional email: roumya.karmakar.01@gmail.com
+Inserted additional email: roumya.karmakdsfgar.01@gmail.com
+SPECIAL_DATE_NAMES: Array
+(
+    [0] => Birthfay
+    [1] => dfghdsf
+)
+
+SPECIAL_DATES: Array
+(
+    [0] => 06/02/2026
+    [1] => 06/11/2026
+)
+
+Inserted special date: Birthfay - 2026-06-02
+Inserted special date: dfghdsf - 2026-06-11
+PK_TAGS: Array
+(
+    [0] => 1
+)
+
+Inserted tag: 1
+=== SUCCESS ===
+PK_USER: 130560
+PK_USER_MASTER: 128872
+PK_CUSTOMER_DETAILS: 15368

@@ -1,0 +1,437 @@
+<?php
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    require_once("global/config.php");
+    require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
+    require_once("global/authorizenet/autoload.php");
+    require_once("global/vendor/autoload.php");
+    require_once("global/stripe-php/init.php");
+} else {
+    require_once("/var/www/html/global/config.php");
+    require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
+    require_once("/var/www/html/global/authorizenet/autoload.php");
+    require_once("/var/www/html/global/vendor/autoload.php");
+    require_once("/var/www/html/global/stripe-php/init.php");
+}
+
+use Square\Environment;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
+
+use Stripe\Stripe;
+use Stripe\StripeClient;
+
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+global $db;
+$all_location = $db->Execute("SELECT DOA_LOCATION.*, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_LOCATION LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_LOCATION.PAYMENT_GATEWAY_TYPE IS NOT NULL AND DOA_LOCATION.PAYMENT_GATEWAY_TYPE != '') AND DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1");
+while (!$all_location->EOF) {
+    $message_string = '';
+    $message_string .= "Processing Location: " . $all_location->fields['LOCATION_NAME'] . "<br>";
+    $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
+    try {
+        require_once('global/common_functions_account.php');
+        $DB_NAME = $all_location->fields['DB_NAME'];
+        $db_account = new queryFactory();
+        if ($_SERVER['HTTP_HOST'] == 'localhost') {
+            $conn1 = $db_account->connect('localhost', 'root', '', $DB_NAME);
+            $http_path = 'http://localhost/doable/';
+        } else {
+            $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
+            $http_path = 'http://52.36.228.0/';
+        }
+        if ($db_account->error_number) {
+            die("Connection Error");
+        }
+
+        $PK_LOCATION = $all_location->fields['PK_LOCATION'];
+        $PK_ACCOUNT_MASTER = $all_location->fields['PK_ACCOUNT_MASTER'];
+
+        $PAYMENT_GATEWAY = $all_location->fields['PAYMENT_GATEWAY_TYPE'];
+        $GATEWAY_MODE  = $all_location->fields['GATEWAY_MODE'];
+
+        $SECRET_KEY = $all_location->fields['SECRET_KEY'];
+        $PUBLISHABLE_KEY = $all_location->fields['PUBLISHABLE_KEY'];
+
+        $SQUARE_ACCESS_TOKEN = $all_location->fields['ACCESS_TOKEN'];
+        $SQUARE_APP_ID = $all_location->fields['APP_ID'];
+        $SQUARE_LOCATION_ID = $all_location->fields['LOCATION_ID'];
+
+        $AUTHORIZE_LOGIN_ID = $all_location->fields['LOGIN_ID'];
+        $AUTHORIZE_TRANSACTION_KEY = $all_location->fields['TRANSACTION_KEY'];
+        $AUTHORIZE_CLIENT_KEY = $all_location->fields['AUTHORIZE_CLIENT_KEY'];
+
+        $enrollment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY = 1 AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND (DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Payment Plans' OR DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Flexible Payments') AND DOA_ENROLLMENT_LEDGER.DUE_DATE = '" . date('Y-m-d') . "' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0");
+        while (!$enrollment_data->EOF) {
+            $IS_PAID = 0;
+            $PAYMENT_STATUS = 'Failed';
+            $PAYMENT_INFO_JSON = '';
+            $PK_USER_MASTER = $enrollment_data->fields['PK_USER_MASTER'];
+            $PAYMENT_METHOD_ID = $enrollment_data->fields['PAYMENT_METHOD_ID'];
+            $AMOUNT_TO_PAY = $TOTAL_AMOUNT_PAID = ($enrollment_data->fields['AMOUNT_REMAIN'] > 0) ? $enrollment_data->fields['AMOUNT_REMAIN'] : $enrollment_data->fields['BILLED_AMOUNT'];
+
+            $PK_ENROLLMENT_MASTER = $enrollment_data->fields['PK_ENROLLMENT_MASTER'];
+            $PK_ENROLLMENT_BILLING = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $PK_ENROLLMENT_LEDGER = $enrollment_data->fields['PK_ENROLLMENT_LEDGER'];
+
+            $RECEIPT_CHARACTER = $all_location->fields['RECEIPT_CHARACTER'];
+
+            $receipt = $db_account->Execute("SELECT COUNT(RECEIPT_NUMBER) AS TOTAL_RECEIPT FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1");
+            $TOTAL_RECEIPT = $receipt->fields['TOTAL_RECEIPT'];
+            $RECEIPT_NUMBER_ORIGINAL =  (($RECEIPT_CHARACTER == null) ? ($TOTAL_RECEIPT + 1) : $RECEIPT_CHARACTER . '-' . ($TOTAL_RECEIPT + 1));
+
+            $message_string .= "Receipt Number: " . $RECEIPT_NUMBER_ORIGINAL . "<br>";
+
+            //$RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($PK_ENROLLMENT_MASTER);
+
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+
+            if ($PAYMENT_GATEWAY == 'Stripe') {
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+
+                $LAST4 = '';
+                try {
+                    $message_string .= "Processing Stripe payment for " . $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . "<br>";
+
+                    $ch = curl_init('https://api.stripe.com/v1/payment_intents');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $PAYMENT_METHOD_ID,
+                        'amount' => $AMOUNT_TO_PAY * 100,
+                        'currency' => 'usd',
+                        'confirm' => 'true', // Auto-confirm charge
+                        'off_session' => 'true', // Charge without user interaction
+                        'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER_ORIGINAL,
+                        'metadata[invoice_num]' => $RECEIPT_NUMBER_ORIGINAL,
+                        'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                    ]));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Authorization: Bearer ' . $SECRET_KEY,
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+                    $payment_res = json_decode($response);
+
+                    //echo "Payment Response: <pre>" . print_r($payment_res, true) . "</pre>";
+
+                    if ($payment_res->charges->data[0]->paid == 1) {
+                        $CHARGE_ID = $payment_res->charges->data[0]->id;
+                        $LAST4 = $payment_res->charges->data[0]->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
+
+                    /* $stripe = new StripeClient($SECRET_KEY);
+                    Stripe::setApiKey($SECRET_KEY);
+
+                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $PAYMENT_METHOD_ID]);
+
+                    $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
+                    $charge = \Stripe\Charge::create(array(
+                        "amount" => $AMOUNT_TO_PAY * 100,
+                        "currency" => "usd",
+                        "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
+                        "customer" => $CUSTOMER_PAYMENT_ID,
+                        "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
+                    ));
+
+                    $LAST4 = $charge->payment_method_details->card->last4; */
+                } catch (\Stripe\Exception\CardException $e) {
+                    // Card declined or related issue
+                    $PAYMENT_STATUS = 'Card Declined';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\RateLimitException $e) {
+                    // Too many requests
+                    $PAYMENT_STATUS = 'Too Many Requests';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    // Invalid parameters
+                    $PAYMENT_STATUS = 'Invalid Request';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\AuthenticationException $e) {
+                    // Authentication error
+                    $PAYMENT_STATUS = 'Authentication Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\ApiConnectionException $e) {
+                    // Network communication error
+                    $PAYMENT_STATUS = 'Network Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\ApiErrorException $e) {
+                    // General API error
+                    $PAYMENT_STATUS = 'API Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (Exception $e) {
+                    // Non-Stripe exceptions
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                }
+
+                if ($IS_PAID == 1) {
+                    $PAYMENT_STATUS = 'Success';
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $CHARGE_ID, 'LAST4' => $LAST4];
+                    $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+                    $message_string .= "Payment Status: Success<br>";
+                    $message_string .= "Payment Info: " . $PAYMENT_INFO_JSON . "<br>";
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = 'Payment failed';
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                }
+            } elseif ($PAYMENT_GATEWAY == 'Square') {
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+
+                if ($GATEWAY_MODE == 'live') {
+                    $client = new SquareClient([
+                        'accessToken' => $SQUARE_ACCESS_TOKEN,
+                        'environment' => Environment::PRODUCTION,
+                    ]);
+                } else {
+                    $client = new SquareClient([
+                        'accessToken' => $SQUARE_ACCESS_TOKEN,
+                        'environment' => Environment::SANDBOX,
+                    ]);
+                }
+
+                // Create money object
+                $money = new Money();
+                $money->setAmount($AMOUNT_TO_PAY * 100);
+                $money->setCurrency('USD');
+
+                // Create payment request
+                $paymentRequest = new CreatePaymentRequest($PAYMENT_METHOD_ID, uniqid(), $money);
+                $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
+
+                // Create payment using the Square API
+                $paymentsApi = $client->getPaymentsApi();
+                try {
+                    $response = $paymentsApi->createPayment($paymentRequest);
+                    if ($response->isSuccess()) {
+                        $paymentId = $response->getResult()->getPayment()->getId();
+                        $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
+
+                        $PAYMENT_STATUS = 'Success';
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
+                        $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
+
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        $message_string .= json_encode($RETURN_DATA);
+                    }
+                } catch (\Square\Exceptions\ApiException $e) {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                }
+            } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+
+                $currency = "USD";
+                $refID = "ref" . time();
+
+                try {
+                    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                    $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+                    $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
+
+                    $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                    $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+
+                    $paymentProfile = new AnetAPI\PaymentProfileType();
+                    $paymentProfile->setPaymentProfileId($PAYMENT_METHOD_ID);
+                    $profileToCharge->setPaymentProfile($paymentProfile);
+
+                    // Create order information
+                    $order = new AnetAPI\OrderType();
+                    $order->setDescription("Receipt# " . $RECEIPT_NUMBER_ORIGINAL);
+
+                    // Create a transaction
+                    $transactionRequestType = new AnetAPI\TransactionRequestType();
+                    $transactionRequestType->setTransactionType("authCaptureTransaction");
+                    $transactionRequestType->setAmount($AMOUNT_TO_PAY);
+                    $transactionRequestType->setOrder($order);
+                    $transactionRequestType->setProfile($profileToCharge);
+
+                    $request = new AnetAPI\CreateTransactionRequest();
+                    $request->setMerchantAuthentication($merchantAuthentication);
+                    $request->setRefId($refID);
+                    $request->setTransactionRequest($transactionRequestType);
+                } catch (Exception $e) {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                }
+
+                try {
+                    $controller = new AnetController\CreateTransactionController($request);
+
+                    if ($GATEWAY_MODE == 'live')
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                    else
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                        $tresponse = $response->getTransactionResponse();
+
+                        if ($tresponse != null && $tresponse->getMessages() != null) {
+                            $PAYMENT_STATUS = 'Success';
+                            $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
+                            $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+                        } else {
+                            $PAYMENT_STATUS = 'Failed';
+                            $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
+
+                            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                            $message_string .= json_encode($RETURN_DATA);
+                        }
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = "Transaction Failed";
+
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        $message_string .= json_encode($RETURN_DATA);
+                    }
+                } catch (Exception $e) {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                }
+            }
+
+            if ($PAYMENT_STATUS == 'Success') {
+                $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                $ACTUAL_AMOUNT = $enrollment_data->fields['TOTAL_AMOUNT'];
+                while (!$enrollmentServiceData->EOF) {
+                    if ($enrollmentServiceData->fields['FINAL_AMOUNT'] > 0 && $ACTUAL_AMOUNT > 0) {
+                        $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
+                        $serviceAmount = ($TOTAL_AMOUNT_PAID * $servicePercent) / 100;
+
+                        $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
+                        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+
+                        $PK_ENROLLMENT_SERVICE = $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE'];
+
+                        $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, NUMBER_OF_SESSION, TOTAL_AMOUNT_PAID, PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
+                        if ($serviceCodeData->RecordCount() > 0) {
+                            $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? ceil($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION']) : $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                            if ($paid_session >= 1) {
+                                $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_PAID` = '1' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND PK_APPOINTMENT_STATUS NOT IN (3, 4, 6) ORDER BY DATE ASC, START_TIME ASC LIMIT $paid_session");
+                            }
+                        }
+                    }
+
+                    $enrollmentServiceData->MoveNext();
+                }
+
+                $sp_percent_data = $db_account->Execute("SELECT SERVICE_PROVIDER_ID, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
+                while (!$sp_percent_data->EOF) {
+                    $PERCENTAGE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $PERCENTAGE_DATA['SERVICE_PROVIDER_ID'] = $sp_percent_data->fields['SERVICE_PROVIDER_ID'];
+                    $PERCENTAGE_DATA['PERCENTAGE_AMOUNT'] = ($AMOUNT_TO_PAY * $sp_percent_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100;
+                    db_perform_account('DOA_SERVICE_PROVIDER_AMOUNT', $PERCENTAGE_DATA, 'insert');
+                    $sp_percent_data->MoveNext();
+                }
+
+                $RECEIPT_NUMBER = $RECEIPT_NUMBER_ORIGINAL;
+
+                $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
+                $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 1;
+                $PAYMENT_DATA['AMOUNT'] = $AMOUNT_TO_PAY;
+                $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                $PAYMENT_DATA['TYPE'] = 'Payment';
+                $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = 0;
+                $PAYMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $PAYMENT_DATA['NOTE'] = 'Auto Payment via ' . $PAYMENT_GATEWAY;
+                $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
+                $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
+                $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+                db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+                $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+                $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
+                $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+                //markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+            }
+
+            $message_string .= $PAYMENT_INFO_JSON;
+            $message_string .= "<br>";
+
+            $enrollment_data->MoveNext();
+        }
+    } catch (mysqli_sql_exception $e) {
+        $message_string .= "Connection failed: " . $e->getMessage();
+    }
+
+    $message_string .= "<br>---------------------------------<br>";
+
+    echo $message_string;
+
+    $info_log['info'] = $message_string;
+    $info_log['created_at'] = date('Y-m-d H:i:s');
+    db_perform('cron_running_log', $info_log, 'insert');
+
+
+    $all_location->MoveNext();
+}

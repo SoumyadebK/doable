@@ -1,0 +1,14 @@
+# robots.txt for doable.net
+# Place this file in the website root so it is reachable at http://52.36.228.0/robots.txt
+
+User-agent: *
+Allow: /
+
+# Keep private/admin areas out of search results
+Disallow: /admin/
+Disallow: /login.php
+Disallow: /contact-submit.php
+Disallow: /v2/assets/js/
+
+# Point search engines to the sitemap
+Sitemap: http://52.36.228.0/sitemap.xml
