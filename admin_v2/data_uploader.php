@@ -1922,11 +1922,12 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select Uploader</label>
                                     <select class="form-select" name="UPLOAD_TYPE" id="UPLOAD_TYPE" required>
-                                        <?php foreach ($UPLOAD_TYPES as $key => $label): ?>
-                                            <option value="<?= htmlspecialchars($key) ?>" <?= ($selected_upload_type === $key) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($label) ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                        <option value="customer_enrollments" data-file="../uploads/Demo Sheet (Customers & Enrollments).csv" <?= ($selected_upload_type === 'customer_enrollments') ? 'selected' : '' ?>>
+                                            Customer & Enrollments
+                                        </option>
+                                        <option value="appointments" data-file="../uploads/Demo Sheet (Appointments).csv" <?= ($selected_upload_type === 'appointments') ? 'selected' : '' ?>>
+                                            Appointments
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -1950,7 +1951,7 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select CSV</label>
                                     <input type="file" class="form-control" name="file" accept=".csv" required>
-                                    <a href="../uploads/Demo Sheet.csv" target="_blank">
+                                    <a href="../uploads/Demo Sheet (Customers & Enrollments).csv" id="demoSheetLink" target="_blank">
                                         <i class="bi bi-download me-1"></i>Download Demo Sheet
                                     </a>
                                 </div>
@@ -1982,6 +1983,14 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
             }
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Uploading…';
+        });
+
+        document.getElementById('UPLOAD_TYPE').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fileUrl = selectedOption.getAttribute('data-file');
+            if (fileUrl) {
+                document.getElementById('demoSheetLink').href = fileUrl;
+            }
         });
     </script>
 </body>
