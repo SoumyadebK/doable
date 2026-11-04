@@ -564,7 +564,24 @@ function handleCustomerEnrollmentsUpload()
                 $ENROLLMENT_DATA['ACTIVE']           = 1;
                 $ENROLLMENT_DATA['STATUS']           = "CO";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
-                $ENROLLMENT_DATA['EXPIRY_DATE']      = date("Y-m-d", strtotime("+1 month"));
+
+                // Read package expiry date (index 28)
+                $raw_expiry = isset($getData[28]) ? trim($getData[28]) : '';
+                $package_expiry_date = '';
+
+                if ($raw_expiry !== '') {
+                    // Try to parse the date (supports Y-m-d, d-m-Y, etc.)
+                    $ts = strtotime($raw_expiry);
+                    if ($ts !== false) {
+                        $package_expiry_date = date('Y-m-d', $ts);
+                    }
+                }
+
+                // Fallback to old behavior (+1 month) if empty or invalid
+                if ($package_expiry_date === '') {
+                    $package_expiry_date = date("Y-m-d", strtotime("+1 month"));
+                }
+                $ENROLLMENT_DATA['EXPIRY_DATE']      = $package_expiry_date;
                 $ENROLLMENT_DATA['CREATED_BY']       = $_SESSION['PK_USER'];
                 $ENROLLMENT_DATA['CREATED_ON']       = date("Y-m-d H:i");
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
@@ -956,7 +973,7 @@ function handleCustomerEnrollmentsUpload()
                         'PK_ENROLLMENT_LEDGER'  => $PK_ENROLLMENT_LEDGER,
                         'TYPE'                  => 'Payment',
                         'AMOUNT'                => $prepaid_lessons_value,
-                        'NOTE'                  => 'Prepaid lessons imported from Mindbody',
+                        'NOTE'                  => 'Prepaid lessons imported',
                         'PAYMENT_DATE'          => date('Y-m-d'),
                         'PAYMENT_INFO'          => '',
                         'PAYMENT_STATUS'        => 'Success',
@@ -1053,10 +1070,10 @@ function handleCustomerEnrollmentsUpload()
                     'DEBIT'                  => 0,
                     'CREDIT'                 => $misc_amount,
                     'BALANCE_LEFT'           => $new_total_balance, // Set the running total
-                    'DESCRIPTION'            => 'Mindbody Import Credit',
+                    'DESCRIPTION'            => 'Import Credit',
                     'PK_PAYMENT_TYPE'        => 12,
                     'RECEIPT_NUMBER'         => $new_receipt,
-                    'NOTE'                   => 'Imported from Mindbody (Amount Paid Ahead)',
+                    'NOTE'                   => 'Imported (Amount Paid Ahead)',
                     'IS_DELETED'             => 0,
                     'CREATED_BY'             => $_SESSION['PK_USER'],
                     'CREATED_ON'             => date('Y-m-d H:i:s'),
