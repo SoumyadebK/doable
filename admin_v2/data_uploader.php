@@ -101,7 +101,7 @@ function normalizeImportDate($raw)
  */
 function handleStaffUpload()
 {
-    global $db, $PK_ACCOUNT_MASTER;
+    global $db, $db_account, $PK_ACCOUNT_MASTER;
     global $upload_error, $upload_success;
 
     $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
@@ -135,95 +135,127 @@ function handleStaffUpload()
         rewind($csvFile);
     }
 
-    $PK_LOCATION = $_POST['PK_LOCATION'];
+    // Map Headers
+    $headerRow = fgetcsv($csvFile, 10000, ",");
+    $col_map = [];
+    if ($headerRow) {
+        foreach ($headerRow as $index => $colName) {
+            $cleanName = strtoupper(trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $colName)));
+            $col_map[$cleanName] = $index;
+        }
+    }
 
+    $PK_LOCATION = $_POST['PK_LOCATION'];
     $skipped_rows = [];
     $created_rows = [];
     $rows_created = 0;
-    $lineNumber = 1;
-
-    // CSV format expected based on demo file: 
-    // 0: FIRST_NAME, 1: LAST_NAME, 2: EMAIL
+    $lineNumber = 2;
 
     while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
-        if ($lineNumber === 1) {
+        if (empty($getData) || (count($getData) == 1 && trim($getData[0]) === '')) {
             $lineNumber++;
             continue;
         }
 
-        if (count($getData) < 3) {
-            $lineNumber++;
-            continue;
-        }
-
-        $first_name = trim($getData[0] ?? '');
-        $last_name  = trim($getData[1] ?? '');
-        $email      = trim($getData[2] ?? '');
-        $phone      = ''; // Not provided in this CSV format
+        // Extract Data
+        $first_name = trim($getData[$col_map['FIRST NAME'] ?? 0] ?? '');
+        $last_name  = trim($getData[$col_map['LAST NAME'] ?? 1] ?? '');
+        $phone      = trim($getData[$col_map['PHONE'] ?? 2] ?? '');
+        $email      = trim($getData[$col_map['EMAIL'] ?? 3] ?? '');
+        $country    = trim($getData[$col_map['COUNTRY'] ?? 4] ?? 'United States');
+        $state      = trim($getData[$col_map['STATE'] ?? 5] ?? 'Alabama');
+        $appear_in_calendar = (int)($getData[$col_map['APPEAR IN CALENDAR'] ?? 6] ?? 1);
 
         if ($first_name === '' || $email === '') {
-            $skipped_rows[] = "Line $lineNumber — missing first name or email";
+            $skipped_rows[] = "Line $lineNumber — Missing First Name or Email.";
             $lineNumber++;
             continue;
         }
 
-        // Check if user already exists
         $email_escaped = addslashes($email);
         $existing = $db->Execute("SELECT U.PK_USER FROM DOA_USERS U WHERE U.EMAIL_ID = '$email_escaped' AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . " LIMIT 1");
 
         if ($existing && $existing->RecordCount() > 0) {
-            $PK_USER = $existing->fields['PK_USER'];
-
-            // Ensure they have the Staff role (Role 5) and location access
-            $chk_role = $db->Execute("SELECT PK_USER FROM DOA_USER_ROLES WHERE PK_USER = " . intval($PK_USER) . " AND PK_ROLES = 5");
-            if ($chk_role->RecordCount() == 0) {
-                $db->Execute("INSERT INTO DOA_USER_ROLES (PK_USER, PK_ROLES) VALUES (" . intval($PK_USER) . ", 5)");
-            }
-
-            $chk_loc = $db->Execute("SELECT PK_USER FROM DOA_USER_LOCATION WHERE PK_USER = " . intval($PK_USER) . " AND PK_LOCATION = " . intval($PK_LOCATION));
-            if ($chk_loc->RecordCount() == 0) {
-                $db->Execute("INSERT INTO DOA_USER_LOCATION (PK_USER, PK_LOCATION) VALUES (" . intval($PK_USER) . ", " . intval($PK_LOCATION) . ")");
-            }
-
-            $skipped_rows[] = "Line $lineNumber — Staff member '{$email}' already exists (Roles/Locations verified)";
+            $skipped_rows[] = "Line $lineNumber — Staff member '{$email}' already exists.";
             $lineNumber++;
             continue;
         }
 
-        // Insert new User (Master DB)
+        // Map Country/State
+        $PK_COUNTRY = 1;
+        $state_escaped = addslashes($state);
+        $state_q = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME = '$state_escaped' LIMIT 1");
+        $PK_STATES = ($state_q && $state_q->RecordCount() > 0) ? $state_q->fields['PK_STATES'] : 0;
+
+        // Get Next UNIQUE_ID
+        $unique_id_q = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        $NEW_UNIQUE_ID = ($unique_id_q && $unique_id_q->RecordCount() > 0 && $unique_id_q->fields['UNIQUE_ID'] > 0) ? intval($unique_id_q->fields['UNIQUE_ID']) + 1 : 300580;
+
+        // Build Master DB User Data (Matching saveProfileData logic)
         $USER_DATA = [
+            'PK_ACCOUNT_MASTER'  => $PK_ACCOUNT_MASTER,
+            'FIRST_NAME'         => $first_name,
+            'LAST_NAME'          => $last_name,
+            'EMAIL_ID'           => $email,
+            'PHONE'              => $phone,
+            'PK_COUNTRY'         => $PK_COUNTRY,
+            'PK_STATES'          => $PK_STATES,
+            'APPEAR_IN_CALENDAR' => $appear_in_calendar,
+            'CREATE_LOGIN'       => 0,
+            'TYPE'               => 'Staff', // Default type
+            'DOB'                => '0000-00-00', // Required by schema
+            'UNIQUE_ID'          => $NEW_UNIQUE_ID,
+            'JOINING_DATE'       => date("Y-m-d H:i"),
+            'ACTIVE'             => 1,
+            'IS_DELETED'         => 0,
+            'CREATED_BY'         => $_SESSION['PK_USER'],
+            'CREATED_ON'         => date("Y-m-d H:i")
+        ];
+
+        db_perform('DOA_USERS', $USER_DATA, 'insert');
+        $PK_USER = $db->insert_ID();
+
+        if (!$PK_USER) {
+            $conn = isset($db->connection) ? $db->connection : (isset($db->link) ? $db->link : null);
+            $sql_error = $conn ? mysqli_error($conn) : 'Unknown Error';
+            $skipped_rows[] = "Line $lineNumber — DB Error (DOA_USERS): " . htmlspecialchars($sql_error);
+            $lineNumber++;
+            continue;
+        }
+
+        // Build Account DB User Data
+        $USER_DATA_ACCOUNT = [
+            'PK_USER_MASTER_DB' => $PK_USER,
             'PK_ACCOUNT_MASTER' => $PK_ACCOUNT_MASTER,
             'FIRST_NAME'        => $first_name,
             'LAST_NAME'         => $last_name,
             'EMAIL_ID'          => $email,
             'PHONE'             => $phone,
-            'ACTIVE'            => 1,
-            'IS_DELETED'        => 0,
+            'ACCOUNT'           => 1,
             'CREATED_BY'        => $_SESSION['PK_USER'],
             'CREATED_ON'        => date("Y-m-d H:i")
         ];
-        db_perform('DOA_USERS', $USER_DATA, 'insert');
-        $PK_USER = $db->insert_ID();
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
-        if ($PK_USER) {
-            // Assign Role 5 (Service Provider / Teacher)
-            $USER_ROLE_DATA = [
-                'PK_USER'  => $PK_USER,
-                'PK_ROLES' => 5
-            ];
-            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+        // Create Master Record (Required for Staff so they link to the location)
+        $USER_MASTER_DATA = [
+            'PK_USER'             => $PK_USER,
+            'PK_ACCOUNT_MASTER'   => $PK_ACCOUNT_MASTER,
+            'PRIMARY_LOCATION_ID' => $PK_LOCATION,
+            'CREATED_BY'          => $_SESSION['PK_USER'],
+            'CREATED_ON'          => date("Y-m-d H:i")
+        ];
+        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+        $PK_USER_MASTER = $db->insert_ID();
 
-            // Assign Location
-            $USER_LOCATION_DATA = [
-                'PK_USER'     => $PK_USER,
-                'PK_LOCATION' => $PK_LOCATION
-            ];
-            db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+        // Assign Role 5 (Staff/Teacher)
+        db_perform('DOA_USER_ROLES', ['PK_USER' => $PK_USER, 'PK_ROLES' => 5], 'insert');
 
-            $created_rows[] = "Line $lineNumber — Staff created: {$first_name} {$last_name} ({$email})";
-            $rows_created++;
-        }
+        // Assign Location
+        db_perform('DOA_USER_LOCATION', ['PK_USER' => $PK_USER, 'PK_LOCATION' => $PK_LOCATION], 'insert');
 
+        $created_rows[] = "Line $lineNumber — <b>Created:</b> {$first_name} {$last_name} ({$email})";
+        $rows_created++;
         $lineNumber++;
     }
 
@@ -231,13 +263,8 @@ function handleStaffUpload()
 
     // Build Report
     $msg_parts = ["Staff CSV processed. New staff created: " . $rows_created . "."];
-
-    if (!empty($created_rows)) {
-        $msg_parts[] = "<br><br><b>Created:</b><br>" . implode('<br>', $created_rows);
-    }
-    if (!empty($skipped_rows)) {
-        $msg_parts[] = "<br><br><b>Skipped / Notices:</b><br>" . implode('<br>', $skipped_rows);
-    }
+    if (!empty($created_rows)) $msg_parts[] = "<br><br><b>Created:</b><br>" . implode('<br>', $created_rows);
+    if (!empty($skipped_rows)) $msg_parts[] = "<br><br><b>Skipped / Errors:</b><br>" . implode('<br>', $skipped_rows);
 
     $upload_success = implode('', $msg_parts);
 }
@@ -1168,9 +1195,16 @@ function handleCustomerEnrollmentsUpload()
         }
 
         // --- HANDLE EXPLICIT WALLET CREDIT (from new columns) ---
-        // Assuming "Wallet credit" is at index 35 and "Wallet credit note" is at index 36
-        $raw_wallet_credit = isset($getData[35]) ? trim($getData[35]) : '';
-        $wallet_credit_note = isset($getData[36]) ? trim($getData[36]) : '';
+        // Based on the confirmed CSV layout:
+        // Index 35 = Wallet Credit
+        // Index 36 = Wallet Credit Note
+
+        // Ensure the array has enough elements to prevent "Undefined offset" errors
+        // if the last columns are empty and get trimmed by fgetcsv
+        $getData = array_pad($getData, 37, '');
+
+        $raw_wallet_credit = trim($getData[35]);
+        $wallet_credit_note = trim($getData[36]);
 
         if ($raw_wallet_credit !== '') {
             // Remove currency symbols or commas if present
@@ -1214,7 +1248,7 @@ function handleCustomerEnrollmentsUpload()
                         'CREDIT'                 => $explicit_wallet_amount,
                         'BALANCE_LEFT'           => $new_total_balance,
                         'DESCRIPTION'            => 'Imported Wallet Credit',
-                        'PK_PAYMENT_TYPE'        => 12, // Assuming 12 is the Manual Payment ID
+                        'PK_PAYMENT_TYPE'        => 12, // Manual Payment
                         'RECEIPT_NUMBER'         => $new_receipt,
                         'NOTE'                   => $wallet_credit_note,
                         'IS_DELETED'             => 0,
@@ -1703,17 +1737,12 @@ function handleAppointmentsUpload()
         if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
 
         $svc_details = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
-        if (!$svc_details || $svc_details->RecordCount() == 0) {
-            // If it's a To-Do, we might not have a matching service code, so fallback to a generic one if needed
-            if ($is_todo) {
-                $svc_details = $findServiceByCode($db_account, $PK_LOCATION, 'STAFF');
-                if (!$svc_details || $svc_details->RecordCount() == 0) {
-                    $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' not found in location {$PK_LOCATION}";
-                    $lineNumber++;
-                    continue;
-                }
-            } else {
-                $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' not found in location {$PK_LOCATION}";
+
+        // If no service is found, or if it's a To-Do, force it to use the MISC service
+        if ($is_todo || !$svc_details || $svc_details->RecordCount() == 0) {
+            $svc_details = $findServiceByCode($db_account, $PK_LOCATION, 'MISC');
+            if (!$svc_details || $svc_details->RecordCount() == 0) {
+                $skipped_rows[] = "Line $lineNumber — Service code 'MISC' not found in location {$PK_LOCATION} (Required for To-Dos)";
                 $lineNumber++;
                 continue;
             }
@@ -2218,13 +2247,13 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select Uploader</label>
                                     <select class="form-select" name="UPLOAD_TYPE" id="UPLOAD_TYPE" required>
-                                        <option value="staff" data-file="../uploads/Demo Sheet (Staff).csv" <?= ($selected_upload_type === 'staff') ? 'selected' : '' ?>>
+                                        <option value="staff" data-file="../uploads/demo_sheet/Demo Sheet (Staff).csv" <?= ($selected_upload_type === 'staff') ? 'selected' : '' ?>>
                                             Staff / Teachers
                                         </option>
                                         <option value="customer_enrollments" data-file="../uploads/Demo Sheet (Customers & Enrollments).csv" <?= ($selected_upload_type === 'customer_enrollments') ? 'selected' : '' ?>>
                                             Customer & Enrollments
                                         </option>
-                                        <option value="appointments" data-file="../uploads/Demo Sheet (Appointments).csv" <?= ($selected_upload_type === 'appointments') ? 'selected' : '' ?>>
+                                        <option value="appointments" data-file="../uploads/demo_sheet/Demo Sheet (Appointments).csv" <?= ($selected_upload_type === 'appointments') ? 'selected' : '' ?>>
                                             Appointments
                                         </option>
                                     </select>
@@ -2250,7 +2279,7 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select CSV</label>
                                     <input type="file" class="form-control" name="file" accept=".csv" required>
-                                    <a href="../uploads/Demo Sheet (Customers & Enrollments).csv" id="demoSheetLink" target="_blank">
+                                    <a href="../uploads/demo_sheet/Demo Sheet (Staff).csv" id="demoSheetLink" target="_blank">
                                         <i class="bi bi-download me-1"></i>Download Demo Sheet
                                     </a>
                                 </div>
