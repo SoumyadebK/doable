@@ -3,7 +3,7 @@
 /** PDO database connection (shared). Do not edit — change values in config.php. */
 require_once __DIR__ . '/../config.php';
 
-function db(): PDO
+/* function db(): PDO
 {
     static $pdo = null;
     if ($pdo === null) {
@@ -26,4 +26,4 @@ function db(): PDO
         }
     }
     return $pdo;
-}
+} */

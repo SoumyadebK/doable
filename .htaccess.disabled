@@ -20,9 +20,9 @@ RewriteEngine On
 
 RewriteRule ^(global|vendor)/ - [F,L]
 
-# Block everything inside uploads/ EXCEPT uploads/blogs/
+# Block everything inside uploads/ EXCEPT uploads/blogs/ and uploads/demo_sheet/
 
-RewriteRule ^uploads/(?!blogs/) - [F,L]
+RewriteRule ^uploads/(?!(blogs|demo_sheet)/) - [F,L]
 
 # For uploads: block if NOT a direct file request (i.e. block folder browsing only)
 

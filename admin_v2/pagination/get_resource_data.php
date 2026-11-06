@@ -7,9 +7,12 @@ global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $SERVICE_PROVIDER_ID = '';
-if (isset($_POST['selected_service_provider']) && $_POST['selected_service_provider'] != '') {
-    $service_providers = implode(',', $_POST['selected_service_provider']);
-    $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (" . $service_providers . ") ";
+if (!empty($_POST['selected_service_provider']) && is_array($_POST['selected_service_provider'])) {
+    // SECURITY: cast to int - these values go straight into SQL.
+    $service_providers = implode(',', array_filter(array_map('intval', $_POST['selected_service_provider'])));
+    if ($service_providers !== '') {
+        $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (" . $service_providers . ") ";
+    }
 }
 
 $service_provider_data = $db->Execute("SELECT DISTINCT
@@ -23,8 +26,8 @@ $service_provider_data = $db->Execute("SELECT DISTINCT
                                             FROM
                                                 DOA_USERS
                                             INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                                            WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN( " . $DEFAULT_LOCATION_ID . " ) 
-                                            " . $SERVICE_PROVIDER_ID . " AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . "
+                                            WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN( " . $DEFAULT_LOCATION_ID . " )
+                                            " . $SERVICE_PROVIDER_ID . " AND DOA_USERS.PK_ACCOUNT_MASTER = " . (int) $_SESSION['PK_ACCOUNT_MASTER'] . "
                                             ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
 $resourceIdArray = [];
 while (!$service_provider_data->EOF) {
@@ -36,4 +39,5 @@ while (!$service_provider_data->EOF) {
     $service_provider_data->MoveNext();
 }
 
+header('Content-Type: application/json');
 echo json_encode($resourceIdArray);
