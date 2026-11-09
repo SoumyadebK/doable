@@ -1498,6 +1498,8 @@ function saveLocationData($RESPONSE_DATA)
     global $db_account;
     global $upload_path;
 
+    $response = [];
+
     try {
         // Remove FUNCTION_NAME from data
         unset($RESPONSE_DATA['FUNCTION_NAME']);
@@ -1534,41 +1536,55 @@ function saveLocationData($RESPONSE_DATA)
 
         // Handle Focusbiz API
         if (!empty($RESPONSE_DATA['FOCUSBIZ_API_KEY'])) {
-            if ($RESPONSE_DATA['FOCUSBIZ_API_KEY'] != $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD']) {
-                $location = array();
-                $location['FIRST_NAME'] = $RESPONSE_DATA['LOCATION_NAME'];
-                $location['LAST_NAME'] = '(' . $RESPONSE_DATA['LOCATION_CODE'] . ')';
-                $location['EMAIL_ID'] = $RESPONSE_DATA['EMAIL'];
-                $location['ACTIVE'] = 1;
-                $location['USER_ID'] = $RESPONSE_DATA['LOCATION_CODE'];
-                $location['PASSWORD'] = 'Password@123';
+            $newKey = $RESPONSE_DATA['FOCUSBIZ_API_KEY'] ?? '';
+            $oldKey = $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD'] ?? '';
 
-                $URL = "https://focusbiz.com/API/V1/user";
-                $json = json_encode($location);
+            if ($newKey != $oldKey) {
+                $location = [
+                    'FIRST_NAME' => $RESPONSE_DATA['LOCATION_NAME'] ?? '',
+                    'LAST_NAME'  => '(' . ($RESPONSE_DATA['LOCATION_CODE'] ?? '') . ')',
+                    'EMAIL_ID'   => $RESPONSE_DATA['EMAIL'] ?? '',
+                    'ACTIVE'     => 1,
+                    'USER_ID'    => $RESPONSE_DATA['LOCATION_CODE'] ?? '',
+                    'PASSWORD'   => 'Password@123',   // see note 4
+                ];
+
+                $URL  = "https://focusbiz.com/API/V1/user";
+                $json = json_encode($location, JSON_THROW_ON_ERROR);
+
                 $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_SSL_VERIFYHOST => '0',
-                    CURLOPT_SSL_VERIFYPEER => '0',
-                    CURLOPT_URL => $URL,
+                curl_setopt_array($curl, [
+                    CURLOPT_URL            => $URL,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => "",
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 30,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_POST => 1,
-                    CURLOPT_POSTFIELDS => $json,
-                    CURLOPT_HTTPHEADER => array(
-                        "APIKEY: " . $RESPONSE_DATA['FOCUSBIZ_API_KEY']
-                    ),
-                ));
+                    CURLOPT_ENCODING       => "",
+                    CURLOPT_MAXREDIRS      => 10,
+                    CURLOPT_TIMEOUT        => 30,
+                    CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $json,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                    CURLOPT_SSL_VERIFYHOST => 2,
+                    CURLOPT_HTTPHEADER     => [
+                        "APIKEY: " . $newKey,
+                        "Content-Type: application/json",
+                    ],
+                ]);
 
                 $return_data = curl_exec($curl);
-                $err = curl_error($curl);
-                curl_close($curl);
+                $err         = curl_error($curl);
+                $httpCode    = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+                // curl_close($curl) removed: deprecated in PHP 8.5 (no effect since 8.0)
+                unset($curl);
 
-                if (!$err) {
-                    $response = json_decode($return_data);
-                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+                if ($return_data !== false && $err === '' && $httpCode >= 200 && $httpCode < 300) {
+                    $focusbizResponse = json_decode($return_data);
+                    if (is_object($focusbizResponse) && isset($focusbizResponse->ACCESS_TOKEN)) {
+                        $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $focusbizResponse->ACCESS_TOKEN;
+                    } else {
+                        error_log('FocusBiz API: unexpected response: ' . $return_data);
+                    }
+                } else {
+                    error_log("FocusBiz API error (HTTP $httpCode): " . $err . ' ' . (string) $return_data);
                 }
             }
         } else {
@@ -4700,7 +4716,7 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
     $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        $USER_DATA['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
     }
     $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
@@ -4769,7 +4785,7 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
 
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
     $PK_USER = $RESPONSE_DATA['PK_USER'];
-    $USER_DATA['ACTIVE']    = $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+    $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
     $USER_DATA['EDITED_BY']    = $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
     $USER_DATA['CREATED_ON']  =  empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));

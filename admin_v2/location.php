@@ -2593,7 +2593,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                         <label class="form-label">Amount</label>
                                                         <div style="position: relative;">
                                                             <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--gray-500);">$</span>
-                                                            <input type="text" class="form-control-modern" style="padding-left: 32px;" value="<?= number_format(($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT, 2) ?>" disabled>
+                                                            <input type="text" class="form-control-modern" style="padding-left: 32px;" value="<?= number_format(((float)$SUBSCRIPTION_AMOUNT == 0) ? (float)$AMOUNT : (float)$SUBSCRIPTION_AMOUNT, 2) ?>" disabled>
                                                             <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
                                                         </div>
                                                     </div>

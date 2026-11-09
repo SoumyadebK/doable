@@ -28,14 +28,14 @@ if ($header_data->RecordCount() > 0) {
 }
 
 // Fetch categories for dropdown
-$categories = [];
+/* $categories = [];
 $cat_result = $db_account->Execute("SELECT PK_CATEGORY, CATEGORY_NAME FROM DOA_CATEGORY WHERE IS_DELETED = 0 AND ACTIVE = 1 ORDER BY CATEGORY_NAME ASC");
 if ($cat_result && $cat_result->RecordCount() > 0) {
     while (!$cat_result->EOF) {
         $categories[] = $cat_result->fields;
         $cat_result->MoveNext();
     }
-}
+} */
 
 // Fetch products
 $products = [];

@@ -627,28 +627,41 @@ function firstSundayOfYear($year)
                                                     $weekly_interview_renewal_data = $db_account->Execute("SELECT CONCAT(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END),'/',SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END)) AS INTERVIEW_RENEWAL_COUNT FROM (SELECT AC.PK_USER_MASTER,SUM(SC.UNIT) AS total_lessons,SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','),',',12),',',-1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons>=12) AS M RIGHT JOIN (SELECT AC.PK_USER_MASTER,AM.DATE,SUM(SC.UNIT) AS total_units FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN $weekly_date_condition GROUP BY AC.PK_USER_MASTER,AM.DATE) AS W USING (PK_USER_MASTER)");
                                                     $weekly_interview_renewal_count = explode('/', $weekly_interview_renewal_data->fields['INTERVIEW_RENEWAL_COUNT']);
                                                     $group_data_weekly = $db_account->Execute("SELECT 
-    COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
-FROM DOA_APPOINTMENT_CUSTOMER dac
-LEFT JOIN DOA_APPOINTMENT_MASTER dam 
-    ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
-WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-    AND dam.APPOINTMENT_TYPE = 'GROUP'
-    AND dam.PK_SERVICE_MASTER != 2
-    AND dam.DATE BETWEEN $weekly_date_condition");
+                                                                                                    COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
+                                                                                                FROM DOA_APPOINTMENT_CUSTOMER dac
+                                                                                                LEFT JOIN DOA_APPOINTMENT_MASTER dam 
+                                                                                                    ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
+                                                                                                WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                                                                    AND dam.APPOINTMENT_TYPE = 'GROUP'
+                                                                                                    AND dam.PK_SERVICE_MASTER != 2
+                                                                                                    AND dam.DATE BETWEEN $weekly_date_condition");
 
                                                     $weekly_customer_data = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USER_ROLES.PK_USER = DOA_USERS.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.JOINING_DATE BETWEEN $weekly_date_condition");
                                                     $weekly_customer_id = [];
+                                                    $weekly_customer_count = 0;
+
                                                     if ($weekly_customer_data->RecordCount() > 0) {
                                                         $weekly_customer_count = $weekly_customer_data->RecordCount();
                                                         while (!$weekly_customer_data->EOF) {
-                                                            $weekly_customer_id[] = $weekly_customer_data->fields['PK_USER_MASTER'];
+                                                            $weekly_customer_id[] = (int) $weekly_customer_data->fields['PK_USER_MASTER'];
                                                             $weekly_customer_data->MoveNext();
                                                         }
-                                                    } else {
-                                                        $weekly_customer_count = 0;
                                                     }
-                                                    $weekly_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $weekly_customer_id) . ")");
-                                                    $weekly_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $weekly_customer_id) . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $weekly_date_condition");
+
+                                                    $weekly_booked_count = 0;
+                                                    $weekly_showed_count = 0;
+
+                                                    if (!empty($weekly_customer_id)) {
+                                                        $customer_ids = implode(',', $weekly_customer_id);
+                                                        $location_ids = implode(',', array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+
+                                                        $weekly_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids)");
+
+                                                        $weekly_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids) AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $weekly_date_condition");
+
+                                                        $weekly_booked_count = $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0;
+                                                        $weekly_showed_count = $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0;
+                                                    }
 
                                                     $weekly_leads_data = $db->Execute("SELECT COUNT(PK_LEADS) AS LEADS_COUNT FROM DOA_LEADS WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND CREATED_ON BETWEEN $weekly_date_condition");
                                                     ?>
@@ -666,28 +679,41 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     $yearly_interview_renewal_data = $db_account->Execute("SELECT CONCAT(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END),'/',SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END)) AS INTERVIEW_RENEWAL_COUNT FROM (SELECT AC.PK_USER_MASTER,SUM(SC.UNIT) AS total_lessons,SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','),',',12),',',-1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons>=12) AS M RIGHT JOIN (SELECT AC.PK_USER_MASTER,AM.DATE,SUM(SC.UNIT) AS total_units FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN $net_year_date_condition GROUP BY AC.PK_USER_MASTER,AM.DATE) AS W USING (PK_USER_MASTER)");
                                                     $yearly_interview_renewal_count = explode('/', $yearly_interview_renewal_data->fields['INTERVIEW_RENEWAL_COUNT']);
                                                     $group_data_yearly = $db_account->Execute("SELECT 
-    COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
-FROM DOA_APPOINTMENT_CUSTOMER dac
-LEFT JOIN DOA_APPOINTMENT_MASTER dam 
-    ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
-WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-    AND dam.APPOINTMENT_TYPE = 'GROUP'
-    AND dam.PK_SERVICE_MASTER != 2
-    AND dam.DATE BETWEEN $net_year_date_condition");
+                                                                                                    COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
+                                                                                                FROM DOA_APPOINTMENT_CUSTOMER dac
+                                                                                                LEFT JOIN DOA_APPOINTMENT_MASTER dam 
+                                                                                                    ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
+                                                                                                WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                                                                    AND dam.APPOINTMENT_TYPE = 'GROUP'
+                                                                                                    AND dam.PK_SERVICE_MASTER != 2
+                                                                                                    AND dam.DATE BETWEEN $net_year_date_condition");
 
                                                     $yearly_customer_data = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USER_ROLES.PK_USER = DOA_USERS.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.JOINING_DATE BETWEEN $net_year_date_condition");
                                                     $yearly_customer_id = [];
+                                                    $yearly_customer_count = 0;
+
                                                     if ($yearly_customer_data->RecordCount() > 0) {
                                                         $yearly_customer_count = $yearly_customer_data->RecordCount();
                                                         while (!$yearly_customer_data->EOF) {
-                                                            $yearly_customer_id[] = $yearly_customer_data->fields['PK_USER_MASTER'];
+                                                            $yearly_customer_id[] = (int) $yearly_customer_data->fields['PK_USER_MASTER'];
                                                             $yearly_customer_data->MoveNext();
                                                         }
-                                                    } else {
-                                                        $yearly_customer_count = 0;
                                                     }
-                                                    $yearly_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $yearly_customer_id) . ")");
-                                                    $yearly_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $yearly_customer_id) . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $net_year_date_condition");
+
+                                                    $yearly_booked_count = 0;
+                                                    $yearly_showed_count = 0;
+
+                                                    if (!empty($yearly_customer_id)) {
+                                                        $customer_ids = implode(',', $yearly_customer_id);
+                                                        $location_ids = implode(',', array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+
+                                                        $yearly_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids)");
+
+                                                        $yearly_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids) AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $net_year_date_condition");
+
+                                                        $yearly_booked_count = $yearly_booked_data->fields['BOOKED_COUNT'] ?? 0;
+                                                        $yearly_showed_count = $yearly_showed_data->fields['SHOWED_COUNT'] ?? 0;
+                                                    }
 
                                                     $yearly_leads_data = $db->Execute("SELECT COUNT(PK_LEADS) AS LEADS_COUNT FROM DOA_LEADS WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND CREATED_ON BETWEEN $net_year_date_condition");
                                                     ?>
@@ -705,28 +731,41 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     $prev_year_interview_renewal_data = $db_account->Execute("SELECT CONCAT(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END),'/',SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END)) AS INTERVIEW_RENEWAL_COUNT FROM (SELECT AC.PK_USER_MASTER,SUM(SC.UNIT) AS total_lessons,SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','),',',12),',',-1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons>=12) AS M RIGHT JOIN (SELECT AC.PK_USER_MASTER,AM.DATE,SUM(SC.UNIT) AS total_units FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN $prev_year_date_condition GROUP BY AC.PK_USER_MASTER,AM.DATE) AS W USING (PK_USER_MASTER)");
                                                     $prev_year_interview_renewal_count = explode('/', $prev_year_interview_renewal_data->fields['INTERVIEW_RENEWAL_COUNT']);
                                                     $group_data_prev_year = $db_account->Execute("SELECT 
-    COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
-FROM DOA_APPOINTMENT_CUSTOMER dac
-LEFT JOIN DOA_APPOINTMENT_MASTER dam 
-    ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
-WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-    AND dam.APPOINTMENT_TYPE = 'GROUP'
-    AND dam.PK_SERVICE_MASTER != 2
-    AND dam.DATE BETWEEN $prev_year_date_condition");
+                                                                                                        COUNT(dac.PK_USER_MASTER) AS GROUP_COUNT
+                                                                                                    FROM DOA_APPOINTMENT_CUSTOMER dac
+                                                                                                    LEFT JOIN DOA_APPOINTMENT_MASTER dam 
+                                                                                                        ON dac.PK_APPOINTMENT_MASTER = dam.PK_APPOINTMENT_MASTER
+                                                                                                    WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                                                                        AND dam.APPOINTMENT_TYPE = 'GROUP'
+                                                                                                        AND dam.PK_SERVICE_MASTER != 2
+                                                                                                        AND dam.DATE BETWEEN $prev_year_date_condition");
 
                                                     $prev_year_customer_data = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USER_ROLES.PK_USER = DOA_USERS.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.JOINING_DATE BETWEEN $prev_year_date_condition");
                                                     $prev_year_customer_id = [];
+                                                    $prev_year_customer_count = 0;
+
                                                     if ($prev_year_customer_data->RecordCount() > 0) {
                                                         $prev_year_customer_count = $prev_year_customer_data->RecordCount();
                                                         while (!$prev_year_customer_data->EOF) {
-                                                            $prev_year_customer_id[] = $prev_year_customer_data->fields['PK_USER_MASTER'];
+                                                            $prev_year_customer_id[] = (int) $prev_year_customer_data->fields['PK_USER_MASTER'];
                                                             $prev_year_customer_data->MoveNext();
                                                         }
-                                                    } else {
-                                                        $prev_year_customer_count = 0;
                                                     }
-                                                    $prev_year_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $prev_year_customer_id) . ")");
-                                                    $prev_year_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN (" . implode(',', $prev_year_customer_id) . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $prev_year_date_condition");
+
+                                                    $prev_year_booked_count = 0;
+                                                    $prev_year_showed_count = 0;
+
+                                                    if (!empty($prev_year_customer_id)) {
+                                                        $customer_ids = implode(',', $prev_year_customer_id);
+                                                        $location_ids = implode(',', array_map('intval', explode(',', $_SESSION['DEFAULT_LOCATION_ID'])));
+
+                                                        $prev_year_booked_data = $db_account->Execute("SELECT COUNT(DISTINCT(PK_USER_MASTER)) AS BOOKED_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids)");
+
+                                                        $prev_year_showed_data = $db_account->Execute("SELECT IFNULL(count(*),0) AS SHOWED_COUNT FROM (SELECT PK_USER_MASTER, MIN(DOA_APPOINTMENT_MASTER.DATE) AS FIRST_APPT FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($location_ids) AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER IN ($customer_ids) AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 GROUP BY PK_USER_MASTER) A WHERE FIRST_APPT BETWEEN $prev_year_date_condition");
+
+                                                        $prev_year_booked_count = $prev_year_booked_data->fields['BOOKED_COUNT'] ?? 0;
+                                                        $prev_year_showed_count = $prev_year_showed_data->fields['SHOWED_COUNT'] ?? 0;
+                                                    }
 
                                                     $prev_year_leads_data = $db->Execute("SELECT COUNT(PK_LEADS) AS LEADS_COUNT FROM DOA_LEADS WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND CREATED_ON BETWEEN $prev_year_date_condition");
                                                     ?>
