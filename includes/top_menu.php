@@ -30,7 +30,7 @@
 </style>
 <?php
 $LOCATIONS = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-if (count($LOCATIONS) == 1) {
+if (count($LOCATIONS) == 1 && $LOCATIONS[0] > 0) {
     $location_data = $db->Execute("SELECT FOCUSBIZ_ACCESS_TOKEN FROM DOA_LOCATION WHERE PK_LOCATION = " . $LOCATIONS[0]);
     $FOCUSBIZ_ACCESS_TOKEN = ($location_data->RecordCount() > 0) ? $location_data->fields['FOCUSBIZ_ACCESS_TOKEN'] : '';
 }

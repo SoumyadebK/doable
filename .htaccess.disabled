@@ -22,7 +22,7 @@ RewriteRule ^(global|vendor)/ - [F,L]
 
 # Block everything inside uploads/ EXCEPT uploads/blogs/ and uploads/demo_sheet/
 
-RewriteRule ^uploads/(?!(blogs|demo_sheet)/) - [F,L]
+RewriteRule ^uploads/(?!(blogs|demo_sheet|sample_enrollment_pdf)/) - [F,L]
 
 # For uploads: block if NOT a direct file request (i.e. block folder browsing only)
 

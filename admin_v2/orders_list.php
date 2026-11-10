@@ -35,14 +35,14 @@ if ($db) {
 }
 
 // Fetch categories for dropdown (for product modal)
-$categories = [];
+/* $categories = [];
 $cat_result = $db_account->Execute("SELECT PK_CATEGORY, CATEGORY_NAME FROM DOA_CATEGORY WHERE IS_DELETED = 0 AND ACTIVE = 1 ORDER BY CATEGORY_NAME ASC");
 if ($cat_result && $cat_result->RecordCount() > 0) {
     while (!$cat_result->EOF) {
         $categories[] = $cat_result->fields;
         $cat_result->MoveNext();
     }
-}
+} */
 ?>
 
 <?php include 'layout/header_script.php'; ?>
@@ -520,7 +520,7 @@ if ($cat_result && $cat_result->RecordCount() > 0) {
         $pendingCount = 0;
 
         if ($db_account) {
-            $metricsQuery = $db_account->Execute("SELECT PK_ORDER, ORDER_TOTAL_AMOUNT, PK_ORDER_STATUS FROM DOA_ORDER");
+            /* $metricsQuery = $db_account->Execute("SELECT PK_ORDER, ORDER_TOTAL_AMOUNT, PK_ORDER_STATUS FROM DOA_ORDER");
             if ($metricsQuery && $metricsQuery->RecordCount() > 0) {
                 $totalOrders = $metricsQuery->RecordCount();
                 while (!$metricsQuery->EOF) {
@@ -528,7 +528,7 @@ if ($cat_result && $cat_result->RecordCount() > 0) {
                     $totalRevenue += $amount;
                     $metricsQuery->MoveNext();
                 }
-            }
+            } */
 
             $pendingQ = $db_account->Execute("SELECT COUNT(*) AS PENDING_CNT FROM DOA_ORDER O LEFT JOIN $master_database.DOA_ORDER_STATUS S ON O.PK_ORDER_STATUS = S.PK_ORDER_STATUS WHERE LOWER(S.STATUS) LIKE '%pending%' OR LOWER(S.STATUS) LIKE '%processing%'");
             $pendingCount = ($pendingQ && $pendingQ->RecordCount() > 0) ? intval($pendingQ->fields['PENDING_CNT']) : 0;
@@ -543,7 +543,7 @@ if ($cat_result && $cat_result->RecordCount() > 0) {
                     <p class="text-muted small mb-1">Total Orders</p>
                     <div class="d-flex align-items-baseline gap-2">
                         <span class="fs-2 fw-semibold"><?= number_format($totalOrders) ?></span>
-                        <span class="badge text-success font-weight-normal bg-success-light">+12% <span class="text-muted fw-normal">vs last week</span></span>
+                        <!-- <span class="badge text-success font-weight-normal bg-success-light">+12% <span class="text-muted fw-normal">vs last week</span></span> -->
                     </div>
                 </div>
             </div>
@@ -552,7 +552,7 @@ if ($cat_result && $cat_result->RecordCount() > 0) {
                     <p class="text-muted small mb-1">Total Revenue</p>
                     <div class="d-flex align-items-baseline gap-2">
                         <span class="fs-2 fw-semibold">$<?= number_format($totalRevenue, 2) ?></span>
-                        <span class="badge text-success font-weight-normal bg-success-light">+8% <span class="text-muted fw-normal">vs last week</span></span>
+                        <!-- <span class="badge text-success font-weight-normal bg-success-light">+8% <span class="text-muted fw-normal">vs last week</span></span> -->
                     </div>
                 </div>
             </div>
@@ -561,7 +561,7 @@ if ($cat_result && $cat_result->RecordCount() > 0) {
                     <p class="text-muted small mb-1">Average Order Value</p>
                     <div class="d-flex align-items-baseline gap-2">
                         <span class="fs-2 fw-semibold">$<?= number_format($avgOrderValue, 2) ?></span>
-                        <span class="badge text-danger font-weight-normal bg-danger-light">-2% <span class="text-muted fw-normal">this week</span></span>
+                        <!-- <span class="badge text-danger font-weight-normal bg-danger-light">-2% <span class="text-muted fw-normal">this week</span></span> -->
                     </div>
                 </div>
             </div>
