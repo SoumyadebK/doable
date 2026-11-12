@@ -34,7 +34,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
 
                 $auth_data = $db->Execute("SELECT * FROM `DOA_USER_AUTH_LOG` WHERE `PK_USER` = '$PK_USER' ORDER BY `LOGIN_TIME` DESC LIMIT 1");
 
-                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($_SESSION['PK_ROLES'] == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || ($result->fields['PK_ACCOUNT_MASTER'] == 1010 || $result->fields['PK_ACCOUNT_MASTER'] == 1039)) {
+                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($_SESSION['PK_ROLES'] == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || ($result->fields['PK_ACCOUNT_MASTER'] == 1010 || $result->fields['PK_ACCOUNT_MASTER'] == 1039 || $result->fields['PK_ACCOUNT_MASTER'] == 1066)) {
                     $_SESSION['PK_USER'] = $result->fields['PK_USER'];
                     $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
 

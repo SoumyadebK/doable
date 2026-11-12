@@ -1874,23 +1874,26 @@ function handleAppointmentsUpload()
 
         $is_group = ($is_group_svc === 1) || ($group_name !== '');
 
-                // =====================================================
+        // =====================================================
         // HANDLE TO-DO (SPECIAL APPOINTMENT)
         // =====================================================
         if ($is_todo) {
-            // Duplicate check for To-Dos
+            // Duplicate check for To-Dos — must include the teacher
             $dup = $db_account->Execute("
-                SELECT PK_SPECIAL_APPOINTMENT
-                FROM DOA_SPECIAL_APPOINTMENT
-                WHERE TITLE = '" . addslashes($group_name) . "'
-                  AND DATE = '" . addslashes($date) . "'
-                  AND START_TIME = '" . addslashes($start_time) . "'
-                  AND PK_LOCATION = " . intval($PK_LOCATION) . "
-                LIMIT 1
-            ");
+        SELECT SA.PK_SPECIAL_APPOINTMENT
+        FROM DOA_SPECIAL_APPOINTMENT SA
+        INNER JOIN DOA_SPECIAL_APPOINTMENT_USER SAU
+                ON SAU.PK_SPECIAL_APPOINTMENT = SA.PK_SPECIAL_APPOINTMENT
+        WHERE SA.TITLE         = '" . addslashes($group_name) . "'
+          AND SA.DATE          = '" . addslashes($date) . "'
+          AND SA.START_TIME    = '" . addslashes($start_time) . "'
+          AND SA.PK_LOCATION   = " . intval($PK_LOCATION) . "
+          AND SAU.PK_USER      = " . intval($PK_SERVICE_PROVIDER) . "
+        LIMIT 1
+    ");
 
             if ($dup && $dup->RecordCount() > 0) {
-                $dup_rows[] = "Line $lineNumber — duplicate To-Do on {$date} {$start_time}";
+                $dup_rows[] = "Line $lineNumber — duplicate To-Do on {$date} {$start_time} for teacher {$sp_name}";
                 $lineNumber++;
                 continue;
             }
@@ -1911,7 +1914,7 @@ function handleAppointmentsUpload()
                 'START_TIME'             => $start_time,
                 'END_TIME'               => $end_time,
                 'PK_SCHEDULING_CODE'     => $PK_SCHEDULING_CODE,
-                'DESCRIPTION'            => $todo_description, 
+                'DESCRIPTION'            => $todo_description,
                 'ACTIVE'                 => 1,
                 'PK_APPOINTMENT_STATUS'  => $status_pk,
                 'CREATED_BY'             => $_SESSION['PK_USER'],
@@ -1926,17 +1929,18 @@ function handleAppointmentsUpload()
                 continue;
             }
 
-            // --- FIX: Re-fetch the ID instead of relying on insert_ID() ---
+            // Re-fetch the ID (db_perform_account may not expose insert_ID reliably)
             $row_back = $db_account->Execute("
-                SELECT PK_SPECIAL_APPOINTMENT
-                FROM DOA_SPECIAL_APPOINTMENT
-                WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
-                  AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
-                  AND DATE                = '" . addslashes($date) . "'
-                  AND START_TIME          = '" . addslashes($start_time) . "'
-                ORDER BY PK_SPECIAL_APPOINTMENT DESC
-                LIMIT 1
-            ");
+        SELECT PK_SPECIAL_APPOINTMENT
+        FROM DOA_SPECIAL_APPOINTMENT
+        WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+          AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+          AND DATE                = '" . addslashes($date) . "'
+          AND START_TIME          = '" . addslashes($start_time) . "'
+          AND TITLE               = '" . addslashes($group_name) . "'
+        ORDER BY PK_SPECIAL_APPOINTMENT DESC
+        LIMIT 1
+    ");
 
             if (!$row_back || $row_back->RecordCount() == 0) {
                 $warn_rows[] = "Line $lineNumber — inserted To-Do but could not re-fetch its PK";
@@ -1945,14 +1949,13 @@ function handleAppointmentsUpload()
             }
 
             $PK_SPECIAL_APPOINTMENT = (int)$row_back->fields['PK_SPECIAL_APPOINTMENT'];
-            // -------------------------------------------------------------
 
             // Link Service Provider in DOA_SPECIAL_APPOINTMENT_USER
             $SPECIAL_APPOINTMENT_USER = [
                 'PK_SPECIAL_APPOINTMENT' => $PK_SPECIAL_APPOINTMENT,
                 'PK_USER'                => $PK_SERVICE_PROVIDER
             ];
-            
+
             $user_insert_ok = db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
 
             if (!$user_insert_ok) {

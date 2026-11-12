@@ -1498,6 +1498,8 @@ function saveLocationData($RESPONSE_DATA)
     global $db_account;
     global $upload_path;
 
+    $response = [];
+
     try {
         // Remove FUNCTION_NAME from data
         unset($RESPONSE_DATA['FUNCTION_NAME']);
@@ -1534,41 +1536,55 @@ function saveLocationData($RESPONSE_DATA)
 
         // Handle Focusbiz API
         if (!empty($RESPONSE_DATA['FOCUSBIZ_API_KEY'])) {
-            if ($RESPONSE_DATA['FOCUSBIZ_API_KEY'] != $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD']) {
-                $location = array();
-                $location['FIRST_NAME'] = $RESPONSE_DATA['LOCATION_NAME'];
-                $location['LAST_NAME'] = '(' . $RESPONSE_DATA['LOCATION_CODE'] . ')';
-                $location['EMAIL_ID'] = $RESPONSE_DATA['EMAIL'];
-                $location['ACTIVE'] = 1;
-                $location['USER_ID'] = $RESPONSE_DATA['LOCATION_CODE'];
-                $location['PASSWORD'] = 'Password@123';
+            $newKey = $RESPONSE_DATA['FOCUSBIZ_API_KEY'] ?? '';
+            $oldKey = $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD'] ?? '';
 
-                $URL = "https://focusbiz.com/API/V1/user";
-                $json = json_encode($location);
+            if ($newKey != $oldKey) {
+                $location = [
+                    'FIRST_NAME' => $RESPONSE_DATA['LOCATION_NAME'] ?? '',
+                    'LAST_NAME'  => '(' . ($RESPONSE_DATA['LOCATION_CODE'] ?? '') . ')',
+                    'EMAIL_ID'   => $RESPONSE_DATA['EMAIL'] ?? '',
+                    'ACTIVE'     => 1,
+                    'USER_ID'    => $RESPONSE_DATA['LOCATION_CODE'] ?? '',
+                    'PASSWORD'   => 'Password@123',   // see note 4
+                ];
+
+                $URL  = "https://focusbiz.com/API/V1/user";
+                $json = json_encode($location, JSON_THROW_ON_ERROR);
+
                 $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_SSL_VERIFYHOST => '0',
-                    CURLOPT_SSL_VERIFYPEER => '0',
-                    CURLOPT_URL => $URL,
+                curl_setopt_array($curl, [
+                    CURLOPT_URL            => $URL,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => "",
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 30,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_POST => 1,
-                    CURLOPT_POSTFIELDS => $json,
-                    CURLOPT_HTTPHEADER => array(
-                        "APIKEY: " . $RESPONSE_DATA['FOCUSBIZ_API_KEY']
-                    ),
-                ));
+                    CURLOPT_ENCODING       => "",
+                    CURLOPT_MAXREDIRS      => 10,
+                    CURLOPT_TIMEOUT        => 30,
+                    CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $json,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                    CURLOPT_SSL_VERIFYHOST => 2,
+                    CURLOPT_HTTPHEADER     => [
+                        "APIKEY: " . $newKey,
+                        "Content-Type: application/json",
+                    ],
+                ]);
 
                 $return_data = curl_exec($curl);
-                $err = curl_error($curl);
-                curl_close($curl);
+                $err         = curl_error($curl);
+                $httpCode    = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+                // curl_close($curl) removed: deprecated in PHP 8.5 (no effect since 8.0)
+                unset($curl);
 
-                if (!$err) {
-                    $response = json_decode($return_data);
-                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+                if ($return_data !== false && $err === '' && $httpCode >= 200 && $httpCode < 300) {
+                    $focusbizResponse = json_decode($return_data);
+                    if (is_object($focusbizResponse) && isset($focusbizResponse->ACCESS_TOKEN)) {
+                        $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $focusbizResponse->ACCESS_TOKEN;
+                    } else {
+                        error_log('FocusBiz API: unexpected response: ' . $return_data);
+                    }
+                } else {
+                    error_log("FocusBiz API error (HTTP $httpCode): " . $err . ' ' . (string) $return_data);
                 }
             }
         } else {
@@ -2150,7 +2166,7 @@ function completeAppointment($RESPONSE_DATA)
     db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update', " PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
 }
 
-function getServiceProviderCount($RESPONSE_DATA)
+/* function getServiceProviderCount($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
@@ -2259,7 +2275,138 @@ function getServiceProviderCount($RESPONSE_DATA)
     $return_data['week_count'] = $week_event_count->fields['APPOINTMENT_COUNT'] + $week_appointment_count->fields['APPOINTMENT_COUNT'];
 
     echo json_encode($return_data);
+} */
+
+
+function getServiceProviderCount($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $master_database;
+
+    $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
+    // SECURITY: provider ids cast to int (they were going straight into SQL).
+    $provider_ids = [];
+    if (!empty($RESPONSE_DATA['selected_service_provider']) && is_array($RESPONSE_DATA['selected_service_provider'])) {
+        $provider_ids = array_filter(array_map('intval', $RESPONSE_DATA['selected_service_provider']));
+    }
+    if (empty($provider_ids)) {
+        $service_providers = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . (int) $_SESSION['PK_ACCOUNT_MASTER']);
+        while (!$service_providers->EOF) {
+            $provider_ids[] = (int) $service_providers->fields['PK_USER'];
+            $service_providers->MoveNext();
+        }
+    }
+
+    // FIX: an empty list used to produce "IN ()" -> SQL error.
+    if (empty($provider_ids)) {
+        echo json_encode(['service_provider' => [], 'day_count' => 0, 'week_count' => 0]);
+        return;
+    }
+    $selected_service_provider = implode(',', $provider_ids);
+
+    // Normalise the date (JS sends e.g. 2026-11-5) so it is safe and index-friendly.
+    $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
+    $calendar_view = $RESPONSE_DATA['calendar_view'] ?? '';
+
+    // FIX: the JS sends 'dayGridMonth', never 'month', so the month total was
+    // always a week total even though the button says "M".
+    if ($calendar_view === 'dayGridMonth' || $calendar_view === 'month') {
+        $start_date = date('Y-m-01', strtotime($date));
+        $end_date = date('Y-m-t', strtotime($date));
+    } else {
+        $week = getWeekStartAndEndDate($date);
+        $start_date = $week['start'];
+        $end_date = $week['end'];
+    }
+
+    $service_provider_array = [];
+
+    // 1) Provider names / badges (one query, as before)
+    $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (" . $selected_service_provider . ")");
+    while (!$all_service_provider_details->EOF) {
+        $SERVICE_PROVIDER_ID = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
+        $profile = getProfileBadge($all_service_provider_details->fields['SERVICE_PROVIDER_NAME']);
+
+        $service_provider_array[$SERVICE_PROVIDER_ID] = [
+            'SERVICE_PROVIDER_ID' => $SERVICE_PROVIDER_ID,
+            'SERVICE_PROVIDER_NAME' => $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'],
+            'INITIALS' => $profile['initials'],
+            'COLOR' => $profile['color'],
+            'IS_FOLLOWUP_EXIST' => 0,
+            'APPOINTMENT_COUNT' => 0,
+        ];
+        $all_service_provider_details->MoveNext();
+    }
+
+    // 2) PERF: follow-up counts. Previously ONE full scan of DOA_AUTOMATION_LOG
+    //    PER PROVIDER (FIND_IN_SET cannot use an index). Now one scan in total,
+    //    counted in PHP with the same rule: a log row counts once for a provider
+    //    if the provider appears in any of the three id lists.
+    $wanted = array_flip(array_map('strval', array_keys($service_provider_array)));
+    $followups = $db_account->Execute("SELECT LAST_CLASS_SP_ID, LAST_ENROLLMENT_SP_ID, STUDIO_MANAGER_ID FROM DOA_AUTOMATION_LOG WHERE IS_ARCHIVE = 0");
+    while (!$followups->EOF) {
+        $ids = array_merge(
+            explode(',', (string) $followups->fields['LAST_CLASS_SP_ID']),
+            explode(',', (string) $followups->fields['LAST_ENROLLMENT_SP_ID']),
+            explode(',', (string) $followups->fields['STUDIO_MANAGER_ID'])
+        );
+        foreach (array_unique($ids) as $id) {
+            if (isset($wanted[$id])) {
+                $service_provider_array[$id]['IS_FOLLOWUP_EXIST']++;
+            }
+        }
+        $followups->MoveNext();
+    }
+
+    // 3) Per-provider appointment count for the day (one GROUP BY query, as before)
+    $APPOINTMENT_FROM_WHERE = " FROM DOA_APPOINTMENT_MASTER
+                            LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                            LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                            LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                            WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
+                            AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
+                            AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
+                            AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
+                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN ($selected_service_provider) ";
+
+    $service_provider_appointment_count = $db_account->Execute("SELECT COUNT(DISTINCT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS APPOINTMENT_COUNT, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID " . $APPOINTMENT_FROM_WHERE . " AND DOA_APPOINTMENT_MASTER.`DATE` = '$date' GROUP BY DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER");
+    while (!$service_provider_appointment_count->EOF) {
+        $sp = $service_provider_appointment_count->fields['SERVICE_PROVIDER_ID'];
+        if (isset($service_provider_array[$sp])) {
+            $service_provider_array[$sp]['APPOINTMENT_COUNT'] += (int) $service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
+        }
+        $service_provider_appointment_count->MoveNext();
+    }
+
+    // 4) PERF: day total + week/month total in ONE query (was two separate queries).
+    $appointment_totals = $db_account->Execute("SELECT
+                                COUNT(DISTINCT CASE WHEN DOA_APPOINTMENT_MASTER.`DATE` = '$date' THEN DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER END) AS DAY_COUNT,
+                                COUNT(DISTINCT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS RANGE_COUNT
+                            " . $APPOINTMENT_FROM_WHERE . " AND DOA_APPOINTMENT_MASTER.`DATE` BETWEEN '$start_date' AND '$end_date'");
+
+    // 5) PERF: day + range event totals in ONE query (was two).
+    $event_totals = $db_account->Execute("SELECT
+                                COUNT(CASE WHEN DOA_EVENT.`START_DATE` = '$date' THEN DOA_EVENT.PK_EVENT END) AS DAY_COUNT,
+                                COUNT(DOA_EVENT.PK_EVENT) AS RANGE_COUNT
+                            FROM DOA_EVENT
+                            LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
+                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0
+                            AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
+                            AND DOA_EVENT.`START_DATE` BETWEEN '$start_date' AND '$end_date'");
+
+    $return_data['service_provider'] = array_values($service_provider_array);
+    $return_data['day_count'] = (int) $event_totals->fields['DAY_COUNT'] + (int) $appointment_totals->fields['DAY_COUNT'];
+    $return_data['week_count'] = (int) $event_totals->fields['RANGE_COUNT'] + (int) $appointment_totals->fields['RANGE_COUNT'];
+
+    echo json_encode($return_data);
 }
+
+
+
 
 function selectDefaultLocation($RESPONSE_DATA)
 {
@@ -2293,7 +2440,7 @@ function createUpdateHistory($class, $update_table_primary_key, $table_name, $pr
                 $UPDATE_HISTORY_DATA['TO_VALUE'] = $NEW_VALUE;
                 $UPDATE_HISTORY_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $UPDATE_HISTORY_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
+                db_perform_account('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
             }
         }
     } elseif ($type == 'update') {
@@ -2310,7 +2457,7 @@ function createUpdateHistory($class, $update_table_primary_key, $table_name, $pr
                     $UPDATE_HISTORY_DATA['TO_VALUE'] = $NEW_VALUE;
                     $UPDATE_HISTORY_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                     $UPDATE_HISTORY_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
+                    db_perform_account('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
                 }
             }
         }
@@ -2348,13 +2495,13 @@ function checkParameterProperty($key, $old_value, $new_value)
             $return_new_value = ($data_new == 0) ? NULL : $data_new->fields['AGREEMENT_TYPE'];
             break;
 
-        case 'PK_DOCUMENT_LIBRARY':
+        /* case 'PK_DOCUMENT_LIBRARY':
             $field_name = 'Agreement Template';
             $data_old = getPrimaryKeyData('DOA_DOCUMENT_LIBRARY', 'PK_DOCUMENT_LIBRARY', $old_value);
             $return_old_value = ($data_old == 0) ? NULL : $data_old->fields['DOCUMENT_NAME'];
             $data_new = getPrimaryKeyData('DOA_DOCUMENT_LIBRARY', 'PK_DOCUMENT_LIBRARY ', $new_value);
             $return_new_value = ($data_new == 0) ? NULL : $data_new->fields['DOCUMENT_NAME'];
-            break;
+            break; */
 
         case 'ENROLLMENT_BY_ID':
             $field_name = 'Enrollment By';
@@ -2390,9 +2537,10 @@ function checkParameterProperty($key, $old_value, $new_value)
     return [$field_name, $return_old_value, $return_new_value];
 }
 
-function getPrimaryKeyData($table_name, $primary_key_name, $primary_key)
+function getPrimaryKeyData($table_name = '', $primary_key_name = '', $primary_key = 0)
 {
     global $db;
+    $primary_key = ($primary_key == '') ? 0 : $primary_key;
     $result = $db->Execute("SELECT * FROM " . $table_name . " WHERE " . $primary_key_name . " = " . $primary_key);
     if ($result->RecordCount() > 0) {
         return $result;
@@ -4235,7 +4383,7 @@ function addNewCustomer($RESPONSE_DATA)
         $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
         $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'] ?? '';
         if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-            $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+            $USER_DATA['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
         }
         $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
         $USER_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $RESPONSE_DATA['PHONE']);
@@ -4568,7 +4716,7 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
     $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        $USER_DATA['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
     }
     $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
@@ -4637,7 +4785,7 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
 
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
     $PK_USER = $RESPONSE_DATA['PK_USER'];
-    $USER_DATA['ACTIVE']    = $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+    $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
     $USER_DATA['EDITED_BY']    = $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
     $USER_DATA['CREATED_ON']  =  empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
