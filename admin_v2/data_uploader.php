@@ -328,7 +328,22 @@ function handleCustomerEnrollmentsUpload()
         rewind($csvFile);
     }
 
-    $lineNumber = 1;
+    $headerRow = fgetcsv($csvFile, 10000, ",");
+    $col_map = [];
+    if ($headerRow) {
+        foreach ($headerRow as $index => $colName) {
+            $cleanName = strtoupper(trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $colName)));
+            $col_map[$cleanName] = $index;
+        }
+    }
+
+    if (!isset($col_map['WALLET CREDIT']) || !isset($col_map['WALLET CREDIT NOTE'])) {
+        $upload_error = "Warning: Required columns 'Wallet Credit' or 'Wallet Credit Note' were not found in the CSV header. Wallet credits will not be processed.";
+        // If you want to STOP the upload entirely, uncomment the next line:
+        // return; 
+    }
+
+    $lineNumber = 2;
     $PK_LOCATION = $_POST['PK_LOCATION'];
 
     $skipped_rows      = [];
@@ -1205,9 +1220,18 @@ function handleCustomerEnrollmentsUpload()
 
         // Ensure the array has enough elements to prevent "Undefined offset" errors
         // if the last columns are empty and get trimmed by fgetcsv
-        $getData = array_pad($getData, 37, '');
-        $raw_wallet_credit = trim($getData[35]);
-        $wallet_credit_note = trim($getData[36]);
+        $wallet_credit_index = $col_map['WALLET CREDIT'] ?? null;
+        $wallet_credit_note_index = $col_map['WALLET CREDIT NOTE'] ?? null;
+
+        $raw_wallet_credit = '';
+        if ($wallet_credit_index !== null && isset($getData[$wallet_credit_index])) {
+            $raw_wallet_credit = trim($getData[$wallet_credit_index]);
+        }
+
+        $wallet_credit_note = '';
+        if ($wallet_credit_note_index !== null && isset($getData[$wallet_credit_note_index])) {
+            $wallet_credit_note = trim($getData[$wallet_credit_note_index]);
+        }
 
         $has_explicit_wallet_credit = false;
 
@@ -1632,8 +1656,12 @@ function handleAppointmentsUpload()
             continue;
         }
 
+        // Read the appointment type from the file (Index 26)
+        $csv_appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
+
         // Is this a To-Do / Staff Block?
-        $is_todo = (strpos(strtoupper($sched_label), 'STAFF') === 0);
+        // Check the explicit APPOINTMENT_TYPE first, then fallback to checking if the schedule code starts with STAFF
+        $is_todo = ($csv_appt_type === 'TODO') || (strpos(strtoupper($sched_label), 'STAFF') === 0);
 
         // =====================================================
         // CUSTOMER (Optional for To-Dos)
@@ -1763,7 +1791,7 @@ function handleAppointmentsUpload()
         $PK_ENROLLMENT_SERVICE = 0;
 
         // Read the appointment type from the file (Index 26)
-        $csv_appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
+        //$csv_appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
 
         // Default to AD-HOC, but if the file says NORMAL, we'll try to find the enrollment
         $derived_type = 'AD-HOC';
