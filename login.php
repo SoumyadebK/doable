@@ -92,7 +92,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
                     } elseif ($_SESSION['PK_ROLES'] == 5) {
                         header("location: admin_v2/calendar.php");
                     } elseif ($_SESSION['IS_NEW'] == 1) {
-                        header("location: admin/wizard_corporation.php");
+                        header("location: admin_v2/wizard_corporation.php");
                     } else {
                         header("location: admin_v2/calendar.php");
                     }

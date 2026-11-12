@@ -569,6 +569,26 @@ function handleCustomerEnrollmentsUpload()
         $email      = trim($getData[3] ?? '');
         $phone      = trim($getData[4] ?? '');
 
+        // Extract the new columns based on the headers in your CSV
+        $csv_dob     = isset($col_map['BIRTHDAY']) ? trim($getData[$col_map['BIRTHDAY']] ?? '') : '';
+        $csv_address = isset($col_map['ADDRESS']) ? trim($getData[$col_map['ADDRESS']] ?? '') : '';
+        $csv_city    = isset($col_map['CITY']) ? trim($getData[$col_map['CITY']] ?? '') : '';
+        $csv_state   = isset($col_map['PROVINCE / STATE']) ? trim($getData[$col_map['PROVINCE / STATE']] ?? '') : '';
+        $csv_zip     = isset($col_map['POSTAL CODE']) ? trim($getData[$col_map['POSTAL CODE']] ?? '') : '';
+
+        // Format the birthday to Y-m-d (The function already handles YYYY-MM-DD, MM/DD/YYYY, and DD-MM-YYYY)
+        $formatted_dob = normalizeImportDate($csv_dob);
+
+        // Look up the State ID (e.g., convert "GA" to the database PK_STATES)
+        $PK_STATES = 0;
+        if ($csv_state !== '') {
+            $state_escaped = addslashes($csv_state);
+            $state_q = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE (STATE_CODE = '$state_escaped' OR STATE_NAME = '$state_escaped') LIMIT 1");
+            if ($state_q && $state_q->RecordCount() > 0) {
+                $PK_STATES = $state_q->fields['PK_STATES'];
+            }
+        }
+
         $priv_completed  = (float)($getData[5]  ?? 0);
         $grp_completed   = (float)($getData[6]  ?? 0);
         $party_completed = (float)($getData[7]  ?? 0);
@@ -642,13 +662,13 @@ function handleCustomerEnrollmentsUpload()
             $USER_DATA['LAST_NAME']         = $last_name;
             $USER_DATA['EMAIL_ID']          = $email;
             $USER_DATA['PHONE']             = $phone;
-            $USER_DATA['DOB']               = null;
-            $USER_DATA['ADDRESS']           = '';
+            $USER_DATA['DOB']               = ($formatted_dob !== '') ? $formatted_dob : null;
+            $USER_DATA['ADDRESS']           = $csv_address;
             $USER_DATA['ADDRESS_1']         = null;
-            $USER_DATA['CITY']              = '';
-            $USER_DATA['ZIP']               = '';
+            $USER_DATA['CITY']              = $csv_city;
+            $USER_DATA['ZIP']               = $csv_zip;
             $USER_DATA['PK_COUNTRY']        = 1;
-            $USER_DATA['PK_STATES']         = 0;
+            $USER_DATA['PK_STATES']         = $PK_STATES;
             $USER_DATA['IS_DELETED']        = 0;
             // Default to Active (1) if empty or missing
             $USER_DATA['ACTIVE'] = 1;
@@ -1523,6 +1543,11 @@ function handleCustomerEnrollmentsUpload()
  * HANDLER: Appointments
  * ================================================================
  */
+/**
+ * ================================================================
+ * HANDLER: Appointments
+ * ================================================================
+ */
 function handleAppointmentsUpload()
 {
     global $db, $PK_ACCOUNT_MASTER;
@@ -1610,14 +1635,14 @@ function handleAppointmentsUpload()
     };
 
     // =====================================================
-    // SCHEDULING CODE LOOKUP (by text code)
+    // SCHEDULING CODE LOOKUP (by text code or name)
     // =====================================================
     $findSchedulingCodeByName = function ($db_account, $PK_LOCATION, $sched_code) {
         $code_safe = addslashes($sched_code);
         return $db_account->Execute("
             SELECT PK_SCHEDULING_CODE
             FROM DOA_SCHEDULING_CODE
-            WHERE SCHEDULING_CODE = '$code_safe'
+            WHERE (SCHEDULING_CODE = '$code_safe' OR SCHEDULING_NAME = '$code_safe')
               AND (PK_LOCATION = " . intval($PK_LOCATION) . " OR PK_LOCATION IS NULL)
             ORDER BY PK_LOCATION DESC
             LIMIT 1
@@ -1770,28 +1795,26 @@ function handleAppointmentsUpload()
 
         $svc_details = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
 
-        // If no service is found, or if it's a To-Do, force it to use the MISC service
-        if ($is_todo || !$svc_details || $svc_details->RecordCount() == 0) {
+        // If no service is found, and it's NOT a To-Do, force it to use the MISC service
+        // To-Dos don't need a service, they go to DOA_SPECIAL_APPOINTMENT
+        if (!$is_todo && (!$svc_details || $svc_details->RecordCount() == 0)) {
             $svc_details = $findServiceByCode($db_account, $PK_LOCATION, 'MISC');
             if (!$svc_details || $svc_details->RecordCount() == 0) {
-                $skipped_rows[] = "Line $lineNumber — Service code 'MISC' not found in location {$PK_LOCATION} (Required for To-Dos)";
+                $skipped_rows[] = "Line $lineNumber — Service code '{$csv_svc}' or 'MISC' not found in location {$PK_LOCATION}";
                 $lineNumber++;
                 continue;
             }
         }
 
-        $PK_SERVICE_MASTER = $svc_details->fields['PK_SERVICE_MASTER'];
-        $PK_SERVICE_CODE   = $svc_details->fields['PK_SERVICE_CODE'];
-        $is_group_svc      = (int)$svc_details->fields['IS_GROUP'];
+        $PK_SERVICE_MASTER = $svc_details ? $svc_details->fields['PK_SERVICE_MASTER'] : 0;
+        $PK_SERVICE_CODE   = $svc_details ? $svc_details->fields['PK_SERVICE_CODE'] : 0;
+        $is_group_svc      = $svc_details ? (int)$svc_details->fields['IS_GROUP'] : 0;
 
         // =====================================================
         // ENROLLMENT LINK (Respects APPOINTMENT_TYPE from CSV)
         // =====================================================
         $PK_ENROLLMENT_MASTER = 0;
         $PK_ENROLLMENT_SERVICE = 0;
-
-        // Read the appointment type from the file (Index 26)
-        //$csv_appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
 
         // Default to AD-HOC, but if the file says NORMAL, we'll try to find the enrollment
         $derived_type = 'AD-HOC';
@@ -1851,36 +1874,113 @@ function handleAppointmentsUpload()
 
         $is_group = ($is_group_svc === 1) || ($group_name !== '');
 
+                // =====================================================
+        // HANDLE TO-DO (SPECIAL APPOINTMENT)
         // =====================================================
-        // DUPLICATE CHECK
-        // =====================================================
-        // For To-Dos, check by title, date, time, and provider
         if ($is_todo) {
+            // Duplicate check for To-Dos
             $dup = $db_account->Execute("
-                SELECT AM.PK_APPOINTMENT_MASTER
-                FROM DOA_APPOINTMENT_MASTER AM
-                INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON ASP.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
-                WHERE AM.GROUP_NAME = '" . addslashes($group_name) . "'
-                  AND AM.DATE = '" . addslashes($date) . "'
-                  AND AM.START_TIME = '" . addslashes($start_time) . "'
-                  AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND ASP.PK_USER = " . intval($PK_SERVICE_PROVIDER) . "
+                SELECT PK_SPECIAL_APPOINTMENT
+                FROM DOA_SPECIAL_APPOINTMENT
+                WHERE TITLE = '" . addslashes($group_name) . "'
+                  AND DATE = '" . addslashes($date) . "'
+                  AND START_TIME = '" . addslashes($start_time) . "'
+                  AND PK_LOCATION = " . intval($PK_LOCATION) . "
                 LIMIT 1
             ");
-        } else {
-            $dup = $db_account->Execute("
-                SELECT AM.PK_APPOINTMENT_MASTER
-                FROM DOA_APPOINTMENT_MASTER AM
-                INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
-                INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON ASP.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
-                WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND AM.DATE = '" . addslashes($date) . "'
-                  AND AM.START_TIME = '" . addslashes($start_time) . "'
-                  AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND ASP.PK_USER = " . intval($PK_SERVICE_PROVIDER) . "
+
+            if ($dup && $dup->RecordCount() > 0) {
+                $dup_rows[] = "Line $lineNumber — duplicate To-Do on {$date} {$start_time}";
+                $lineNumber++;
+                continue;
+            }
+
+            // Combine regular comment and internal comment for the To-Do description
+            $todo_description = trim($comment);
+            if ($internal !== '') {
+                $todo_description = ($todo_description !== '') ? $todo_description . "\n\n" . $internal : $internal;
+            }
+
+            // Insert into DOA_SPECIAL_APPOINTMENT
+            $SPECIAL_APPOINTMENT_DATA = [
+                'STANDING_ID'            => 0,
+                'PK_LOCATION'            => $PK_LOCATION,
+                'TITLE'                  => $group_name,
+                'DATE'                   => $date,
+                'ALL_DAY'                => 0,
+                'START_TIME'             => $start_time,
+                'END_TIME'               => $end_time,
+                'PK_SCHEDULING_CODE'     => $PK_SCHEDULING_CODE,
+                'DESCRIPTION'            => $todo_description, 
+                'ACTIVE'                 => 1,
+                'PK_APPOINTMENT_STATUS'  => $status_pk,
+                'CREATED_BY'             => $_SESSION['PK_USER'],
+                'CREATED_ON'             => date("Y-m-d H:i")
+            ];
+
+            $insert_ok = db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+
+            if (!$insert_ok) {
+                $warn_rows[] = "Line $lineNumber — could not create To-Do master";
+                $lineNumber++;
+                continue;
+            }
+
+            // --- FIX: Re-fetch the ID instead of relying on insert_ID() ---
+            $row_back = $db_account->Execute("
+                SELECT PK_SPECIAL_APPOINTMENT
+                FROM DOA_SPECIAL_APPOINTMENT
+                WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+                  AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+                  AND DATE                = '" . addslashes($date) . "'
+                  AND START_TIME          = '" . addslashes($start_time) . "'
+                ORDER BY PK_SPECIAL_APPOINTMENT DESC
                 LIMIT 1
             ");
+
+            if (!$row_back || $row_back->RecordCount() == 0) {
+                $warn_rows[] = "Line $lineNumber — inserted To-Do but could not re-fetch its PK";
+                $lineNumber++;
+                continue;
+            }
+
+            $PK_SPECIAL_APPOINTMENT = (int)$row_back->fields['PK_SPECIAL_APPOINTMENT'];
+            // -------------------------------------------------------------
+
+            // Link Service Provider in DOA_SPECIAL_APPOINTMENT_USER
+            $SPECIAL_APPOINTMENT_USER = [
+                'PK_SPECIAL_APPOINTMENT' => $PK_SPECIAL_APPOINTMENT,
+                'PK_USER'                => $PK_SERVICE_PROVIDER
+            ];
+            
+            $user_insert_ok = db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+
+            if (!$user_insert_ok) {
+                $warn_rows[] = "Line $lineNumber — To-Do created but failed to link teacher (PK_USER: {$PK_SERVICE_PROVIDER})";
+            }
+
+            $imported['TODO']++;
+            $lineNumber++;
+            continue; // Skip the rest of the loop for To-Dos
         }
+
+        // =====================================================
+        // STANDARD APPOINTMENT (NORMAL / GROUP / AD-HOC)
+        // =====================================================
+
+        // DUPLICATE CHECK
+        $dup = $db_account->Execute("
+            SELECT AM.PK_APPOINTMENT_MASTER
+            FROM DOA_APPOINTMENT_MASTER AM
+            INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON ASP.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+              AND AM.DATE = '" . addslashes($date) . "'
+              AND AM.START_TIME = '" . addslashes($start_time) . "'
+              AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
+              AND ASP.PK_USER = " . intval($PK_SERVICE_PROVIDER) . "
+            LIMIT 1
+        ");
 
         if ($dup && $dup->RecordCount() > 0) {
             $dup_rows[] = "Line $lineNumber — duplicate appointment on {$date} {$start_time}";
@@ -1888,12 +1988,10 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // =====================================================
         // INSERT MASTER
-        // =====================================================
         $PK_APPOINTMENT_MASTER = 0;
 
-        if ($is_group && !$is_todo) {
+        if ($is_group) {
             $gkey = strtolower($group_name) . '|' . $date . '|' . $start_time . '|' . $PK_SERVICE_MASTER . '|' . $PK_SCHEDULING_CODE;
             if (isset($group_cache[$gkey])) {
                 $PK_APPOINTMENT_MASTER = $group_cache[$gkey];
@@ -1902,8 +2000,8 @@ function handleAppointmentsUpload()
 
         if ($PK_APPOINTMENT_MASTER == 0) {
 
-            $appointment_type = $is_todo ? 'TODO' : ($is_group ? 'GROUP' : $derived_type);
-            $title = ($is_todo || $is_group) ? $group_name : null;
+            $appointment_type = $is_group ? 'GROUP' : $derived_type;
+            $title = $is_group ? $group_name : null;
 
             $APPT = [
                 'PK_ENROLLMENT_MASTER'   => $PK_ENROLLMENT_MASTER,
@@ -1968,9 +2066,7 @@ function handleAppointmentsUpload()
 
             $PK_APPOINTMENT_MASTER = (int)$row_back->fields['PK_APPOINTMENT_MASTER'];
 
-            if ($is_todo) {
-                $imported['TODO']++;
-            } else if ($is_group) {
+            if ($is_group) {
                 $group_cache[$gkey] = $PK_APPOINTMENT_MASTER;
                 $imported['GROUP']++;
             } else {
@@ -2020,7 +2116,7 @@ function handleAppointmentsUpload()
         // =====================================================
         // ENROLLMENT LINK — only when NORMAL
         // =====================================================
-        if ($derived_type === 'NORMAL' && $PK_ENROLLMENT_SERVICE > 0 && !$is_todo) {
+        if ($derived_type === 'NORMAL' && $PK_ENROLLMENT_SERVICE > 0) {
             $already_enr = $db_account->Execute("
                 SELECT PK_APPOINTMENT_MASTER
                 FROM DOA_APPOINTMENT_ENROLLMENT
