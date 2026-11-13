@@ -708,6 +708,14 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    // Prevent form submission via Enter key (except in textareas)
+    $(document).on('keydown', '#enrollment_payment_form', function(event) {
+        if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+            event.preventDefault();
+            return false;
+        }
+    });
+
     $(document).on('submit', '#enrollment_payment_form', function(event) {
         $('#enr-payment-btn').prop('disabled', true);
         event.preventDefault();
