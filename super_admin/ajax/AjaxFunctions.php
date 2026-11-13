@@ -63,6 +63,17 @@ function saveAccountInfoData($RESPONSE_DATA)
         if ($conn_account_db->multi_query($sqlCreateStoreProcedure) === FALSE) {
             echo "Error creating store procedure: " . $conn_account_db->error . "\n";
         }
+
+        $insertEnrAgreement = $insert_enr_agreement;
+        if ($conn_account_db->multi_query($insertEnrAgreement) === FALSE) {
+            echo "Error inserting enr agreement: " . $conn_account_db->error . "\n";
+        }
+
+        $insertMiscellaneousAgreement = $insert_misc_agreement;
+        if ($conn_account_db->multi_query($insertMiscellaneousAgreement) === FALSE) {
+            echo "Error inserting miscellaneous agreement: " . $conn_account_db->error . "\n";
+        }
+
         $conn_account_db->close();
 
         $ACCOUNT_DATA_UPDATE['DB_NAME'] = $databaseName;

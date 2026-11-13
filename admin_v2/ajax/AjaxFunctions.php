@@ -1220,7 +1220,7 @@ function saveProfileData($RESPONSE_DATA)
         }
     }
 
-    //$db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    $db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
     $return_data['PK_USER'] = $PK_USER;
     $return_data['PK_USER_MASTER'] = $PK_USER_MASTER;
