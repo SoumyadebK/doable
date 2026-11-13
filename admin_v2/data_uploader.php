@@ -15,6 +15,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 $UPLOAD_TYPES = [
     'customer_enrollments' => 'Customer & Enrollments',
     'appointments'         => 'Appointments',
+    'staff'                => 'Staff / Teachers', // <-- Add this
 ];
 
 // Multi-token store
@@ -69,6 +70,8 @@ if (!empty($_POST)) {
                 handleCustomerEnrollmentsUpload();
             } elseif ($UPLOAD_TYPE === 'appointments') {
                 handleAppointmentsUpload();
+            } elseif ($UPLOAD_TYPE === 'staff') { // <-- Add this
+                handleStaffUpload();
             }
         }
     }
@@ -89,6 +92,185 @@ function normalizeImportDate($raw)
     }
     $ts = strtotime($raw);
     return $ts ? date('Y-m-d', $ts) : '';
+}
+
+/**
+ * ================================================================
+ * HANDLER: Staff / Teachers
+ * ================================================================
+ */
+function handleStaffUpload()
+{
+    global $db, $db_account, $PK_ACCOUNT_MASTER;
+    global $upload_error, $upload_success;
+
+    $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+    if (!$account_data || $account_data->RecordCount() == 0) {
+        $upload_error = "Account configuration not found.";
+        return;
+    }
+    $DB_NAME = $account_data->fields['DB_NAME'];
+
+    require_once('../global/common_functions_account.php');
+    $account_database = $DB_NAME;
+    $db_account = new queryFactory();
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+        $db_account->connect('localhost', 'root', '', $account_database);
+    } else {
+        $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $account_database);
+    }
+    if (mysqli_connect_error()) {
+        $upload_error = "Account DB connection failed.";
+        return;
+    }
+
+    $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
+    if (!$csvFile) {
+        $upload_error = "Could not open uploaded file.";
+        return;
+    }
+
+    $bom = fread($csvFile, 3);
+    if ($bom !== "\xEF\xBB\xBF") {
+        rewind($csvFile);
+    }
+
+    // Map Headers
+    $headerRow = fgetcsv($csvFile, 10000, ",");
+    $col_map = [];
+    if ($headerRow) {
+        foreach ($headerRow as $index => $colName) {
+            $cleanName = strtoupper(trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $colName)));
+            $col_map[$cleanName] = $index;
+        }
+    }
+
+    $PK_LOCATION = $_POST['PK_LOCATION'];
+    $skipped_rows = [];
+    $created_rows = [];
+    $rows_created = 0;
+    $lineNumber = 2;
+
+    while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
+        if (empty($getData) || (count($getData) == 1 && trim($getData[0]) === '')) {
+            $lineNumber++;
+            continue;
+        }
+
+        // Extract Data
+        $first_name = trim($getData[$col_map['FIRST NAME'] ?? 0] ?? '');
+        $last_name  = trim($getData[$col_map['LAST NAME'] ?? 1] ?? '');
+        $phone      = trim($getData[$col_map['PHONE'] ?? 2] ?? '');
+        $email      = trim($getData[$col_map['EMAIL'] ?? 3] ?? '');
+        $country    = trim($getData[$col_map['COUNTRY'] ?? 4] ?? 'United States');
+        $state      = trim($getData[$col_map['STATE'] ?? 5] ?? 'Alabama');
+        $appear_in_calendar = (int)($getData[$col_map['APPEAR IN CALENDAR'] ?? 6] ?? 1);
+
+        if ($first_name === '' || $email === '') {
+            $skipped_rows[] = "Line $lineNumber — Missing First Name or Email.";
+            $lineNumber++;
+            continue;
+        }
+
+        $email_escaped = addslashes($email);
+        $existing = $db->Execute("SELECT U.PK_USER FROM DOA_USERS U WHERE U.EMAIL_ID = '$email_escaped' AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . " LIMIT 1");
+
+        if ($existing && $existing->RecordCount() > 0) {
+            $skipped_rows[] = "Line $lineNumber — Staff member '{$email}' already exists.";
+            $lineNumber++;
+            continue;
+        }
+
+        // Map Country
+        $country_escaped = addslashes($country);
+        $country_q = $db->Execute("SELECT PK_COUNTRY FROM DOA_COUNTRY WHERE COUNTRY_NAME = '$country_escaped' OR COUNTRY_CODE = '$country_escaped' LIMIT 1");
+        $PK_COUNTRY = ($country_q && $country_q->RecordCount() > 0) ? $country_q->fields['PK_COUNTRY'] : 1; // Default to 1 if not found
+
+        // Map State (Assumes your DB has a PK_COUNTRY column in DOA_STATES to prevent duplicate state names across countries)
+        $state_escaped = addslashes($state);
+        $state_q = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME = '$state_escaped' AND PK_COUNTRY = $PK_COUNTRY LIMIT 1");
+        $PK_STATES = ($state_q && $state_q->RecordCount() > 0) ? $state_q->fields['PK_STATES'] : 0;
+
+        // Get Next UNIQUE_ID
+        $unique_id_q = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        $NEW_UNIQUE_ID = ($unique_id_q && $unique_id_q->RecordCount() > 0 && $unique_id_q->fields['UNIQUE_ID'] > 0) ? intval($unique_id_q->fields['UNIQUE_ID']) + 1 : 300580;
+
+        // Build Master DB User Data (Matching saveProfileData logic)
+        $USER_DATA = [
+            'PK_ACCOUNT_MASTER'  => $PK_ACCOUNT_MASTER,
+            'FIRST_NAME'         => $first_name,
+            'LAST_NAME'          => $last_name,
+            'EMAIL_ID'           => $email,
+            'PHONE'              => $phone,
+            'PK_COUNTRY'         => $PK_COUNTRY,
+            'PK_STATES'          => $PK_STATES,
+            'APPEAR_IN_CALENDAR' => $appear_in_calendar,
+            'CREATE_LOGIN'       => 0,
+            'TYPE'               => 'Staff', // Default type
+            'DOB'                => '0000-00-00', // Required by schema
+            'UNIQUE_ID'          => $NEW_UNIQUE_ID,
+            'JOINING_DATE'       => date("Y-m-d H:i"),
+            'ACTIVE'             => 1,
+            'IS_DELETED'         => 0,
+            'CREATED_BY'         => $_SESSION['PK_USER'],
+            'CREATED_ON'         => date("Y-m-d H:i")
+        ];
+
+        db_perform('DOA_USERS', $USER_DATA, 'insert');
+        $PK_USER = $db->insert_ID();
+
+        if (!$PK_USER) {
+            $conn = isset($db->connection) ? $db->connection : (isset($db->link) ? $db->link : null);
+            $sql_error = $conn ? mysqli_error($conn) : 'Unknown Error';
+            $skipped_rows[] = "Line $lineNumber — DB Error (DOA_USERS): " . htmlspecialchars($sql_error);
+            $lineNumber++;
+            continue;
+        }
+
+        // Build Account DB User Data
+        $USER_DATA_ACCOUNT = [
+            'PK_USER_MASTER_DB' => $PK_USER,
+            'PK_ACCOUNT_MASTER' => $PK_ACCOUNT_MASTER,
+            'FIRST_NAME'        => $first_name,
+            'LAST_NAME'         => $last_name,
+            'EMAIL_ID'          => $email,
+            'PHONE'             => $phone,
+            'ACCOUNT'           => 1,
+            'CREATED_BY'        => $_SESSION['PK_USER'],
+            'CREATED_ON'        => date("Y-m-d H:i")
+        ];
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+
+        // Create Master Record (Required for Staff so they link to the location)
+        $USER_MASTER_DATA = [
+            'PK_USER'             => $PK_USER,
+            'PK_ACCOUNT_MASTER'   => $PK_ACCOUNT_MASTER,
+            'PRIMARY_LOCATION_ID' => $PK_LOCATION,
+            'CREATED_BY'          => $_SESSION['PK_USER'],
+            'CREATED_ON'          => date("Y-m-d H:i")
+        ];
+        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+        $PK_USER_MASTER = $db->insert_ID();
+
+        // Assign Role 5 (Staff/Teacher)
+        db_perform('DOA_USER_ROLES', ['PK_USER' => $PK_USER, 'PK_ROLES' => 5], 'insert');
+
+        // Assign Location
+        db_perform('DOA_USER_LOCATION', ['PK_USER' => $PK_USER, 'PK_LOCATION' => $PK_LOCATION], 'insert');
+
+        $created_rows[] = "Line $lineNumber — <b>Created:</b> {$first_name} {$last_name} ({$email})";
+        $rows_created++;
+        $lineNumber++;
+    }
+
+    fclose($csvFile);
+
+    // Build Report
+    $msg_parts = ["Staff CSV processed. New staff created: " . $rows_created . "."];
+    if (!empty($created_rows)) $msg_parts[] = "<br><br><b>Created:</b><br>" . implode('<br>', $created_rows);
+    if (!empty($skipped_rows)) $msg_parts[] = "<br><br><b>Skipped / Errors:</b><br>" . implode('<br>', $skipped_rows);
+
+    $upload_success = implode('', $msg_parts);
 }
 
 /**
@@ -146,7 +328,22 @@ function handleCustomerEnrollmentsUpload()
         rewind($csvFile);
     }
 
-    $lineNumber = 1;
+    $headerRow = fgetcsv($csvFile, 10000, ",");
+    $col_map = [];
+    if ($headerRow) {
+        foreach ($headerRow as $index => $colName) {
+            $cleanName = strtoupper(trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $colName)));
+            $col_map[$cleanName] = $index;
+        }
+    }
+
+    if (!isset($col_map['WALLET CREDIT']) || !isset($col_map['WALLET CREDIT NOTE'])) {
+        $upload_error = "Warning: Required columns 'Wallet Credit' or 'Wallet Credit Note' were not found in the CSV header. Wallet credits will not be processed.";
+        // If you want to STOP the upload entirely, uncomment the next line:
+        // return; 
+    }
+
+    $lineNumber = 2;
     $PK_LOCATION = $_POST['PK_LOCATION'];
 
     $skipped_rows      = [];
@@ -157,8 +354,7 @@ function handleCustomerEnrollmentsUpload()
     $rows_created      = 0;
 
     // =====================================================
-    // Service lookup helper — no junction table.
-    // Prefers a row scoped to the target location, then any matching code.
+    // Service lookup helper — strictly checks the location.
     // =====================================================
     $findServiceInLocation = function ($db_account, $PK_LOCATION, $service_code, $prefix = false) {
         $code_safe = addslashes($service_code);
@@ -172,9 +368,9 @@ function handleCustomerEnrollmentsUpload()
             INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
             WHERE SC.SERVICE_CODE $op '$code_safe" . ($prefix ? "%" : "") . "'
               AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-            ORDER BY (SC.PK_LOCATION = $loc_safe) DESC,
-                     (SM.PK_LOCATION = $loc_safe) DESC,
-                     SC.PK_SERVICE_CODE DESC
+              -- MUST BELONG TO THE TARGET LOCATION
+              AND SM.PK_LOCATION = $loc_safe 
+            ORDER BY SC.PK_SERVICE_CODE DESC
             LIMIT 1
         ");
     };
@@ -235,28 +431,29 @@ function handleCustomerEnrollmentsUpload()
     };
 
     // =====================================================
-    // Service create-or-reuse helper — no junction table.
+    // Service create-or-reuse helper — ensures location strictness.
     // =====================================================
     $ensureServiceInLocation = function ($db_account, $PK_LOCATION, $code, $label, $is_group, &$created_rows) use ($ensureSchedulingCode) {
         $code_safe = addslashes($code);
+        $loc_safe  = intval($PK_LOCATION);
 
+        // STRICT LOOKUP: Only find it if it's attached to the exact location
         $existing = $db_account->Execute("
             SELECT SM.PK_SERVICE_MASTER, SC.PK_SERVICE_CODE
             FROM DOA_SERVICE_MASTER SM
             INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_MASTER = SM.PK_SERVICE_MASTER
             WHERE SC.SERVICE_CODE = '{$code_safe}'
               AND SM.ACTIVE = 1 AND SM.IS_DELETED = 0
-            ORDER BY (SC.PK_LOCATION = " . intval($PK_LOCATION) . ") DESC,
-                     (SM.PK_LOCATION = " . intval($PK_LOCATION) . ") DESC,
-                     SC.PK_SERVICE_CODE DESC
+              AND SM.PK_LOCATION = $loc_safe
             LIMIT 1
         ");
 
         if ($existing && $existing->RecordCount() > 0) {
             $PK_SERVICE_MASTER = $existing->fields['PK_SERVICE_MASTER'];
             $PK_SERVICE_CODE   = $existing->fields['PK_SERVICE_CODE'];
-            $created_rows[] = "• {$label} ({$code}) already exists — reusing";
+            $created_rows[] = "• {$label} ({$code}) already exists at this location — reusing";
         } else {
+            // It doesn't exist here, so create a BRAND NEW one for this location
             $SERVICE_MASTER = [
                 'PK_LOCATION'      => $PK_LOCATION,
                 'SERVICE_NAME'     => $label,
@@ -289,7 +486,7 @@ function handleCustomerEnrollmentsUpload()
             db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
             $PK_SERVICE_CODE = $db_account->insert_ID();
 
-            $created_rows[] = "• {$label} ({$code}) created at location {$PK_LOCATION}";
+            $created_rows[] = "• {$label} ({$code}) <b>created</b> at location {$PK_LOCATION}";
         }
 
         $ctx = ['code' => $code, 'label' => $label];
@@ -346,6 +543,7 @@ function handleCustomerEnrollmentsUpload()
     //   16 $ Amount Paid Ahead or Amount Behind
     //   17 Partner First Name
     //   18 Partner Last Name
+    //   19 Status (Active, Inactive, etc.)
     // ==========================================================
     while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
         if ($lineNumber === 1) {
@@ -371,16 +569,36 @@ function handleCustomerEnrollmentsUpload()
         $email      = trim($getData[3] ?? '');
         $phone      = trim($getData[4] ?? '');
 
-        $priv_completed  = (string)($getData[5]  ?? '0');
-        $grp_completed   = (string)($getData[6]  ?? '0');
-        $party_completed = (string)($getData[7]  ?? '0');
-        $coach_completed = (string)($getData[8]  ?? '0');
+        // Extract the new columns based on the headers in your CSV
+        $csv_dob     = isset($col_map['BIRTHDAY']) ? trim($getData[$col_map['BIRTHDAY']] ?? '') : '';
+        $csv_address = isset($col_map['ADDRESS']) ? trim($getData[$col_map['ADDRESS']] ?? '') : '';
+        $csv_city    = isset($col_map['CITY']) ? trim($getData[$col_map['CITY']] ?? '') : '';
+        $csv_state   = isset($col_map['PROVINCE / STATE']) ? trim($getData[$col_map['PROVINCE / STATE']] ?? '') : '';
+        $csv_zip     = isset($col_map['POSTAL CODE']) ? trim($getData[$col_map['POSTAL CODE']] ?? '') : '';
+
+        // Format the birthday to Y-m-d (The function already handles YYYY-MM-DD, MM/DD/YYYY, and DD-MM-YYYY)
+        $formatted_dob = normalizeImportDate($csv_dob);
+
+        // Look up the State ID (e.g., convert "GA" to the database PK_STATES)
+        $PK_STATES = 0;
+        if ($csv_state !== '') {
+            $state_escaped = addslashes($csv_state);
+            $state_q = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE (STATE_CODE = '$state_escaped' OR STATE_NAME = '$state_escaped') LIMIT 1");
+            if ($state_q && $state_q->RecordCount() > 0) {
+                $PK_STATES = $state_q->fields['PK_STATES'];
+            }
+        }
+
+        $priv_completed  = (float)($getData[5]  ?? 0);
+        $grp_completed   = (float)($getData[6]  ?? 0);
+        $party_completed = (float)($getData[7]  ?? 0);
+        $coach_completed = (float)($getData[8]  ?? 0);
         $cost_completed  = (float)($getData[9]  ?? 0);
 
-        $priv_active     = (string)($getData[10] ?? '0');
-        $grp_active      = (string)($getData[11] ?? '0');
-        $party_active    = (string)($getData[12] ?? '0');
-        $coach_active    = (string)($getData[13] ?? '0');
+        $priv_active     = (float)($getData[10] ?? 0);
+        $grp_active      = (float)($getData[11] ?? 0);
+        $party_active    = (float)($getData[12] ?? 0);
+        $coach_active    = (float)($getData[13] ?? 0);
         $cost_active     = (float)($getData[14] ?? 0);
         $amount_owed_remaining = (float)($getData[15] ?? 0);
 
@@ -391,6 +609,8 @@ function handleCustomerEnrollmentsUpload()
 
         $partner_first = isset($getData[17]) ? trim($getData[17]) : '';
         $partner_last  = isset($getData[18]) ? trim($getData[18]) : '';
+
+        $status = isset($getData[19]) ? trim($getData[19]) : '';
 
         // =====================================================
         // CUSTOMER: split lookup (UNIQUE_ID first, then EMAIL) — no OR scan
@@ -442,15 +662,21 @@ function handleCustomerEnrollmentsUpload()
             $USER_DATA['LAST_NAME']         = $last_name;
             $USER_DATA['EMAIL_ID']          = $email;
             $USER_DATA['PHONE']             = $phone;
-            $USER_DATA['DOB']               = null;
-            $USER_DATA['ADDRESS']           = '';
+            $USER_DATA['DOB']               = ($formatted_dob !== '') ? $formatted_dob : null;
+            $USER_DATA['ADDRESS']           = $csv_address;
             $USER_DATA['ADDRESS_1']         = null;
-            $USER_DATA['CITY']              = '';
-            $USER_DATA['ZIP']               = '';
+            $USER_DATA['CITY']              = $csv_city;
+            $USER_DATA['ZIP']               = $csv_zip;
             $USER_DATA['PK_COUNTRY']        = 1;
-            $USER_DATA['PK_STATES']         = 0;
+            $USER_DATA['PK_STATES']         = $PK_STATES;
             $USER_DATA['IS_DELETED']        = 0;
-            $USER_DATA['ACTIVE']            = 1;
+            // Default to Active (1) if empty or missing
+            $USER_DATA['ACTIVE'] = 1;
+
+            // Check for 0, "Inactive", or "0"
+            if ($status === '0' || strcasecmp($status, 'Inactive') == 0) {
+                $USER_DATA['ACTIVE'] = 0;
+            }
             if ($MINDBODY_CLIENT_ID_INT > 0) {
                 $USER_DATA['UNIQUE_ID'] = $MINDBODY_CLIENT_ID_INT;
             }
@@ -498,6 +724,19 @@ function handleCustomerEnrollmentsUpload()
                 $CUSTOMER_DATA['PARTNER_LAST_NAME']  = $partner_last;
                 db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
                 $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
+
+                // Insert Internal Note into DOA_COMMENT if provided in CSV
+                $customer_note = isset($getData[34]) ? trim($getData[34]) : '';
+                if ($customer_note !== '') {
+                    $COMMENT_DATA = [
+                        'FOR_PK_USER'  => $PK_USER,
+                        'BY_PK_USER'   => $_SESSION['PK_USER'],
+                        'COMMENT'      => $customer_note,
+                        'COMMENT_DATE' => date('Y-m-d H:i:s'),
+                        'ACTIVE'       => 1
+                    ];
+                    db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
+                }
             }
         }
 
@@ -545,7 +784,8 @@ function handleCustomerEnrollmentsUpload()
                 $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
                 $TOTAL_COST        = $cost_completed;
-                $PRICE_PER_SESSION = ($priv_completed > 0) ? $TOTAL_COST / $priv_completed : 0;
+                $total_sessions_completed = $priv_completed + $grp_completed + $party_completed + $coach_completed;
+                $PRICE_PER_SESSION = ($total_sessions_completed > 0) ? $TOTAL_COST / $total_sessions_completed : 0;
 
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
@@ -554,7 +794,7 @@ function handleCustomerEnrollmentsUpload()
                 $ENROLLMENT_DATA['ACTIVE']           = 1;
                 $ENROLLMENT_DATA['STATUS']           = "CO";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
-                $ENROLLMENT_DATA['EXPIRY_DATE']      = date("Y-m-d", strtotime("+1 month"));
+                $ENROLLMENT_DATA['EXPIRY_DATE']      = date("Y-m-d", strtotime("+1 year"));
                 $ENROLLMENT_DATA['CREATED_BY']       = $_SESSION['PK_USER'];
                 $ENROLLMENT_DATA['CREATED_ON']       = date("Y-m-d H:i");
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
@@ -578,11 +818,16 @@ function handleCustomerEnrollmentsUpload()
                 db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
                 $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
+                // Determine where to place the total cost if there are no private lessons
+                $grp_total_comp = ($priv_completed == 0 && $grp_completed > 0) ? $TOTAL_COST : 0;
+                $pty_total_comp = ($priv_completed == 0 && $grp_completed == 0 && $party_completed > 0) ? $TOTAL_COST : 0;
+                $cch_total_comp = ($priv_completed == 0 && $grp_completed == 0 && $party_completed == 0 && $coach_completed > 0) ? $TOTAL_COST : 0;
+
                 $services = [
                     ['col' => $priv_completed,  'code' => 'PRI',  'price' => $PRICE_PER_SESSION, 'total' => $TOTAL_COST, 'paid' => $TOTAL_COST],
-                    ['col' => $grp_completed,   'code' => 'GRP',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $party_completed, 'code' => 'Pty',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $coach_completed, 'code' => 'CCH',  'price' => 0,                  'total' => 0,          'paid' => 0],
+                    ['col' => $grp_completed,   'code' => 'GRP',  'price' => ($grp_completed > 0 ? ($grp_total_comp / $grp_completed) : 0), 'total' => $grp_total_comp, 'paid' => $grp_total_comp],
+                    ['col' => $party_completed, 'code' => 'Pty',  'price' => ($party_completed > 0 ? ($pty_total_comp / $party_completed) : 0), 'total' => $pty_total_comp, 'paid' => $pty_total_comp],
+                    ['col' => $coach_completed, 'code' => 'CCH',  'price' => ($coach_completed > 0 ? ($cch_total_comp / $coach_completed) : 0), 'total' => $cch_total_comp, 'paid' => $cch_total_comp],
                 ];
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
@@ -760,35 +1005,74 @@ function handleCustomerEnrollmentsUpload()
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                // $cen = $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'];
-                // if ($cen <= 1)        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                // else if ($cen == 2)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                // else if ($cen == 3)   $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
-                // else                  $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
-
                 $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 35;
 
-                $TOTAL_COST        = $cost_active;
-                $PRICE_PER_SESSION = ($priv_active > 0) ? $TOTAL_COST / $priv_active : 0;
+                // Read the new value columns (indices 20, 21, 22, 23)
+                $val_priv = isset($getData[20]) && trim($getData[20]) !== '' ? (float)$getData[20] : null;
+                $val_grp  = isset($getData[21]) && trim($getData[21]) !== '' ? (float)$getData[21] : null;
+                $val_pty  = isset($getData[22]) && trim($getData[22]) !== '' ? (float)$getData[22] : null;
+                $val_cch  = isset($getData[23]) && trim($getData[23]) !== '' ? (float)$getData[23] : null;
+
+                $has_new_value_columns = ($val_priv !== null || $val_grp !== null || $val_pty !== null || $val_cch !== null);
+
+                $TOTAL_COST = 0;
+                $priv_price = 0;
+                $grp_price = 0;
+                $pty_price = 0;
+                $cch_price = 0;
+                $priv_total = 0;
+                $grp_total = 0;
+                $pty_total = 0;
+                $cch_total = 0;
+
+                if ($has_new_value_columns) {
+                    // NEW LOGIC: Use the specific values from the CSV
+                    $val_priv = $val_priv ?? 0;
+                    $val_grp  = $val_grp ?? 0;
+                    $val_pty  = $val_pty ?? 0;
+                    $val_cch  = $val_cch ?? 0;
+
+                    $TOTAL_COST = $val_priv + $val_grp + $val_pty + $val_cch;
+
+                    // If the sum of new columns is 0, but there was a total cost, fallback to total cost
+                    if ($TOTAL_COST == 0 && $cost_active > 0) {
+                        $TOTAL_COST = $cost_active;
+                        $val_priv = $cost_active;
+                    }
+
+                    $priv_total = $val_priv;
+                    $grp_total  = $val_grp;
+                    $pty_total  = $val_pty;
+                    $cch_total  = $val_cch;
+
+                    $priv_price = ($priv_active > 0) ? ($priv_total / $priv_active) : 0;
+                    $grp_price  = ($grp_active > 0) ? ($grp_total / $grp_active) : 0;
+                    $pty_price  = ($party_active > 0) ? ($pty_total / $party_active) : 0;
+                    $cch_price  = ($coach_active > 0) ? ($cch_total / $coach_active) : 0;
+                } else {
+                    // OLD LOGIC (Backward Compatibility): Put everything on Private
+                    $TOTAL_COST = $cost_active;
+                    $total_sessions = $priv_active + $grp_active + $party_active + $coach_active;
+                    $PRICE_PER_SESSION = ($total_sessions > 0) ? $TOTAL_COST / $total_sessions : 0;
+
+                    $priv_total = $TOTAL_COST;
+                    $priv_price = $PRICE_PER_SESSION;
+                    // grp, pty, cch remain 0
+                }
 
                 // Initialize variables to track the extra debt
                 $amount_owed_for_misc = 0;
 
                 if ($amount_paid_active === null) {
-                    // If we have a specific "Amount Owed" from the CSV
                     if ($amount_owed_remaining > 0) {
                         if ($amount_owed_remaining > $TOTAL_COST) {
-                            // If they owe MORE than the lessons cost, 
-                            // the lessons are 100% unpaid, and the rest goes to MISC
                             $prepaid_lessons_value = 0;
                             $amount_owed_for_misc = $amount_owed_remaining - $TOTAL_COST;
                         } else {
-                            // They owe less than or equal to the lessons cost
                             $prepaid_lessons_value = $TOTAL_COST - $amount_owed_remaining;
                             $amount_owed_for_misc = 0;
                         }
                     } else {
-                        // Fallback: If no amount owed is specified, assume it's fully paid
                         $prepaid_lessons_value = $TOTAL_COST;
                         $amount_owed_for_misc = 0;
                     }
@@ -803,6 +1087,36 @@ function handleCustomerEnrollmentsUpload()
                 $TOTAL_PAID      = $prepaid_lessons_value;
                 $TOTAL_REMAINING = max(0, $TOTAL_COST - $prepaid_lessons_value);
 
+                // Distribute the paid amount proportionally across the service lines
+                $priv_paid = 0;
+                $grp_paid = 0;
+                $pty_paid = 0;
+                $cch_paid = 0;
+
+                if ($TOTAL_COST > 0) {
+                    $priv_paid = ($priv_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $grp_paid  = ($grp_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $pty_paid  = ($pty_total / $TOTAL_COST) * $TOTAL_PAID;
+                    $cch_paid  = ($cch_total / $TOTAL_COST) * $TOTAL_PAID;
+                }
+
+                // Read package expiry date (index 28)
+                $raw_expiry = isset($getData[28]) ? trim($getData[28]) : '';
+                $package_expiry_date = '';
+
+                if ($raw_expiry !== '') {
+                    // Try to parse the date (supports Y-m-d, d-m-Y, etc.)
+                    $ts = strtotime($raw_expiry);
+                    if ($ts !== false) {
+                        $package_expiry_date = date('Y-m-d', $ts);
+                    }
+                }
+
+                // Fallback to old behavior (+1 month) if empty or invalid
+                if ($package_expiry_date === '') {
+                    $package_expiry_date = date("Y-m-d", strtotime("+1 month"));
+                }
+
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
                 $ENROLLMENT_DATA['CHARGE_TYPE']      = 'Session';
@@ -810,7 +1124,7 @@ function handleCustomerEnrollmentsUpload()
                 $ENROLLMENT_DATA['ACTIVE']           = 1;
                 $ENROLLMENT_DATA['STATUS']           = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
-                $ENROLLMENT_DATA['EXPIRY_DATE']      = date("Y-m-d", strtotime("+1 month"));
+                $ENROLLMENT_DATA['EXPIRY_DATE']      = $package_expiry_date; // <-- Now using the CSV date
                 $ENROLLMENT_DATA['CREATED_BY']       = $_SESSION['PK_USER'];
                 $ENROLLMENT_DATA['CREATED_ON']       = date("Y-m-d H:i");
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
@@ -835,11 +1149,12 @@ function handleCustomerEnrollmentsUpload()
                 $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
                 $services = [
-                    ['col' => $priv_active,  'code' => 'PRI',  'price' => $PRICE_PER_SESSION, 'total' => $TOTAL_COST, 'paid' => $TOTAL_PAID],
-                    ['col' => $grp_active,   'code' => 'GRP',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $party_active, 'code' => 'Pty',  'price' => 0,                  'total' => 0,          'paid' => 0],
-                    ['col' => $coach_active, 'code' => 'CCH',  'price' => 0,                  'total' => 0,          'paid' => 0],
+                    ['col' => (float)$priv_active,  'code' => 'PRI',  'price' => (float)$priv_price, 'total' => (float)$priv_total, 'paid' => (float)$priv_paid],
+                    ['col' => (float)$grp_active,   'code' => 'GRP',  'price' => (float)$grp_price,  'total' => (float)$grp_total,  'paid' => (float)$grp_paid],
+                    ['col' => (float)$party_active, 'code' => 'Pty',  'price' => (float)$pty_price,  'total' => (float)$pty_total,  'paid' => (float)$pty_paid],
+                    ['col' => (float)$coach_active, 'code' => 'CCH',  'price' => (float)$cch_price,  'total' => (float)$cch_total,  'paid' => (float)$cch_paid],
                 ];
+
                 foreach ($services as $svc) {
                     if ($svc['col'] <= 0) continue;
                     $service_details = $findServiceInLocation($db_account, $PK_LOCATION, $svc['code'], false);
@@ -853,12 +1168,12 @@ function handleCustomerEnrollmentsUpload()
                         'PK_SERVICE_MASTER'    => $service_details->fields['PK_SERVICE_MASTER'],
                         'PK_SERVICE_CODE'      => $service_details->fields['PK_SERVICE_CODE'],
                         'SERVICE_DETAILS'      => $service_details->fields['SERVICE_NAME'],
-                        'NUMBER_OF_SESSION'    => $svc['col'],
-                        'PRICE_PER_SESSION'    => $svc['price'],
-                        'TOTAL'                => $svc['total'],
-                        'TOTAL_AMOUNT_PAID'    => $svc['paid'],
+                        'NUMBER_OF_SESSION'    => (float)$svc['col'], // Force Float
+                        'PRICE_PER_SESSION'    => (float)$svc['price'], // Force Float
+                        'TOTAL'                => (float)$svc['total'], // Force Float
+                        'TOTAL_AMOUNT_PAID'    => (float)$svc['paid'], // Force Float
                         'DISCOUNT'             => 0,
-                        'FINAL_AMOUNT'         => $svc['total'],
+                        'FINAL_AMOUNT'         => (float)$svc['total'],
                         'STATUS'               => 'A',
                     ];
                     db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
@@ -872,8 +1187,8 @@ function handleCustomerEnrollmentsUpload()
                         'ENROLLMENT_LEDGER_PARENT' => 0,
                         'DUE_DATE'                 => date('Y-m-d'),
                         'BILLED_AMOUNT'            => $prepaid_lessons_value,
-                        'PAID_AMOUNT'              => 0,
-                        'BALANCE'                  => $prepaid_lessons_value,
+                        'PAID_AMOUNT'              => $prepaid_lessons_value,
+                        'BALANCE'                  => 0,
                         'IS_PAID'                  => 1,
                         'STATUS'                   => 'A',
                         'IS_DOWN_PAYMENT'          => 0,
@@ -888,7 +1203,7 @@ function handleCustomerEnrollmentsUpload()
                         'PK_ENROLLMENT_LEDGER'  => $PK_ENROLLMENT_LEDGER,
                         'TYPE'                  => 'Payment',
                         'AMOUNT'                => $prepaid_lessons_value,
-                        'NOTE'                  => 'Prepaid lessons imported from Mindbody',
+                        'NOTE'                  => 'Prepaid lessons imported',
                         'PAYMENT_DATE'          => date('Y-m-d'),
                         'PAYMENT_INFO'          => '',
                         'PAYMENT_STATUS'        => 'Success',
@@ -918,6 +1233,84 @@ function handleCustomerEnrollmentsUpload()
             }
         }
 
+        // --- HANDLE EXPLICIT WALLET CREDIT (from new columns) ---
+        // Based on the confirmed CSV layout:
+        // Index 35 = Wallet Credit
+        // Index 36 = Wallet Credit Note
+
+        // Ensure the array has enough elements to prevent "Undefined offset" errors
+        // if the last columns are empty and get trimmed by fgetcsv
+        $wallet_credit_index = $col_map['WALLET CREDIT'] ?? null;
+        $wallet_credit_note_index = $col_map['WALLET CREDIT NOTE'] ?? null;
+
+        $raw_wallet_credit = '';
+        if ($wallet_credit_index !== null && isset($getData[$wallet_credit_index])) {
+            $raw_wallet_credit = trim($getData[$wallet_credit_index]);
+        }
+
+        $wallet_credit_note = '';
+        if ($wallet_credit_note_index !== null && isset($getData[$wallet_credit_note_index])) {
+            $wallet_credit_note = trim($getData[$wallet_credit_note_index]);
+        }
+
+        $has_explicit_wallet_credit = false;
+
+        if ($raw_wallet_credit !== '') {
+            $clean_wallet_credit = str_replace(['$', ','], '', $raw_wallet_credit);
+            $explicit_wallet_amount = (float)$clean_wallet_credit;
+
+            if ($explicit_wallet_amount > 0) {
+                $has_explicit_wallet_credit = true;
+                $dup_check = $db_account->Execute("SELECT PK_CUSTOMER_WALLET 
+                        FROM DOA_CUSTOMER_WALLET 
+                        WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
+                        AND NOTE = '" . addslashes($wallet_credit_note) . "'
+                        AND DATE(CREATED_ON) = '" . date('Y-m-d') . "' 
+                        LIMIT 1");
+
+                if ($dup_check && $dup_check->RecordCount() > 0) {
+                    $duplicate_rows[] = "Line $lineNumber — wallet credit with this note already imported today for " . htmlspecialchars($email);
+                } else {
+                    // Get current running balance
+                    $current_sum_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) AS TOTAL_BALANCE 
+                                                              FROM DOA_CUSTOMER_WALLET 
+                                                              WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " 
+                                                              AND IS_DELETED = 0");
+                    $current_total = ($current_sum_data && $current_sum_data->RecordCount() > 0) ? (float)$current_sum_data->fields['TOTAL_BALANCE'] : 0;
+                    $new_total_balance = $current_total + $explicit_wallet_amount;
+
+                    // Generate Receipt Number
+                    $receipt_lookup = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_CUSTOMER_WALLET WHERE RECEIPT_NUMBER IS NOT NULL AND RECEIPT_NUMBER != '' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+                    if ($receipt_lookup && $receipt_lookup->RecordCount() > 0) {
+                        $last_receipt = $receipt_lookup->fields['RECEIPT_NUMBER'];
+                        $last_num = (int)str_replace('PMT-', '', $last_receipt);
+                        $new_receipt = 'PMT-' . ($last_num + 1);
+                    } else {
+                        $new_receipt = 'PMT-1';
+                    }
+
+                    $WALLET_DATA = [
+                        'CUSTOMER_WALLET_PARENT' => 0,
+                        'PK_USER_MASTER'         => $PK_USER_MASTER,
+                        'CURRENT_BALANCE'        => $explicit_wallet_amount,
+                        'DEBIT'                  => 0,
+                        'CREDIT'                 => $explicit_wallet_amount,
+                        'BALANCE_LEFT'           => $new_total_balance,
+                        'DESCRIPTION'            => 'Imported Wallet Credit',
+                        'PK_PAYMENT_TYPE'        => 12, // Manual Payment
+                        'RECEIPT_NUMBER'         => $new_receipt,
+                        'NOTE'                   => $wallet_credit_note,
+                        'IS_DELETED'             => 0,
+                        'CREATED_BY'             => $_SESSION['PK_USER'],
+                        'CREATED_ON'             => date('Y-m-d H:i:s'),
+                    ];
+                    db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_DATA, 'insert');
+
+                    $misc_rows[] = "Line $lineNumber — Explicit wallet credit added for " . htmlspecialchars($email) . " ($" . number_format($explicit_wallet_amount, 2) . " credit, Note: " . htmlspecialchars($wallet_credit_note) . ")";
+                }
+            }
+        }
+
         // MISC ENROLLMENT
         // MISC ENROLLMENT / WALLET CREDIT
         // MISC ENROLLMENT / WALLET CREDIT
@@ -926,8 +1319,7 @@ function handleCustomerEnrollmentsUpload()
         $misc_amount = 0;
 
         // Rule 1 & 2: Check the sign of the balance
-        if ($account_balance > 0) {
-            // Positive value = Credit (Add to wallet)
+        if ($account_balance > 0 && !$has_explicit_wallet_credit) { // <--- ADD THIS
             $should_add_to_wallet = true;
             $misc_amount = $account_balance;
         } elseif ($account_balance < 0) {
@@ -985,10 +1377,10 @@ function handleCustomerEnrollmentsUpload()
                     'DEBIT'                  => 0,
                     'CREDIT'                 => $misc_amount,
                     'BALANCE_LEFT'           => $new_total_balance, // Set the running total
-                    'DESCRIPTION'            => 'Mindbody Import Credit',
+                    'DESCRIPTION'            => 'Import Credit',
                     'PK_PAYMENT_TYPE'        => 12,
                     'RECEIPT_NUMBER'         => $new_receipt,
-                    'NOTE'                   => 'Imported from Mindbody (Amount Paid Ahead)',
+                    'NOTE'                   => 'Imported (Amount Paid Ahead)',
                     'IS_DELETED'             => 0,
                     'CREATED_BY'             => $_SESSION['PK_USER'],
                     'CREATED_ON'             => date('Y-m-d H:i:s'),
@@ -1151,6 +1543,11 @@ function handleCustomerEnrollmentsUpload()
  * HANDLER: Appointments
  * ================================================================
  */
+/**
+ * ================================================================
+ * HANDLER: Appointments
+ * ================================================================
+ */
 function handleAppointmentsUpload()
 {
     global $db, $PK_ACCOUNT_MASTER;
@@ -1195,7 +1592,6 @@ function handleAppointmentsUpload()
 
     $IDX_MINDBODY_CLIENT_ID  = 0;
     $IDX_GROUP_NAME          = 6;
-    $IDX_PK_SCHEDULING_CODE  = 9;
     $IDX_DATE                = 11;
     $IDX_START_TIME          = 12;
     $IDX_END_TIME            = 13;
@@ -1206,8 +1602,6 @@ function handleAppointmentsUpload()
     $IDX_IS_PAID             = 24;
     $IDX_IS_CHARGED          = 25;
     $IDX_APPOINTMENT_TYPE    = 26;
-    $IDX_CUSTOMER_EMAIL      = 33;
-    $IDX_CUSTOMER_NAME       = 34;
     $IDX_SERVICE_PROVIDER    = 36;
     $IDX_SP_EMAIL            = 37;
     $IDX_SERVICE_CODE        = 38;
@@ -1216,13 +1610,12 @@ function handleAppointmentsUpload()
     $skipped_rows = [];
     $warn_rows    = [];
     $dup_rows     = [];
-    $imported     = ['NORMAL' => 0, 'AD-HOC' => 0, 'DEMO' => 0, 'GROUP' => 0];
+    $imported     = ['NORMAL' => 0, 'AD-HOC' => 0, 'DEMO' => 0, 'GROUP' => 0, 'TODO' => 0];
 
     $lineNumber = 1;
 
     // =====================================================
-    // SERVICE LOOKUP (for AD-HOC service resolution only)
-    // Try exact code, then prefix-stripped code.
+    // SERVICE LOOKUP (by text code)
     // =====================================================
     $findServiceByCode = function ($db_account, $PK_LOCATION, $service_code) {
         $code_safe = addslashes($service_code);
@@ -1241,12 +1634,15 @@ function handleAppointmentsUpload()
         ");
     };
 
+    // =====================================================
+    // SCHEDULING CODE LOOKUP (by text code or name)
+    // =====================================================
     $findSchedulingCodeByName = function ($db_account, $PK_LOCATION, $sched_code) {
         $code_safe = addslashes($sched_code);
         return $db_account->Execute("
             SELECT PK_SCHEDULING_CODE
             FROM DOA_SCHEDULING_CODE
-            WHERE SCHEDULING_CODE = '$code_safe'
+            WHERE (SCHEDULING_CODE = '$code_safe' OR SCHEDULING_NAME = '$code_safe')
               AND (PK_LOCATION = " . intval($PK_LOCATION) . " OR PK_LOCATION IS NULL)
             ORDER BY PK_LOCATION DESC
             LIMIT 1
@@ -1267,80 +1663,61 @@ function handleAppointmentsUpload()
         }
 
         // =====================================================
-        // CUSTOMER — MINDBODY_CLIENT_ID → UNIQUE_ID only.
+        // SCHEDULING CODE — from CSV Text (e.g. PRI45, STAFF)
         // =====================================================
-        $mb_id_raw = trim($getData[$IDX_MINDBODY_CLIENT_ID] ?? '');
-        $mb_id_int = ($mb_id_raw === '') ? 0 : (int)$mb_id_raw;
-
-        if ($mb_id_int <= 0) {
-            $skipped_rows[] = "Line $lineNumber — missing MINDBODY_CLIENT_ID";
-            $lineNumber++;
-            continue;
-        }
-
-        $cust = $db->Execute("
-            SELECT U.PK_USER, UM.PK_USER_MASTER
-            FROM DOA_USERS U
-            INNER JOIN DOA_USER_MASTER UM ON U.PK_USER = UM.PK_USER
-            WHERE U.UNIQUE_ID = " . $mb_id_int . "
-              AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
-              AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
-            LIMIT 1
-        ");
-        if (!$cust || $cust->RecordCount() == 0) {
-            $skipped_rows[] = "Line $lineNumber — no customer with MINDBODY_CLIENT_ID {$mb_id_int} in location {$PK_LOCATION}";
-            $lineNumber++;
-            continue;
-        }
-        $PK_USER        = $cust->fields['PK_USER'];
-        $PK_USER_MASTER = $cust->fields['PK_USER_MASTER'];
-
-        // =====================================================
-        // KIND from CSV service-code prefix
-        // =====================================================
-        $csv_svc = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
-        if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
-
-        if (strpos($csv_svc, 'PRI') === 0) {
-            $kind = 'PRI';
-            $kind_like = 'PRI';
-            $kind_is_group = 0;
-        } elseif (strpos($csv_svc, 'GRP') === 0) {
-            $kind = 'GRP';
-            $kind_like = 'GRP';
-            $kind_is_group = 1;
-        } elseif (strpos($csv_svc, 'PTY') === 0) {
-            $kind = 'Pty';
-            $kind_like = 'Pty';
-            $kind_is_group = 1;
-        } elseif (strpos($csv_svc, 'CCH') === 0) {
-            $kind = 'CCH';
-            $kind_like = 'CCH';
-            $kind_is_group = 0;
-        } else {
-            $kind = 'PRI';
-            $kind_like = 'PRI';
-            $kind_is_group = 0;
-        }
-
-        // =====================================================
-        // SCHEDULING CODE — from CSV (PRI45, PRI30, ...)
-        // =====================================================
-        $sched_label  = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
-        $sched_pk_csv = (int)($getData[$IDX_PK_SCHEDULING_CODE] ?? 0);
+        $sched_label = trim($getData[$IDX_SCHEDULING_CODE] ?? '');
         $PK_SCHEDULING_CODE = 0;
+
         if ($sched_label !== '') {
             $sched_row = $findSchedulingCodeByName($db_account, $PK_LOCATION, $sched_label);
             if ($sched_row && $sched_row->RecordCount() > 0) {
                 $PK_SCHEDULING_CODE = $sched_row->fields['PK_SCHEDULING_CODE'];
             }
         }
-        if ($PK_SCHEDULING_CODE == 0 && $sched_pk_csv > 0) {
-            $chk = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . intval($sched_pk_csv));
-            if ($chk && $chk->RecordCount() > 0) $PK_SCHEDULING_CODE = $chk->fields['PK_SCHEDULING_CODE'];
-        }
+
         if ($PK_SCHEDULING_CODE == 0) {
             $skipped_rows[] = "Line $lineNumber — scheduling code '{$sched_label}' not found in location {$PK_LOCATION}";
+            $lineNumber++;
+            continue;
+        }
+
+        // Read the appointment type from the file (Index 26)
+        $csv_appt_type = strtoupper(trim($getData[$IDX_APPOINTMENT_TYPE] ?? ''));
+
+        // Is this a To-Do / Staff Block?
+        // Check the explicit APPOINTMENT_TYPE first, then fallback to checking if the schedule code starts with STAFF
+        $is_todo = ($csv_appt_type === 'TODO') || (strpos(strtoupper($sched_label), 'STAFF') === 0);
+
+        // =====================================================
+        // CUSTOMER (Optional for To-Dos)
+        // =====================================================
+        $mb_id_raw = trim($getData[$IDX_MINDBODY_CLIENT_ID] ?? '');
+        $mb_id_int = ($mb_id_raw === '') ? 0 : (int)$mb_id_raw;
+        $PK_USER = 0;
+        $PK_USER_MASTER = 0;
+
+        if ($mb_id_int > 0) {
+            $cust = $db->Execute("
+                SELECT U.PK_USER, UM.PK_USER_MASTER
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_MASTER UM ON U.PK_USER = UM.PK_USER
+                WHERE U.UNIQUE_ID = " . $mb_id_int . "
+                  AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                LIMIT 1
+            ");
+            if ($cust && $cust->RecordCount() > 0) {
+                $PK_USER        = $cust->fields['PK_USER'];
+                $PK_USER_MASTER = $cust->fields['PK_USER_MASTER'];
+            } else if (!$is_todo) {
+                // If it's a regular lesson, we NEED the customer
+                $skipped_rows[] = "Line $lineNumber — no customer with MINDBODY_CLIENT_ID {$mb_id_int} in location {$PK_LOCATION}";
+                $lineNumber++;
+                continue;
+            }
+        } else if (!$is_todo && strtoupper(trim($getData[$IDX_GROUP_NAME] ?? '')) === '') {
+            // Missing ID on a regular lesson (and it's not a group class)
+            $skipped_rows[] = "Line $lineNumber — missing MINDBODY_CLIENT_ID";
             $lineNumber++;
             continue;
         }
@@ -1351,39 +1728,47 @@ function handleAppointmentsUpload()
         $sp_email = trim($getData[$IDX_SP_EMAIL] ?? '');
         $sp_name  = trim($getData[$IDX_SERVICE_PROVIDER] ?? '');
         $PK_SERVICE_PROVIDER = 0;
+
+        // Try by Email first (Strictly checking Staff roles)
         if ($sp_email !== '') {
             $sp_email_esc = addslashes($sp_email);
             $sp = $db->Execute("
-                SELECT DOA_USERS.PK_USER
-                FROM DOA_USERS
-                INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                WHERE DOA_USERS.EMAIL_ID = '$sp_email_esc'
-                  AND DOA_USER_LOCATION.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND DOA_USERS.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                SELECT U.PK_USER
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_LOCATION UL ON U.PK_USER = UL.PK_USER
+                INNER JOIN DOA_USER_ROLES UR ON U.PK_USER = UR.PK_USER
+                WHERE U.EMAIL_ID = '$sp_email_esc'
+                  AND UL.PK_LOCATION = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                  AND UR.PK_ROLES NOT IN (4) -- 4 is typically Customer role
                 LIMIT 1
             ");
             if ($sp && $sp->RecordCount() > 0) {
                 $PK_SERVICE_PROVIDER = $sp->fields['PK_USER'];
             }
         }
+
+        // Fallback to Name (Strictly checking Staff roles)
         if ($PK_SERVICE_PROVIDER == 0 && $sp_name !== '') {
             $parts = preg_split('/\s+/', $sp_name, 2);
             $fn = addslashes($parts[0]);
             $ln = isset($parts[1]) ? addslashes($parts[1]) : '';
             $sp = $db->Execute("
-                SELECT DOA_USERS.PK_USER
-                FROM DOA_USERS
-                INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                WHERE DOA_USERS.FIRST_NAME = '$fn' AND DOA_USERS.LAST_NAME = '$ln'
-                  AND DOA_USER_LOCATION.PK_LOCATION = " . intval($PK_LOCATION) . "
-                  AND DOA_USERS.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                SELECT U.PK_USER
+                FROM DOA_USERS U
+                INNER JOIN DOA_USER_LOCATION UL ON U.PK_USER = UL.PK_USER
+                INNER JOIN DOA_USER_ROLES UR ON U.PK_USER = UR.PK_USER
+                WHERE U.FIRST_NAME = '$fn' AND U.LAST_NAME = '$ln'
+                  AND UL.PK_LOCATION = " . intval($PK_LOCATION) . "
+                  AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+                  AND UR.PK_ROLES NOT IN (4)
                 LIMIT 1
             ");
             if ($sp && $sp->RecordCount() > 0) {
                 $PK_SERVICE_PROVIDER = $sp->fields['PK_USER'];
             }
         }
+
         if ($PK_SERVICE_PROVIDER == 0) {
             $skipped_rows[] = "Line $lineNumber — service provider not found for '{$sp_name}' / '{$sp_email}'";
             $lineNumber++;
@@ -1402,102 +1787,65 @@ function handleAppointmentsUpload()
             continue;
         }
 
-        // 1. Check if the CSV explicitly provided a PK_ENROLLMENT_MASTER
-        $PK_ENROLLMENT_MASTER = 0;
-        $PK_ENROLLMENT_SERVICE = 0;
-        $PK_SERVICE_MASTER = 0;
-        $PK_SERVICE_CODE = 0;
-        $derived_type = 'AD-HOC';
+        // =====================================================
+        // SERVICE CODE — from CSV Text
+        // =====================================================
+        $csv_svc = strtoupper(trim($getData[$IDX_SERVICE_CODE] ?? ''));
+        if ($csv_svc === '') $csv_svc = 'PRI'; // default to private
 
-        if ($sched_pk_csv > 0) {
-            $specific_enr = $db_account->Execute("
-                SELECT EM.PK_ENROLLMENT_MASTER,
-                       ES.PK_ENROLLMENT_SERVICE,
-                       ES.PK_SERVICE_MASTER,
-                       ES.PK_SERVICE_CODE,
-                       ES.NUMBER_OF_SESSION,
-                       SC.SERVICE_CODE,
-                       (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
-                         WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
-                           AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
-                FROM DOA_ENROLLMENT_MASTER EM
-                INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
-                WHERE EM.PK_ENROLLMENT_MASTER = " . intval($sched_pk_csv) . "
-                  AND EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND EM.STATUS = 'A'
-                ORDER BY ES.PK_ENROLLMENT_SERVICE DESC
-                LIMIT 1
-            ");
+        $svc_details = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
 
-            if ($specific_enr && $specific_enr->RecordCount() > 0) {
-                $derived_type          = 'NORMAL';
-                $PK_ENROLLMENT_MASTER  = $specific_enr->fields['PK_ENROLLMENT_MASTER'];
-                $PK_ENROLLMENT_SERVICE = $specific_enr->fields['PK_ENROLLMENT_SERVICE'];
-                $PK_SERVICE_MASTER     = $specific_enr->fields['PK_SERVICE_MASTER'];
-                $PK_SERVICE_CODE       = $specific_enr->fields['PK_SERVICE_CODE'];
+        // If no service is found, and it's NOT a To-Do, force it to use the MISC service
+        // To-Dos don't need a service, they go to DOA_SPECIAL_APPOINTMENT
+        if (!$is_todo && (!$svc_details || $svc_details->RecordCount() == 0)) {
+            $svc_details = $findServiceByCode($db_account, $PK_LOCATION, 'MISC');
+            if (!$svc_details || $svc_details->RecordCount() == 0) {
+                $skipped_rows[] = "Line $lineNumber — Service code '{$csv_svc}' or 'MISC' not found in location {$PK_LOCATION}";
+                $lineNumber++;
+                continue;
             }
         }
 
-        // 2. If no specific ID was provided (or it failed), run the original fallback search prioritizing PRI over MISC
-        if ($PK_ENROLLMENT_MASTER == 0) {
-            $group_kind_sql = '';
-            if ($kind_is_group === 1) {
-                $group_kind_sql = " OR SC.IS_GROUP = 1 ";
-            } elseif ($kind_is_group === 0) {
-                $group_kind_sql = " OR SC.IS_GROUP = 0 ";
-            }
+        $PK_SERVICE_MASTER = $svc_details ? $svc_details->fields['PK_SERVICE_MASTER'] : 0;
+        $PK_SERVICE_CODE   = $svc_details ? $svc_details->fields['PK_SERVICE_CODE'] : 0;
+        $is_group_svc      = $svc_details ? (int)$svc_details->fields['IS_GROUP'] : 0;
 
+        // =====================================================
+        // ENROLLMENT LINK (Respects APPOINTMENT_TYPE from CSV)
+        // =====================================================
+        $PK_ENROLLMENT_MASTER = 0;
+        $PK_ENROLLMENT_SERVICE = 0;
+
+        // Default to AD-HOC, but if the file says NORMAL, we'll try to find the enrollment
+        $derived_type = 'AD-HOC';
+
+        if (!$is_todo && $PK_USER_MASTER > 0 && $csv_appt_type === 'NORMAL') {
             $enr = $db_account->Execute("
                 SELECT EM.PK_ENROLLMENT_MASTER,
                        ES.PK_ENROLLMENT_SERVICE,
-                       ES.PK_SERVICE_MASTER,
-                       ES.PK_SERVICE_CODE,
                        ES.NUMBER_OF_SESSION,
-                       SC.SERVICE_CODE,
                        (SELECT COUNT(*) FROM DOA_APPOINTMENT_MASTER AM
                          WHERE AM.PK_ENROLLMENT_SERVICE = ES.PK_ENROLLMENT_SERVICE
                            AND AM.PK_APPOINTMENT_STATUS = 2) AS USED
                 FROM DOA_ENROLLMENT_MASTER EM
                 INNER JOIN DOA_ENROLLMENT_SERVICE ES ON ES.PK_ENROLLMENT_MASTER = EM.PK_ENROLLMENT_MASTER
-                INNER JOIN DOA_SERVICE_CODE SC ON SC.PK_SERVICE_CODE = ES.PK_SERVICE_CODE
                 WHERE EM.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
                   AND EM.PK_LOCATION    = " . intval($PK_LOCATION) . "
                   AND EM.STATUS         = 'A'
-                  AND ( SC.SERVICE_CODE LIKE '" . addslashes($kind_like) . "%' " . $group_kind_sql . " )
-                ORDER BY 
-                    (SC.SERVICE_CODE = 'MISC') ASC, 
-                    (SC.SERVICE_CODE = 'MIS') ASC, 
-                    EM.PK_ENROLLMENT_MASTER DESC, 
-                    ES.PK_ENROLLMENT_SERVICE DESC
+                  AND ES.PK_SERVICE_CODE = " . intval($PK_SERVICE_CODE) . "
+                ORDER BY EM.PK_ENROLLMENT_MASTER DESC, ES.PK_ENROLLMENT_SERVICE DESC
                 LIMIT 1
             ");
 
             if ($enr && $enr->RecordCount() > 0) {
                 $remaining = (float)$enr->fields['NUMBER_OF_SESSION'] - (int)$enr->fields['USED'];
+                // If the file says NORMAL, and they have lessons left, link it.
                 if ($remaining > 0) {
                     $derived_type          = 'NORMAL';
                     $PK_ENROLLMENT_MASTER  = $enr->fields['PK_ENROLLMENT_MASTER'];
                     $PK_ENROLLMENT_SERVICE = $enr->fields['PK_ENROLLMENT_SERVICE'];
-                    $PK_SERVICE_MASTER     = $enr->fields['PK_SERVICE_MASTER'];
-                    $PK_SERVICE_CODE       = $enr->fields['PK_SERVICE_CODE'];
                 }
             }
-        }
-
-        // AD-HOC: resolve service from CSV code (try exact, then prefix)
-        if ($derived_type === 'AD-HOC') {
-            $svc = $findServiceByCode($db_account, $PK_LOCATION, $csv_svc);
-            if (!$svc || $svc->RecordCount() == 0) {
-                $svc = $findServiceByCode($db_account, $PK_LOCATION, $kind_like);
-            }
-            if (!$svc || $svc->RecordCount() == 0) {
-                $skipped_rows[] = "Line $lineNumber — SERVICE_CODE '{$csv_svc}' (or '{$kind_like}') not found in location {$PK_LOCATION}";
-                $lineNumber++;
-                continue;
-            }
-            $PK_SERVICE_MASTER = $svc->fields['PK_SERVICE_MASTER'];
-            $PK_SERVICE_CODE   = $svc->fields['PK_SERVICE_CODE'];
         }
 
         // =====================================================
@@ -1513,45 +1861,157 @@ function handleAppointmentsUpload()
         $internal   = trim($getData[$IDX_INTERNAL_COMMENT] ?? '');
         $group_name = trim($getData[$IDX_GROUP_NAME] ?? '');
 
-        $is_group = ($kind_is_group === 1) || ($group_name !== '');
+        if ($is_todo) {
+            $is_paid = 0;
+            $is_charged = 0;
+            $status_pk = 1; // Default scheduled for todo
+            $no_show = 0;
+        } elseif ($no_show === 1) {
+            $status_pk = 4; // Assuming 4 is the PK_APPOINTMENT_STATUS for No Show
+            $is_paid = 0;
+            $is_charged = 0;
+        }
 
-        if (!$is_group) {
+        $is_group = ($is_group_svc === 1) || ($group_name !== '');
+
+        // =====================================================
+        // HANDLE TO-DO (SPECIAL APPOINTMENT)
+        // =====================================================
+        if ($is_todo) {
+            // Duplicate check for To-Dos — must include the teacher
             $dup = $db_account->Execute("
-                SELECT AM.PK_APPOINTMENT_MASTER
-                FROM DOA_APPOINTMENT_MASTER AM
-                INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
-                WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-                  AND AM.DATE = '" . addslashes($date) . "'
-                  AND AM.START_TIME = '" . addslashes($start_time) . "'
-                  AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
-                LIMIT 1
-            ");
+        SELECT SA.PK_SPECIAL_APPOINTMENT
+        FROM DOA_SPECIAL_APPOINTMENT SA
+        INNER JOIN DOA_SPECIAL_APPOINTMENT_USER SAU
+                ON SAU.PK_SPECIAL_APPOINTMENT = SA.PK_SPECIAL_APPOINTMENT
+        WHERE SA.TITLE         = '" . addslashes($group_name) . "'
+          AND SA.DATE          = '" . addslashes($date) . "'
+          AND SA.START_TIME    = '" . addslashes($start_time) . "'
+          AND SA.PK_LOCATION   = " . intval($PK_LOCATION) . "
+          AND SAU.PK_USER      = " . intval($PK_SERVICE_PROVIDER) . "
+        LIMIT 1
+    ");
+
             if ($dup && $dup->RecordCount() > 0) {
-                $dup_rows[] = "Line $lineNumber — duplicate appointment for client ID {$mb_id_int} on {$date} {$start_time}";
+                $dup_rows[] = "Line $lineNumber — duplicate To-Do on {$date} {$start_time} for teacher {$sp_name}";
                 $lineNumber++;
                 continue;
             }
+
+            // Combine regular comment and internal comment for the To-Do description
+            $todo_description = trim($comment);
+            if ($internal !== '') {
+                $todo_description = ($todo_description !== '') ? $todo_description . "\n\n" . $internal : $internal;
+            }
+
+            // Insert into DOA_SPECIAL_APPOINTMENT
+            $SPECIAL_APPOINTMENT_DATA = [
+                'STANDING_ID'            => 0,
+                'PK_LOCATION'            => $PK_LOCATION,
+                'TITLE'                  => $group_name,
+                'DATE'                   => $date,
+                'ALL_DAY'                => 0,
+                'START_TIME'             => $start_time,
+                'END_TIME'               => $end_time,
+                'PK_SCHEDULING_CODE'     => $PK_SCHEDULING_CODE,
+                'DESCRIPTION'            => $todo_description,
+                'ACTIVE'                 => 1,
+                'PK_APPOINTMENT_STATUS'  => $status_pk,
+                'CREATED_BY'             => $_SESSION['PK_USER'],
+                'CREATED_ON'             => date("Y-m-d H:i")
+            ];
+
+            $insert_ok = db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+
+            if (!$insert_ok) {
+                $warn_rows[] = "Line $lineNumber — could not create To-Do master";
+                $lineNumber++;
+                continue;
+            }
+
+            // Re-fetch the ID (db_perform_account may not expose insert_ID reliably)
+            $row_back = $db_account->Execute("
+        SELECT PK_SPECIAL_APPOINTMENT
+        FROM DOA_SPECIAL_APPOINTMENT
+        WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+          AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+          AND DATE                = '" . addslashes($date) . "'
+          AND START_TIME          = '" . addslashes($start_time) . "'
+          AND TITLE               = '" . addslashes($group_name) . "'
+        ORDER BY PK_SPECIAL_APPOINTMENT DESC
+        LIMIT 1
+    ");
+
+            if (!$row_back || $row_back->RecordCount() == 0) {
+                $warn_rows[] = "Line $lineNumber — inserted To-Do but could not re-fetch its PK";
+                $lineNumber++;
+                continue;
+            }
+
+            $PK_SPECIAL_APPOINTMENT = (int)$row_back->fields['PK_SPECIAL_APPOINTMENT'];
+
+            // Link Service Provider in DOA_SPECIAL_APPOINTMENT_USER
+            $SPECIAL_APPOINTMENT_USER = [
+                'PK_SPECIAL_APPOINTMENT' => $PK_SPECIAL_APPOINTMENT,
+                'PK_USER'                => $PK_SERVICE_PROVIDER
+            ];
+
+            $user_insert_ok = db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+
+            if (!$user_insert_ok) {
+                $warn_rows[] = "Line $lineNumber — To-Do created but failed to link teacher (PK_USER: {$PK_SERVICE_PROVIDER})";
+            }
+
+            $imported['TODO']++;
+            $lineNumber++;
+            continue; // Skip the rest of the loop for To-Dos
         }
 
         // =====================================================
-        // INSERT MASTER
+        // STANDARD APPOINTMENT (NORMAL / GROUP / AD-HOC)
         // =====================================================
+
+        // DUPLICATE CHECK
+        $dup = $db_account->Execute("
+            SELECT AM.PK_APPOINTMENT_MASTER
+            FROM DOA_APPOINTMENT_MASTER AM
+            INNER JOIN DOA_APPOINTMENT_CUSTOMER AC ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON ASP.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+            WHERE AC.PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+              AND AM.DATE = '" . addslashes($date) . "'
+              AND AM.START_TIME = '" . addslashes($start_time) . "'
+              AND AM.PK_LOCATION = " . intval($PK_LOCATION) . "
+              AND ASP.PK_USER = " . intval($PK_SERVICE_PROVIDER) . "
+            LIMIT 1
+        ");
+
+        if ($dup && $dup->RecordCount() > 0) {
+            $dup_rows[] = "Line $lineNumber — duplicate appointment on {$date} {$start_time}";
+            $lineNumber++;
+            continue;
+        }
+
+        // INSERT MASTER
         $PK_APPOINTMENT_MASTER = 0;
 
         if ($is_group) {
-            $gkey = strtolower($group_name) . '|' . $date . '|' . $start_time;
+            $gkey = strtolower($group_name) . '|' . $date . '|' . $start_time . '|' . $PK_SERVICE_MASTER . '|' . $PK_SCHEDULING_CODE;
             if (isset($group_cache[$gkey])) {
                 $PK_APPOINTMENT_MASTER = $group_cache[$gkey];
             }
         }
 
         if ($PK_APPOINTMENT_MASTER == 0) {
+
+            $appointment_type = $is_group ? 'GROUP' : $derived_type;
+            $title = $is_group ? $group_name : null;
+
             $APPT = [
                 'PK_ENROLLMENT_MASTER'   => $PK_ENROLLMENT_MASTER,
                 'PK_ENROLLMENT_SERVICE'  => $PK_ENROLLMENT_SERVICE,
                 'SERIAL_NUMBER'          => 0,
                 'STANDING_ID'            => 0,
-                'GROUP_NAME'             => $group_name !== '' ? $group_name : null,
+                'GROUP_NAME'             => $title,
                 'PK_SERVICE_MASTER'      => $PK_SERVICE_MASTER,
                 'PK_SERVICE_CODE'        => $PK_SERVICE_CODE,
                 'PK_SCHEDULING_CODE'     => $PK_SCHEDULING_CODE,
@@ -1567,7 +2027,7 @@ function handleAppointmentsUpload()
                 'STATUS'                 => 'A',
                 'IS_PAID'                => $is_paid,
                 'IS_CHARGED'             => $is_charged,
-                'APPOINTMENT_TYPE'       => ($is_group ? 'GROUP' : $derived_type),
+                'APPOINTMENT_TYPE'       => $appointment_type,
                 'IS_REMINDER_SEND'       => 0,
                 'IS_FROM_AI_CALL'        => 0,
                 'CREATED_BY'             => $_SESSION['PK_USER'],
@@ -1589,19 +2049,17 @@ function handleAppointmentsUpload()
                 continue;
             }
 
-            // db_perform_account doesn't return an ID; look the row back up
-            // by its unique fingerprint (location + service + schedule + date + time).
             $row_back = $db_account->Execute("
-    SELECT PK_APPOINTMENT_MASTER
-    FROM DOA_APPOINTMENT_MASTER
-    WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
-      AND PK_SERVICE_MASTER   = " . intval($PK_SERVICE_MASTER) . "
-      AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
-      AND DATE                = '" . addslashes($date) . "'
-      AND START_TIME          = '" . addslashes($start_time) . "'
-    ORDER BY PK_APPOINTMENT_MASTER DESC
-    LIMIT 1
-");
+                SELECT PK_APPOINTMENT_MASTER
+                FROM DOA_APPOINTMENT_MASTER
+                WHERE PK_LOCATION         = " . intval($PK_LOCATION) . "
+                  AND PK_SERVICE_MASTER   = " . intval($PK_SERVICE_MASTER) . "
+                  AND PK_SCHEDULING_CODE  = " . intval($PK_SCHEDULING_CODE) . "
+                  AND DATE                = '" . addslashes($date) . "'
+                  AND START_TIME          = '" . addslashes($start_time) . "'
+                ORDER BY PK_APPOINTMENT_MASTER DESC
+                LIMIT 1
+            ");
 
             if (!$row_back || $row_back->RecordCount() == 0) {
                 $warn_rows[] = "Line $lineNumber — inserted appointment but could not re-fetch its PK";
@@ -1620,22 +2078,24 @@ function handleAppointmentsUpload()
         }
 
         // =====================================================
-        // ATTACH CUSTOMER
+        // ATTACH CUSTOMER (Only if a customer was found)
         // =====================================================
-        $already = $db_account->Execute("
-            SELECT PK_APPOINTMENT_CUSTOMER
-            FROM DOA_APPOINTMENT_CUSTOMER
-            WHERE PK_APPOINTMENT_MASTER = " . intval($PK_APPOINTMENT_MASTER) . "
-              AND PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
-            LIMIT 1
-        ");
-        if (!$already || $already->RecordCount() == 0) {
-            $APPT_CUST = [
-                'PK_APPOINTMENT_MASTER' => $PK_APPOINTMENT_MASTER,
-                'PK_USER_MASTER'        => $PK_USER_MASTER,
-                'IS_PARTNER'            => 0,
-            ];
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+        if ($PK_USER_MASTER > 0) {
+            $already = $db_account->Execute("
+                SELECT PK_APPOINTMENT_CUSTOMER
+                FROM DOA_APPOINTMENT_CUSTOMER
+                WHERE PK_APPOINTMENT_MASTER = " . intval($PK_APPOINTMENT_MASTER) . "
+                  AND PK_USER_MASTER = " . intval($PK_USER_MASTER) . "
+                LIMIT 1
+            ");
+            if (!$already || $already->RecordCount() == 0) {
+                $APPT_CUST = [
+                    'PK_APPOINTMENT_MASTER' => $PK_APPOINTMENT_MASTER,
+                    'PK_USER_MASTER'        => $PK_USER_MASTER,
+                    'IS_PARTNER'            => 0,
+                ];
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPT_CUST, 'insert');
+            }
         }
 
         // =====================================================
@@ -1687,7 +2147,7 @@ function handleAppointmentsUpload()
     // =================================================================
     // REPORT
     // =================================================================
-    $total_imported = $imported['NORMAL'] + $imported['AD-HOC'] + $imported['DEMO'] + $imported['GROUP'];
+    $total_imported = $imported['NORMAL'] + $imported['AD-HOC'] + $imported['DEMO'] + $imported['GROUP'] + $imported['TODO'];
     $total_skipped  = count($skipped_rows);
     $total_dup      = count($dup_rows);
     $total_warn     = count($warn_rows);
@@ -1729,6 +2189,8 @@ function handleAppointmentsUpload()
         . '<td style="padding:4px 0;">' . $imported['DEMO'] . '</td></tr>';
     $report .= '<tr><td style="padding:4px 14px 4px 0;">&nbsp;&nbsp;• GROUP (group class with attendees)</td>'
         . '<td style="padding:4px 0;">' . $imported['GROUP'] . '</td></tr>';
+    $report .= '<tr><td style="padding:4px 14px 4px 0;">&nbsp;&nbsp;• TODO (staff time blocks)</td>'
+        . '<td style="padding:4px 0;">' . $imported['TODO'] . '</td></tr>';
     $report .= '<tr><td style="padding:4px 14px 4px 0;font-weight:600;color:#b91c1c;">Total rows skipped</td>'
         . '<td style="padding:4px 0;"><b style="color:#b91c1c;">' . $total_skipped . '</b></td></tr>';
     $report .= '<tr><td style="padding:4px 14px 4px 0;color:#a16207;">Rows skipped as duplicates</td>'
@@ -1922,11 +2384,15 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select Uploader</label>
                                     <select class="form-select" name="UPLOAD_TYPE" id="UPLOAD_TYPE" required>
-                                        <?php foreach ($UPLOAD_TYPES as $key => $label): ?>
-                                            <option value="<?= htmlspecialchars($key) ?>" <?= ($selected_upload_type === $key) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($label) ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                        <option value="staff" data-file="../uploads/demo_sheet/Demo Sheet (Staff).csv" <?= ($selected_upload_type === 'staff') ? 'selected' : '' ?>>
+                                            Staff / Teachers
+                                        </option>
+                                        <option value="customer_enrollments" data-file="../uploads/demo_sheet/Demo Sheet (Customers & Enrollments).csv" <?= ($selected_upload_type === 'customer_enrollments') ? 'selected' : '' ?>>
+                                            Customer & Enrollments
+                                        </option>
+                                        <option value="appointments" data-file="../uploads/demo_sheet/Demo Sheet (Appointments).csv" <?= ($selected_upload_type === 'appointments') ? 'selected' : '' ?>>
+                                            Appointments
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -1950,7 +2416,7 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                 <div class="form-group">
                                     <label class="form-label">Select CSV</label>
                                     <input type="file" class="form-control" name="file" accept=".csv" required>
-                                    <a href="../uploads/Demo Sheet.csv" target="_blank">
+                                    <a href="../uploads/demo_sheet/Demo Sheet (Customers & Enrollments).csv" id="demoSheetLink" target="_blank">
                                         <i class="bi bi-download me-1"></i>Download Demo Sheet
                                     </a>
                                 </div>
@@ -1982,6 +2448,14 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
             }
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Uploading…';
+        });
+
+        document.getElementById('UPLOAD_TYPE').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fileUrl = selectedOption.getAttribute('data-file');
+            if (fileUrl) {
+                document.getElementById('demoSheetLink').href = fileUrl;
+            }
         });
     </script>
 </body>

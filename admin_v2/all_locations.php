@@ -315,7 +315,7 @@ $locations = $db->Execute($query);
                                 </ul>
                             </nav>
                             <div>
-                                <select class="form-select form-select-sm page-select py-2 px-3" id="perPageSelect">
+                                <select class="form-select form-select-sm page-select rounded-pill py-1 px-3" id="perPageSelect">
                                     <option value="8" <?= $per_page == 8 ? 'selected' : '' ?>>8 / page</option>
                                     <option value="10" <?= $per_page == 10 ? 'selected' : '' ?>>10 / page</option>
                                     <option value="25" <?= $per_page == 25 ? 'selected' : '' ?>>25 / page</option>
