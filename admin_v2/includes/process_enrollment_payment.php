@@ -21,6 +21,17 @@ global $db_account;
 
 $header = '../' . $_POST['header'];
 
+$PK_LOCATION = getPkLocation();
+$corporation_data = $db->Execute("SELECT DOA_CORPORATION.CORPORATION_NAME, DOA_CURRENCY.CURRENCY_NAME FROM `DOA_CORPORATION` INNER JOIN DOA_LOCATION ON DOA_CORPORATION.PK_CORPORATION = DOA_LOCATION.PK_CORPORATION INNER JOIN `DOA_CURRENCY` ON DOA_CORPORATION.PK_CURRENCY = DOA_CURRENCY.PK_CURRENCY WHERE DOA_LOCATION.PK_LOCATION = '$PK_LOCATION'");
+$currency_name = $corporation_data->fields['CURRENCY_NAME'];
+
+$currency = 'usd';
+if ($currency_name == 'US Dollars') {
+    $currency = 'usd';
+} elseif ($currency_name == 'Canadian Dollars') {
+    $currency = 'cad';
+}
+
 $payment_gateway_data = getPaymentGatewayData();
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -174,7 +185,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
                         $charge = \Stripe\Charge::create(array(
                             "amount" => $AMOUNT_TO_PAY * 100,
-                            "currency" => "usd",
+                            "currency" => $currency,
                             "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
                             "customer" => $CUSTOMER_PAYMENT_ID,
                             "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
@@ -198,7 +209,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                             'customer' => $CUSTOMER_PAYMENT_ID,
                             'payment_method' => $PAYMENT_METHOD_ID,
                             'amount' => $AMOUNT_TO_PAY * 100,
-                            'currency' => 'usd',
+                            'currency' => $currency,
                             'confirm' => 'true', // Auto-confirm charge
                             'off_session' => 'true', // Charge without user interaction
                             'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER_ORIGINAL,
@@ -394,7 +405,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 // Create money object
                 $money = new Money();
                 $money->setAmount($AMOUNT_TO_PAY * 100);
-                $money->setCurrency('USD');
+                $money->setCurrency(strtoupper($currency));
 
                 // Create payment request
                 $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
@@ -438,7 +449,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $itemName = "Receipt# " . $RECEIPT_NUMBER_ORIGINAL;
                 $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
                 $itemPrice = $AMOUNT_TO_PAY;
-                $currency = "USD";
+                $currency = strtoupper($currency);
 
                 $refID = 'ref' . time();
 
@@ -790,7 +801,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 // ---- Charge ----
                 $charge_payload = [
                     'amount'      => (int)round((float)$AMOUNT_TO_PAY * 100),
-                    'currency'    => 'usd',
+                    'currency'    => $currency,
                     'source'      => $source,
                     'ecomind'     => 'ecom',
                     'capture'     => true,

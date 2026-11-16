@@ -20,6 +20,17 @@ global $db_account;
 
 $header = '../' . $_POST['header'];
 
+$PK_LOCATION = getPkLocation();
+$corporation_data = $db->Execute("SELECT DOA_CORPORATION.CORPORATION_NAME, DOA_CURRENCY.CURRENCY_NAME FROM `DOA_CORPORATION` INNER JOIN DOA_LOCATION ON DOA_CORPORATION.PK_CORPORATION = DOA_LOCATION.PK_CORPORATION INNER JOIN `DOA_CURRENCY` ON DOA_CORPORATION.PK_CURRENCY = DOA_CURRENCY.PK_CURRENCY WHERE DOA_LOCATION.PK_LOCATION = '$PK_LOCATION'");
+$currency_name = $corporation_data->fields['CURRENCY_NAME'];
+
+$currency = 'usd';
+if ($currency_name == 'US Dollars') {
+    $currency = 'usd';
+} elseif ($currency_name == 'Canadian Dollars') {
+    $currency = 'cad';
+}
+
 $payment_gateway_data = getPaymentGatewayData();
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -143,7 +154,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                     $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
                     $charge = \Stripe\Charge::create(array(
                         "amount" => $AMOUNT * 100,
-                        "currency" => "usd",
+                        "currency" => $currency,
                         "description" => "Receipt# " . $RECEIPT_NUMBER,
                         "customer" => $CUSTOMER_PAYMENT_ID,
                         "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER,
@@ -167,7 +178,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                         'customer' => $CUSTOMER_PAYMENT_ID,
                         'payment_method' => $PAYMENT_METHOD_ID,
                         'amount' => $AMOUNT * 100,
-                        'currency' => 'usd',
+                        'currency' => $currency,
                         'confirm' => 'true', // Auto-confirm charge
                         'off_session' => 'true', // Charge without user interaction
                         'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER,
@@ -343,7 +354,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
             // Create money object
             $money = new Money();
             $money->setAmount($AMOUNT * 100);
-            $money->setCurrency('USD');
+            $money->setCurrency(strtoupper($currency));
 
             // Create payment request
             $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
@@ -389,7 +400,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
             $itemName = 0;
             $itemNumber = 0;
             $itemPrice = $AMOUNT;
-            $currency = "USD";
+            $currency = strtoupper($currency);
 
             $refID = 'ref' . time();
 
