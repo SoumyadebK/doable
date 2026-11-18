@@ -1069,7 +1069,7 @@ function saveProfileData($RESPONSE_DATA)
     $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        $USER_DATA['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
     }
     $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
@@ -1140,7 +1140,7 @@ function saveProfileData($RESPONSE_DATA)
     $PK_CUSTOMER_DETAILS = 0;
     if (empty($RESPONSE_DATA['PK_USER'])) {
         $USER_DATA['JOINING_DATE'] = empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
-        $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
+        $USER_DATA['ACTIVE'] = 1;
         $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
         $USER_DATA['CREATED_ON']  = empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
         db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -1193,7 +1193,7 @@ function saveProfileData($RESPONSE_DATA)
         }
     } else {
         $PK_USER = $RESPONSE_DATA['PK_USER'];
-        $USER_DATA['ACTIVE']    = $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $USER_DATA['EDITED_BY']    = $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
         $USER_DATA['CREATED_ON']  =  empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));

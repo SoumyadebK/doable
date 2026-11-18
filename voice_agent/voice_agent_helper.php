@@ -324,7 +324,7 @@ function getLocationSlotDetails($PK_LOCATION, $DATE, $PART = null)
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'https://doable.net/';
+        $http_path = 'http://52.36.228.0/';
     }
     if ($db_account->error_number) {
         die("Connection Error");
@@ -507,7 +507,7 @@ function createUserFromLeads($PK_LEADS): array
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'https://doable.net/';
+        $http_path = 'http://52.36.228.0/';
     }
     if ($db_account->error_number) {
         die("Connection Error");
@@ -626,7 +626,7 @@ function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'https://doable.net/';
+        $http_path = 'http://52.36.228.0/';
     }
     if ($db_account->error_number) {
         die("Connection Error");

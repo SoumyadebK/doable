@@ -2815,7 +2815,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                         <label class="form-label">Concierge Script</label>
                                                         <?php
                                                         $conciergeScript = ($CONCIERGE_SCRIPT == '')
-                                                            ? '<script src="https://doable.net/chatbot/chatbot-location-loader.js" data-account="' . $PK_ACCOUNT_MASTER . '" data-location="' . $LOCATION_CODE . '"></script>'
+                                                            ? '<script src="http://52.36.228.0/chatbot/chatbot-location-loader.js" data-account="' . $PK_ACCOUNT_MASTER . '" data-location="' . $LOCATION_CODE . '"></script>'
                                                             : $CONCIERGE_SCRIPT;
                                                         ?>
                                                         <input type="text" class="form-control-modern" name="CONCIERGE_SCRIPT" value="<?= htmlspecialchars($conciergeScript, ENT_QUOTES, 'UTF-8') ?>">

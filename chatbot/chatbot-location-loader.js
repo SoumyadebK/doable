@@ -1,6 +1,7 @@
 /*
  * DOable Concierge — Location iframe Loader Script
- * Usage: <script src="https://doable.net/chatbot/chatbot-location-loader.js" data-account="ACCOUNT_ID" data-location="LOCATION_ID"></script>
+ * Usage: <script src="https://doable.net/chatbot/chatbot-location-loader.js" data-account="ACCOUNT_ID" data-location="LOCATION_ID" data-color="#ff6600"></script>
+ * data-color is optional — pass the brand hex color so the launcher renders instantly in the right color before the API loads.
  */
 (function() {
   'use strict';
@@ -12,6 +13,7 @@
   })();
   const ACCOUNT_ID  = CURRENT_SCRIPT.getAttribute('data-account')  || '';
   const LOCATION_ID = CURRENT_SCRIPT.getAttribute('data-location') || '';
+  const BRAND_COLOR = CURRENT_SCRIPT.getAttribute('data-color')    || '';
 
   if (!ACCOUNT_ID) {
     console.error('DOable Concierge: data-account attribute is required on the embed script tag.');
@@ -28,7 +30,7 @@
   // ── Create the iframe ────────────────────────────────
   const iframe = document.createElement('iframe');
   iframe.id    = 'doable-concierge-iframe';
-  iframe.src   = FRAME_BASE_URL + '?account=' + encodeURIComponent(ACCOUNT_ID) + '&location=' + encodeURIComponent(LOCATION_ID);
+  iframe.src   = FRAME_BASE_URL + '?account=' + encodeURIComponent(ACCOUNT_ID) + '&location=' + encodeURIComponent(LOCATION_ID) + (BRAND_COLOR ? '&color=' + encodeURIComponent(BRAND_COLOR) : '');
   iframe.title = 'DOable Concierge Chat';
   iframe.setAttribute('scrolling', 'no');
   iframe.style.cssText = [

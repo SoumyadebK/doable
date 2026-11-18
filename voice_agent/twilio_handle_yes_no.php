@@ -143,7 +143,7 @@ if ($isYes) {
     $say = $response->addChild("Say", "Great! Let's get you scheduled for your first session. Please say a date like $spokenDate.");
     $say->addAttribute("voice", "Polly.Joanna-Neural");
 
-    $handleDateUrl = "https://doable.net/voice_agent/twilio_handle_date.php";
+    $handleDateUrl = "http://52.36.228.0/voice_agent/twilio_handle_date.php";
     // NEW DATE GATHER
     $gather = $response->addChild("Gather");
     $gather->addAttribute("action", $handleDateUrl);
@@ -157,7 +157,7 @@ if ($isYes) {
         ->addAttribute("voice", "Polly.Joanna-Neural");
     $response->addChild("Hangup");
 } else {
-    $handleYesNoUrl = "https://doable.net/voice_agent/twilio_handle_yes_no.php";
+    $handleYesNoUrl = "http://52.36.228.0/voice_agent/twilio_handle_yes_no.php";
     // --- NOT CLEAR ---
     $response->addChild("Say", "Sorry, I didn't quite catch that. Please clearly say yes or no.")
         ->addAttribute("voice", "Polly.Joanna-Neural");

@@ -28,8 +28,8 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 // Check if we're in CREATE mode
 $IS_CREATE_MODE = isset($_GET['action']) && $_GET['action'] == 'create';
 
-$PK_USER = $_GET['id'] ?? '';
-$PK_USER_MASTER = $_GET['master_id'] ?? '';
+$PK_USER = empty($_GET['id']) ? '0' : $_GET['id'];
+$PK_USER_MASTER = empty($_GET['master_id']) ? '0' : $_GET['master_id'];
 
 // Initialize variables for both modes
 $USER_NAME = '';
@@ -208,7 +208,7 @@ $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND P
 $location_options = '';
 while (!$location_data->EOF) {
     $selected = ($IS_CREATE_MODE && $PK_LOCATION_FROM_GC > 0 && $PK_LOCATION_FROM_GC == $location_data->fields['PK_LOCATION']) ? 'selected' : '';
-    $location_options .= '<option value="' . $location_data->fields['PK_LOCATION'] . '" ' . $selected . '>' . $location_data->fields['LOCATION_NAME'] . '</option>';
+    $location_options .= '<option value="' . $location_data->fields['PK_LOCATION'] . '" data-pk_country="' . $location_data->fields['PK_COUNTRY'] . '" ' . $selected . '>' . $location_data->fields['LOCATION_NAME'] . '</option>';
     $location_data->MoveNext();
 }
 
@@ -1086,7 +1086,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Primary Location <span class="required-star">*</span></label>
-                                                            <select class="form-control" name="PK_LOCATION" required>
+                                                            <select class="form-control" name="PK_LOCATION" onchange="selectPrimaryLocation(this)" required>
                                                                 <option value="">Select Primary Location</option>
                                                                 <?= $location_options ?>
                                                             </select>
@@ -2584,6 +2584,16 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
             }).responseText;
         });
     }
+
+    function selectPrimaryLocation(element) {
+        var selectedOption = $(element).find('option:selected');
+        var pkCountry = selectedOption.data('pk_country');
+        if (pkCountry) {
+            $('#PK_COUNTRY').val(pkCountry);
+            fetch_state(pkCountry);
+        }
+    }
+
     // ============================================
     // All existing JavaScript functions from original
     // ============================================

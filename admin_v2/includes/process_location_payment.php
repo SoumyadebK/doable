@@ -18,6 +18,16 @@ $PAYMENT_FROM = $_POST['PAYMENT_FROM'];
 $PK_VALUE = ($PAYMENT_FROM == 'corporation') ? $PK_CORPORATION : $PK_LOCATION;
 $AMOUNT = $_POST['AMOUNT'];
 
+$corporation_data = $db->Execute("SELECT DOA_CORPORATION.CORPORATION_NAME, DOA_CURRENCY.CURRENCY_NAME FROM `DOA_CORPORATION` INNER JOIN `DOA_CURRENCY` ON DOA_CORPORATION.PK_CURRENCY = DOA_CURRENCY.PK_CURRENCY WHERE DOA_CORPORATION.PK_CORPORATION = '$PK_CORPORATION'");
+$currency_name = $corporation_data->fields['CURRENCY_NAME'];
+
+$currency = 'usd';
+if ($currency_name == 'US Dollars') {
+    $currency = 'usd';
+} elseif ($currency_name == 'Canadian Dollars') {
+    $currency = 'cad';
+}
+
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -70,7 +80,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     try {
         $charge = \Stripe\Charge::create(array(
             "amount" => $AMOUNT * 100,
-            "currency" => "usd",
+            "currency" => $currency,
             "description" => "Receipt# " . $PK_LOCATION . "_" . date('m/d/y'),
             "customer" => $PAYMENT_ID,
             "statement_descriptor" => "Receipt# " . $PK_LOCATION . "_" . date('m/d/y'),
@@ -180,7 +190,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     // Create money object
     $money = new Money();
     $money->setAmount($AMOUNT * 100);
-    $money->setCurrency('USD');
+    $money->setCurrency(strtoupper($currency)); // 'USD' or 'CAD'
 
     // Create payment request
     $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);

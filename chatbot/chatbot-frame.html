@@ -878,7 +878,7 @@ function toggleChat() {
 window.addEventListener('load', () => {
   if (sessionStorage.getItem('doable_opened')) return;
   const isMobile = window.innerWidth < 768;
-  const delay = isMobile ? 10000 : 4000;
+  const delay = isMobile ? 10000 : 1500;
   setTimeout(() => {
     if (!chatOpen) {
       sessionStorage.setItem('doable_opened', '1');

@@ -13,7 +13,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     $http_path = 'http://localhost/doable/';
 } else {
     $conn = $db->connect('localhost', 'root', 'b54eawxj5h8ev', $master_database);
-    $http_path = 'https://doable.net/';
+    $http_path = 'http://52.36.228.0/';
 }
 
 if (!empty($_SESSION['DB_NAME'])) {

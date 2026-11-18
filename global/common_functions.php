@@ -16,6 +16,7 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /includes/common_functions.php
+//  Updated for PHP 8.x (tested against 8.0 - 8.5 behaviour)
 //
 
 // General functions used across modules. Divided into the following sections:
@@ -35,34 +36,39 @@
 function gen_redirect($url)
 {
   global $messageStack;
+  $url = (string)$url;
   // put any messages form the messageStack into a session variable to recover after redirect
   $messageStack->convert_add_to_session();
   // clean up URL before executing it
-  while (strstr($url, '&&'))    $url = str_replace('&&', '&', $url);
+  while (strpos($url, '&&') !== false)    $url = str_replace('&&', '&', $url);
   // header locates should not have the &amp; in the address it breaks things
-  while (strstr($url, '&amp;')) $url = str_replace('&amp;', '&', $url);
+  while (strpos($url, '&amp;') !== false) $url = str_replace('&amp;', '&', $url);
   header('Location: ' . $url);
   exit;
 }
 
 function gen_not_null($value)
 {
-  return (!is_null($value) || strlen(trim($value)) > 0) ? true : false;
+  // original used "||" which made this true for almost everything and
+  // called strlen(null) which is deprecated since PHP 8.1
+  if (is_null($value)) return false;
+  if (is_array($value)) return count($value) > 0;
+  return strlen(trim((string)$value)) > 0;
 }
 
 function strip_alphanumeric($value)
 {
-  return preg_replace("/[^a-zA-Z0-9\s]/", "", $value);
+  return preg_replace("/[^a-zA-Z0-9\s]/", "", (string)$value);
 }
 
 function remove_special_chars($value)
 {
-  $value = str_replace('&', '-', $value);
-  return $value;
+  return str_replace('&', '-', (string)$value);
 }
 
 function gen_js_encode($str)
 {
+  $str = (string)$str;
   $str = str_replace('"', '\"', $str);
   $str = str_replace(chr(10), '\n', $str);
   $str = str_replace(chr(13), '', $str);
@@ -71,44 +77,35 @@ function gen_js_encode($str)
 
 function gen_trim_string($string, $length = 20, $add_dots = false)
 {
-  return mb_strimwidth($string, 0, $length, $add_dots ? '...' : '');
+  return mb_strimwidth((string)$string, 0, (int)$length, $add_dots ? '...' : '');
 }
 
 function compare_strings($string1, $string2, $allow_empty = 1)
 {
+  $string1 = (string)$string1;
+  $string2 = (string)$string2;
   if ($allow_empty == 0) {
     $string1 = trim($string1);
     $string2 = trim($string2);
     if ($string1 == '' || $string2 == '')
       return false;
   }
-  if (strcmp($string1, $string2) == 0)
-    return true;
-  else
-    return false;
+  return strcmp($string1, $string2) == 0;
 }
 
 function duplicate_email($db, $table_name, $field, $email)
 {
-  $email = trim($email);
+  $email = db_input(trim((string)$email));
   $result = $db->Execute("select " . $field . " from " . $table_name . " where " . $field . " = '" . $email . "' ");
-  if ($result->RecordCount())
-    return true;
-  else
-    return false;
+  return $result->RecordCount() ? true : false;
 }
 
 function is_valid_email($email)
 {
-  $email = trim($email);
-  if (!empty($email)) {
-    $regexp = "/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i";
-    if (!preg_match($regexp, $email)) {
-      return false;
-    } else
-      return true;
-  } else
-    return false;
+  $email = trim((string)$email);
+  if ($email === '') return false;
+  $regexp = "/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i";
+  return (bool)preg_match($regexp, $email);
 }
 /*************** Other Functions *******************************/
 
@@ -120,7 +117,7 @@ function get_ip_address()
     } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
       $ip = $_SERVER['HTTP_CLIENT_IP'];
     } else {
-      $ip = $_SERVER['REMOTE_ADDR'];
+      $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     }
   } else {
     if (getenv('HTTP_X_FORWARDED_FOR')) {
@@ -137,16 +134,12 @@ function get_ip_address()
 // Return a random value
 function general_rand($min = null, $max = null)
 {
-  static $seeded;
-  if (!$seeded) {
-    mt_srand((float)microtime() * 1000000);
-    $seeded = true;
-  }
+  // mt_srand() seeding removed: PHP seeds automatically (since 7.1)
   if (isset($min) && isset($max)) {
     if ($min >= $max) {
       return $min;
     } else {
-      return mt_rand($min, $max);
+      return mt_rand((int)$min, (int)$max);
     }
   } else {
     return mt_rand();
@@ -160,16 +153,11 @@ function db_perform($table, $data, $action = 'insert', $parameters = '')
 {
   global $db;
   if (!is_array($data)) return false;
-  reset($data);
   $query = '';
   if ($action == 'insert') {
-    $query = 'insert into ' . $table . ' (';
-    while (list($columns,) = each($data)) {
-      $query .= $columns . ', ';
-    }
-    $query = substr($query, 0, -2) . ') values (';
-    reset($data);
-    while (list(, $value) = each($data)) {
+    // each() was removed in PHP 8.0 - replaced with foreach
+    $query = 'insert into ' . $table . ' (' . implode(', ', array_keys($data)) . ') values (';
+    foreach ($data as $value) {
       switch ((string)$value) {
         case 'now()':
           $query .= 'now(), ';
@@ -185,13 +173,13 @@ function db_perform($table, $data, $action = 'insert', $parameters = '')
     $query = substr($query, 0, -2) . ')';
   } elseif ($action == 'update') {
     $query = 'update ' . $table . ' set ';
-    while (list($columns, $value) = each($data)) {
+    foreach ($data as $columns => $value) {
       switch ((string)$value) {
         case 'now()':
           $query .= $columns . ' = now(), ';
           break;
         case 'null':
-          $query .= $columns .= ' = null, ';
+          $query .= $columns . ' = null, ';
           break;
         default:
           $query .= $columns . ' = \'' . db_input($value) . '\', ';
@@ -200,7 +188,6 @@ function db_perform($table, $data, $action = 'insert', $parameters = '')
     }
     $query = substr($query, 0, -2) . ' where ' . $parameters;
   }
-  //echo $query;
   return $db->Execute($query);
 }
 
@@ -212,7 +199,9 @@ function db_insert_id()
 
 function db_input($string)
 {
-  return addslashes($string);
+  // NOTE: addslashes() is not a safe escape for SQL. If your $db object exposes
+  // a real escape (e.g. mysqli::real_escape_string / ADOdb qstr), use that instead.
+  return addslashes((string)$string);
 }
 
 function db_prepare_input($string, $required = false)
@@ -225,13 +214,15 @@ function db_prepare_input($string, $required = false)
       return ucwords($temp);
     }
   } elseif (is_array($string)) {
-    reset($string);
-    while (list($key, $value) = each($string)) $string[$key] = ucwords(db_prepare_input($value));
+    foreach ($string as $key => $value) {
+      $string[$key] = db_prepare_input($value);
+    }
     return $string;
   } else {
     return $string;
   }
 }
+
 function db_prepare_input_no_format($string, $required = false)
 {
   if (is_string($string)) {
@@ -242,8 +233,9 @@ function db_prepare_input_no_format($string, $required = false)
       return $temp;
     }
   } elseif (is_array($string)) {
-    reset($string);
-    while (list($key, $value) = each($string)) $string[$key] = db_prepare_input($value);
+    foreach ($string as $key => $value) {
+      $string[$key] = db_prepare_input_no_format($value);
+    }
     return $string;
   } else {
     return $string;
@@ -253,8 +245,8 @@ function db_prepare_input_no_format($string, $required = false)
 function db_table_exists($table_name)
 {
   global $db;
-  $tables = $db->Execute("SHOW TABLES like '" . $table_name . "'");
-  return ($tables->RecordCount() > 0) ? true : false;
+  $tables = $db->Execute("SHOW TABLES like '" . db_input($table_name) . "'");
+  return $tables->RecordCount() > 0;
 }
 
 function db_field_exists($table_name, $field_name)
@@ -267,24 +259,26 @@ function db_field_exists($table_name, $field_name)
   }
   return false;
 }
+
 function createthumb_gallery($name, $filename, $new_w, $new_h, $dir_name, $large_image = 0)
 {
-  $system = explode($dir_name, $name);
-  $size = getimagesize($dir_name . $filename);
-  if (preg_match("/jpeg|jpg|JPEG|JPG/", $system[0])) {
+  // explode() with an empty separator throws ValueError in PHP 8
+  $system = ($dir_name !== '' && $dir_name !== null) ? explode($dir_name, $name) : [$name];
+  $src_img = false;
+  if (preg_match("/jpeg|jpg/i", $system[0])) {
     $src_img = imagecreatefromjpeg($dir_name . $filename);
-  }
-  if (preg_match("/gif|GIF/", $system[0])) {
+  } elseif (preg_match("/gif/i", $system[0])) {
     $src_img = imagecreatefromgif($dir_name . $filename);
-  }
-  if (preg_match("/png|PNG/", $system[0])) {
+  } elseif (preg_match("/png/i", $system[0])) {
     $src_img = imagecreatefrompng($dir_name . $filename);
   }
+  if (!$src_img) return false;   // unsupported / unreadable image
 
   $old_x = imagesx($src_img);
   $old_y = imagesy($src_img);
-  $thumb_w = round(($old_y * $new_h) / $old_x);
-  $thumb_h = round(($old_y * $new_w) / $old_x);
+  // GD functions in PHP 8.1+ deprecate implicit float -> int conversion
+  $new_w   = (int)$new_w;
+  $thumb_h = (int)round(($old_y * $new_w) / $old_x);
   $dst_img = imagecreatetruecolor($new_w, $thumb_h);
   $transparent = imagecolorallocate($dst_img, 0, 255, 0);
   imagecolortransparent($dst_img, $transparent);
@@ -295,52 +289,42 @@ function createthumb_gallery($name, $filename, $new_w, $new_h, $dir_name, $large
   else
     $file_name = $dir_name . "thumb" . $filename;
   imagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $new_w, $thumb_h, $old_x, $old_y);
-  if (preg_match("/png/", $system[0])) {
+  if (preg_match("/png/i", $system[0])) {
     imagepng($dst_img, $file_name);
   } else {
     imagejpeg($dst_img, $file_name);
   }
-  imagedestroy($dst_img);
-  imagedestroy($src_img);
+  // imagedestroy() is a no-op since PHP 8.0 (GdImage objects) and deprecated in 8.5.
+  // Images are freed automatically when the variables go out of scope.
+  unset($dst_img, $src_img);
   return $file_name;
 }
+
 function cropImage($source_image, $target_image, $crop_area)
 {
-  // detect source image type from extension
-  $source_file_name = basename($source_image);
-  $ext = explode(".", $source_file_name);
-  $source_image_type = $ext[1];
-  //echo $source_image_type;exit;
-  // create an image resource from the source image  
-  switch (strtolower($source_image_type)) {
+  // detect source image type from extension (pathinfo is safe with dots in names)
+  $source_image_type = strtolower(pathinfo(basename($source_image), PATHINFO_EXTENSION));
+
+  switch ($source_image_type) {
     case 'jpg':
-      $original_image = imagecreatefromjpeg($source_image);
-      break;
-
     case 'jpeg':
-      $original_image = imagecreatefromjpeg($source_image);
-      break;
-
     case 'pjpeg':
       $original_image = imagecreatefromjpeg($source_image);
       break;
-
     case 'gif':
       $original_image = imagecreatefromgif($source_image);
       break;
-
     case 'png':
       $original_image = imagecreatefrompng($source_image);
       break;
-
     default:
       trigger_error('cropImage(): Invalid source image type', E_USER_ERROR);
       return false;
   }
+  if (!$original_image) return false;
 
   // create a blank image having the same width and height as the crop area
-  // this will be our cropped image
-  $cropped_image = imagecreatetruecolor($crop_area['width'], $crop_area['height']);
+  $cropped_image = imagecreatetruecolor((int)$crop_area['width'], (int)$crop_area['height']);
 
   // copy the crop area from the source image to the blank image created above
   imagecopy(
@@ -348,122 +332,111 @@ function cropImage($source_image, $target_image, $crop_area)
     $original_image,
     0,
     0,
-    $crop_area['left'],
-    $crop_area['top'],
-    $crop_area['width'],
-    $crop_area['height']
+    (int)$crop_area['left'],
+    (int)$crop_area['top'],
+    (int)$crop_area['width'],
+    (int)$crop_area['height']
   );
 
   // detect target image type from extension
-  $target_file_name = basename($target_image);
-  $tar_ext = explode(".", $target_file_name);
-  $target_image_type = $tar_ext[1];
-  //echo $target_image;exit;
-  // save the cropped image to disk
-  switch (strtolower($target_image_type)) {
+  $target_image_type = strtolower(pathinfo(basename($target_image), PATHINFO_EXTENSION));
+
+  switch ($target_image_type) {
     case 'jpg':
-      imagejpeg($cropped_image, $target_image, 100);
-      break;
-
     case 'jpeg':
-      imagejpeg($cropped_image, $target_image, 100);
-      break;
-
     case 'pjpeg':
       imagejpeg($cropped_image, $target_image, 100);
       break;
-
     case 'gif':
       imagegif($cropped_image, $target_image);
       break;
-
     case 'png':
       imagepng($cropped_image, $target_image, 0);
       break;
-
     default:
       trigger_error('cropImage(): Invalid target image type', E_USER_ERROR);
-      imagedestroy($cropped_image);
-      imagedestroy($original_image);
       return false;
   }
 
-  // free resources
-  imagedestroy($cropped_image);
-  imagedestroy($original_image);
+  // no imagedestroy() needed (deprecated in PHP 8.5)
+  unset($cropped_image, $original_image);
 
   return true;
 }
+
 function get_currency_symbol($db)
 {
-  $res = $db->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '$_SESSION[PK_COMPANY]' ");
+  $res = $db->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '" . db_input($_SESSION['PK_COMPANY'] ?? '') . "' ");
   return $res->fields['CURRENCY_SYMBOL'];
 }
+
 function get_currency_symbol_1($db, $PK_COMPANY)
 {
-  $res = $db->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '$PK_COMPANY' ");
+  $res = $db->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '" . db_input($PK_COMPANY) . "' ");
   return $res->fields['CURRENCY_SYMBOL'];
 }
+
 function generateRandomString($length)
 {
   $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   $charactersLength = strlen($characters);
   $randomString = '';
   for ($i = 0; $i < $length; $i++) {
-    $randomString .= $characters[mt_rand(0, $charactersLength - 1)];
+    $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
   return $randomString;
 }
+
 function generateRandomStringNumber($length)
 {
   $characters = '0123456789';
   $charactersLength = strlen($characters);
   $randomString = '';
   for ($i = 0; $i < $length; $i++) {
-    $randomString .= $characters[mt_rand(0, $charactersLength - 1)];
+    $randomString .= $characters[random_int(0, $charactersLength - 1)];
   }
   return $randomString;
 }
+
 function convert_to_user_date($date, $format, $userTimeZone, $serverTimeZone = 'CET')
 {
   try {
-    $dateTime = new DateTime($date, new DateTimeZone($serverTimeZone));
+    $dateTime = new DateTime((string)$date, new DateTimeZone($serverTimeZone));
     $dateTime->setTimezone(new DateTimeZone($userTimeZone));
     return $dateTime->format($format);
   } catch (Exception $e) {
     return '';
   }
 }
+
 function forceDownloadQR($QR_MSG, $PK_QR_MASTER, $width = 350, $height = 350)
 {
-  $image  = 'http://chart.apis.google.com/chart?chs=' . $width . 'x' . $height . '&cht=qr&chl=' . urlencode($QR_MSG);
-  $file = file_get_contents($image);
-  //echo $image;exit;	
-  $img = file_get_contents($image);
-  $target  = $_SESSION['PK_ACCOUNT'] . '_' . $PK_QR_MASTER . '.png';
+  // WARNING: the Google Image Charts QR API was shut down. Replace this URL with
+  // a working QR service (or a PHP library such as endroid/qr-code / chillerlan/php-qrcode).
+  $image = 'https://chart.apis.google.com/chart?chs=' . (int)$width . 'x' . (int)$height . '&cht=qr&chl=' . urlencode((string)$QR_MSG);
+  $img = @file_get_contents($image);
+  if ($img === false) return false;
+  $target  = ($_SESSION['PK_ACCOUNT'] ?? '') . '_' . $PK_QR_MASTER . '.png';
   $newname = '../qr_images/' . $target;
   file_put_contents($newname, $img);
 
   return $newname;
 }
+
 function url_format($str)
 {
-  $str = str_replace(" ", "-", $str);
-  $str = str_replace("/", "-", $str);
-  $str = str_replace("\\", "-", $str);
-  $str = str_replace("?", "-", $str);
-  $str = str_replace("&", "-", $str);
-
-  return $str;
+  return str_replace([" ", "/", "\\", "?", "&"], "-", (string)$str);
 }
+
 function get_sequence_no($type)
 {
   global $db;
-  $res = $db->Execute("SELECT $type FROM NO_SEQUENCE WHERE PK_COMPANY = '$_SESSION[PK_COMPANY]' AND ACTIVE = 1 ");
+  $company = db_input($_SESSION['PK_COMPANY'] ?? '');
+  $res = $db->Execute("SELECT $type FROM NO_SEQUENCE WHERE PK_COMPANY = '$company' AND ACTIVE = 1 ");
 
-  $no = $res->fields[$type] + 1;
+  $no = (int)$res->fields[$type] + 1;
 
-  $db->Execute("UPDATE NO_SEQUENCE SET $type = '$no' WHERE PK_COMPANY = '$_SESSION[PK_COMPANY]' AND ACTIVE = 1 ");
+  $db->Execute("UPDATE NO_SEQUENCE SET $type = '$no' WHERE PK_COMPANY = '$company' AND ACTIVE = 1 ");
   return $no;
 }
 
@@ -474,75 +447,58 @@ function convert_to_inches($val, $METRIC_TYPE)
   }
   return $val;
 }
-/*
-function my_encrypt($key,$txt){
-	$ciphering 	= "AES-128-CTR"; 
-	$options 	= 0; 
-	$crypto_key = "A!12V534s8E(RT$".$key; 
-	$crypto_iv  = '4583260547891161'; 
 
-	$encryption = openssl_encrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv); 
-
-	return $encryption;
-}
-
-function my_decrypt($key,$txt){
-	$ciphering 	= "AES-128-CTR"; 
-	$options 	= 0; 
-	$crypto_key = "A!12V534s8E(RT$".$key; 
-	$crypto_iv  = '4583260547891161'; 
-
-	$decryption	= openssl_decrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv); 
-	
-	return $decryption;
-}
-*/
+// NOTE: kept identical to the original so existing encrypted data can still be decrypted.
+// $key is ignored (as before). The hard-coded key/IV and AES-CTR without authentication
+// are weak; consider migrating to AES-256-GCM with a random IV and key stored outside the code.
 function my_encrypt($key, $txt)
 {
-  $ciphering   = "AES-128-CTR";
-  $options   = 0;
-  $crypto_key = "A!12V534s8E(RT$";
+  $ciphering  = "AES-128-CTR";
+  $options    = 0;
+  $crypto_key = 'A!12V534s8E(RT$';   // single quotes: avoids "$" interpolation ambiguity
   $crypto_iv  = '4583260547891161';
 
-  $encryption = openssl_encrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv);
-
-  return $encryption;
+  return openssl_encrypt((string)$txt, $ciphering, $crypto_key, $options, $crypto_iv);
 }
 
 function my_decrypt($key, $txt)
 {
-  $ciphering   = "AES-128-CTR";
-  $options   = 0;
-  $crypto_key = "A!12V534s8E(RT$";
+  $ciphering  = "AES-128-CTR";
+  $options    = 0;
+  $crypto_key = 'A!12V534s8E(RT$';
   $crypto_iv  = '4583260547891161';
 
-  $decryption  = openssl_decrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv);
-
-  return $decryption;
+  return openssl_decrypt((string)$txt, $ciphering, $crypto_key, $options, $crypto_iv);
 }
 
 function get_db_table($table_name)
 {
   global $db;
-  $tables = $db->Execute("SHOW TABLES like '%" . $table_name . "%'");
-  $db_arr = get_object_vars($db);
+  $result = [];   // was undefined when no tables matched
+  $tables = $db->Execute("SHOW TABLES like '%" . db_input($table_name) . "%'");
   while (!$tables->EOF) {
-    foreach ($tables->fields as $KEY => $VALUE)
+    foreach ($tables->fields as $VALUE)
       $result[] = $VALUE;
 
     $tables->MoveNext();
   }
   return $result;
 }
+
 function get_db_field($table_name)
 {
   global $db;
+  $tables = [];
   $result = $db->Execute("show fields from " . $table_name);
   $i = 0;
   while (!$result->EOF) {
-    $tables[$i]['Field'] =  $result->fields['Field'];
-    preg_match('/(([^()]+))/', $result->fields['Type'], $matches);
-    $tables[$i]['Type'] = substr($result->fields['Type'], strlen($matches[0]) + 1, -1);
+    $tables[$i]['Field'] = $result->fields['Field'];
+    // original pattern had unescaped parentheses; escape them to capture "(...)" of the type
+    if (preg_match('/\(([^()]+)\)/', $result->fields['Type'], $matches)) {
+      $tables[$i]['Type'] = $matches[1];
+    } else {
+      $tables[$i]['Type'] = '';
+    }
     if ($tables[$i]['Field'] == 'CREATED_ON') {
       $tables[$i]['Type'] = date("Y-m-d H:i");
     }
@@ -563,6 +519,6 @@ function pre_r($data)
 function getUserIdMainDb($PK_USER)
 {
   global $db_account;
-  $user_data = $db_account->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$PK_USER'");
+  $user_data = $db_account->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '" . db_input($PK_USER) . "'");
   return $user_data->fields['PK_USER_MASTER_DB'];
 }

@@ -23,7 +23,7 @@ if ($PK_LEADS > 0) {
 
     $phone_number = $leadsData->fields['PHONE'];
     $to = '+1' . preg_replace('/\D/', '', $phone_number);
-    $answerUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php'; // public HTTPS
+    $answerUrl = 'http://52.36.228.0/voice_agent/twilio_voice_initial.php'; // public HTTPS
 
     try {
         $client = new Client($SID, $TOKEN);

@@ -61,7 +61,7 @@ if (!$account_id) {
         }
 
         // Sort all slots by start time ascending
-        usort($slot_data, function ($a, $b) {
+        usort($slot_data, function($a, $b) {
             return strcmp($a['slot_start_time'], $b['slot_start_time']);
         });
 
@@ -154,7 +154,7 @@ function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot
     }
 
     // Sort booked slots by start time
-    usort($booked_slots, function ($a, $b) {
+    usort($booked_slots, function($a, $b) {
         return $a['start'] - $b['start'];
     });
 

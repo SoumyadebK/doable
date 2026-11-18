@@ -124,6 +124,7 @@ $BUSINESS_NAME = ($business_details && $business_details->RecordCount() > 0) ? $
             }
         }
 
+        $PK_ENROLLMENT_PAYMENT = 0;
         $DETAILS_AMOUNT = '';
         $TIP_PERCENTAGE = '0%';
         $TIP_AMOUNT = '$0.00';
@@ -136,6 +137,7 @@ $BUSINESS_NAME = ($business_details && $business_details->RecordCount() > 0) ? $
 
         if ($enrollment_payment && $enrollment_payment->RecordCount() > 0) {
             while (!$enrollment_payment->EOF) {
+                $PK_ENROLLMENT_PAYMENT = $enrollment_payment->fields['PK_ENROLLMENT_PAYMENT'];
                 $TYPE = $enrollment_payment->fields['TYPE'];
                 if ($enrollment_payment->fields['TYPE'] == 'Payment' || $enrollment_payment->fields['TYPE'] == 'Wallet') {
                     if ($enrollment_payment->fields['PK_PAYMENT_TYPE'] == 2) {
@@ -159,8 +161,8 @@ $BUSINESS_NAME = ($business_details && $business_details->RecordCount() > 0) ? $
                 $enrollment_payment->MoveNext();
             }
 
-            $enrollment_tip = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_TIP WHERE PK_ENROLLMENT_PAYMENT = " . $enrollment_payment->fields['PK_ENROLLMENT_PAYMENT']);
-            if ($enrollment_tip && $enrollment_tip->RecordCount() > 0) {
+            $enrollment_tip = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_TIP WHERE PK_ENROLLMENT_PAYMENT = " . $PK_ENROLLMENT_PAYMENT);
+            if ($enrollment_tip->RecordCount() > 0) {
                 while (!$enrollment_tip->EOF) {
                     $TIP_PERCENTAGE = (isset($enrollment_tip->fields['TIP_PERCENTAGE']) && $enrollment_tip->fields['TIP_PERCENTAGE'] > 0) ? number_format($enrollment_tip->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
                     $TIP_AMOUNT = (isset($enrollment_tip->fields['TIP_AMOUNT'])) ? '$' . number_format($enrollment_tip->fields['TIP_AMOUNT'], 2) : '$0.00';

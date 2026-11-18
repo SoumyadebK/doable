@@ -23,7 +23,7 @@ while (!$all_location->EOF) {
             $http_path = 'http://localhost/doable/';
         } else {
             $conn1 = $db1->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-            $http_path = 'https://doable.net/';
+            $http_path = 'http://52.36.228.0/';
         }
         if ($db1->error_number) {
             die("Connection Error");

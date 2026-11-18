@@ -5,7 +5,7 @@ global $db;
 header("Content-Type: text/xml");
 
 $callSid = $_POST['CallSid'] ?? '';
-$handleYesNoUrl = "https://doable.net/voice_agent/twilio_handle_yes_no.php";
+$handleYesNoUrl = "http://52.36.228.0/voice_agent/twilio_handle_yes_no.php";
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 

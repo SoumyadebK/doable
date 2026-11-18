@@ -373,7 +373,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
     $paid_session = 0;
     $service_code_array = [];
     while (!$appointment_data->EOF) {
-        $PK_ENROLLMENT_SERVICE = '';
+        $PK_ENROLLMENT_SERVICE = 0;
         $SERIAL_NUMBER = 0;
 
         $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];

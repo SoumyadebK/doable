@@ -1689,7 +1689,7 @@ $enrollment_type = 'Enrollment';
                                                         } else {
                                                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                                                         } ?>
-                                                        <tr style="color: <?= ($payment_details->fields['IS_PAID'] == 2) ? 'var(--primary-color)' : '' ?>">
+                                                        <tr style="color: <?= (($payment_details->fields['IS_PAID'] ?? null) == 2) ? 'var(--primary-color)' : '' ?>">
                                                             <td><?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?></td>
                                                             <td><?= $payment_details->fields['TYPE'] ?></td>
                                                             <td></td>

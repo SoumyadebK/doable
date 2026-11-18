@@ -360,8 +360,9 @@ function saveEnrollmentData($RESPONSE_DATA)
         if ($misc_service_data->RecordCount() > 0) {
             $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (16) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
+            $enrollment_number = (int)$account_data->fields['MISCELLANEOUS_ID_NUM'] + $enrollment_count + 1;
             $PK_ENROLLMENT_TYPE = 16;
-            $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'] . ' - ' . ($enrollment_count + 1);
+            $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'] . ' - ' . ($enrollment_number);
             $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = ($misc_service_data->fields['MISC_TYPE']) ?: 'GENERAL';
             /*$id_data = $db_account->Execute("SELECT MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE ENROLLMENT_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['MISC_ID'] != ' '){
@@ -374,6 +375,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         } else {
             $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
+            $enrollment_number = (int)$account_data->fields['ENROLLMENT_ID_NUM'] + $enrollment_count + 1;
             switch ($enrollment_count) {
                 case 0:
                     $PK_ENROLLMENT_TYPE = 5;
@@ -388,7 +390,7 @@ function saveEnrollmentData($RESPONSE_DATA)
                     $PK_ENROLLMENT_TYPE = 13;
                     break;
             }
-            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'] . ' - ' . ($enrollment_count + 1);
+            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'] . ' - ' . ($enrollment_number);
 
             /*$id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){

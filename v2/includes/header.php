@@ -9,7 +9,7 @@
  *   $on_home    - true when nav anchor links should be in-page (#features);
  *                 false makes them link back to the homepage (/#features)
  */
-require_once __DIR__ . '/functions.php';
+//require_once __DIR__ . '/functions.php';
 
 $content    = get_content();
 $page       = $page       ?? '';

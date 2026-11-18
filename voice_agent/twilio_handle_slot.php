@@ -43,7 +43,7 @@ if (!empty($digits)) {
 
 if (!$choiceIndex || !isset($slots[$choiceIndex])) {
     // Ask again
-    $retryUrl = 'https://doable.net/voice_agent/twilio_handle_date.php';
+    $retryUrl = 'http://52.36.228.0/voice_agent/twilio_handle_date.php';
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>

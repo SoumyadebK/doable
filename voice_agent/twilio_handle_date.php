@@ -3,7 +3,7 @@ require_once("/var/www/html/global/config.php");
 require_once("/var/www/html/voice_agent/voice_agent_helper.php");
 global $db;
 
-$handleDateUrl = "https://doable.net/voice_agent/twilio_handle_date.php";
+$handleDateUrl = "http://52.36.228.0/voice_agent/twilio_handle_date.php";
 
 // twilio_handle_date.php
 header("Content-Type: text/xml");
@@ -84,7 +84,7 @@ if (!$date) {
     exit;
 }
 
-$handlePartOfDay = "https://doable.net/voice_agent/twilio_handle_part_of_day.php";
+$handlePartOfDay = "http://52.36.228.0/voice_agent/twilio_handle_part_of_day.php";
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 

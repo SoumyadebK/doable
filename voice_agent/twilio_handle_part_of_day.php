@@ -3,8 +3,8 @@ require_once("/var/www/html/global/config.php");
 require_once("/var/www/html/voice_agent/voice_agent_helper.php");
 global $db;
 
-$handleDateUrl = "https://doable.net/voice_agent/twilio_handle_date.php";
-$handlePartOfDay = "https://doable.net/voice_agent/twilio_handle_part_of_day.php";
+$handleDateUrl = "http://52.36.228.0/voice_agent/twilio_handle_date.php";
+$handlePartOfDay = "http://52.36.228.0/voice_agent/twilio_handle_part_of_day.php";
 
 // twilio_handle_date.php
 header("Content-Type: text/xml");
@@ -81,7 +81,7 @@ if (empty($slots) && count($slots) == 0) {
 }
 
 // Build a TwiML that lists N options and gathers selection
-$handleSlotUrl = "https://doable.net/voice_agent/twilio_handle_slot.php";
+$handleSlotUrl = "http://52.36.228.0/voice_agent/twilio_handle_slot.php";
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 

@@ -1,12 +1,14 @@
 <?php
+
 /**
  * Default site content (mirrors the live site) + load/merge/save from the DB.
  * The admin Content editor overrides any of these values; until then the
  * defaults render so the site looks identical out of the box.
  */
-require_once __DIR__ . '/db.php';
+//require_once __DIR__ . '/db.php';
 
-function default_content(): array {
+function default_content(): array
+{
     return [
         'general' => [
             'companyName' => 'Doable LLC',
@@ -121,10 +123,13 @@ function default_content(): array {
 }
 
 /** Recursively merge stored overrides over defaults. */
-function deep_merge(array $base, array $over): array {
+function deep_merge(array $base, array $over): array
+{
     foreach ($over as $k => $v) {
-        if (is_array($v) && isset($base[$k]) && is_array($base[$k])
-            && array_keys($v) !== range(0, count($v) - 1)) {
+        if (
+            is_array($v) && isset($base[$k]) && is_array($base[$k])
+            && array_keys($v) !== range(0, count($v) - 1)
+        ) {
             // associative array -> merge recursively
             $base[$k] = deep_merge($base[$k], $v);
         } else {
@@ -136,7 +141,8 @@ function deep_merge(array $base, array $over): array {
 }
 
 /** Load merged site content (defaults + DB overrides). */
-function get_content(): array {
+function get_content(): array
+{
     $defaults = default_content();
     try {
         $stmt = db()->prepare('SELECT value FROM site_content WHERE key_name = ? LIMIT 1');
@@ -155,7 +161,8 @@ function get_content(): array {
 }
 
 /** Persist the full content array as the 'main' override row. */
-function save_content(array $content): void {
+function save_content(array $content): void
+{
     $json = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $stmt = db()->prepare('SELECT id FROM site_content WHERE key_name = ? LIMIT 1');
     $stmt->execute(['main']);

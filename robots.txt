@@ -1,5 +1,5 @@
 # robots.txt for doable.net
-# Place this file in the website root so it is reachable at https://doable.net/robots.txt
+# Place this file in the website root so it is reachable at http://52.36.228.0/robots.txt
 
 User-agent: *
 Allow: /
@@ -11,4 +11,4 @@ Disallow: /contact-submit.php
 Disallow: /v2/assets/js/
 
 # Point search engines to the sitemap
-Sitemap: https://doable.net/sitemap.xml
+Sitemap: http://52.36.228.0/sitemap.xml

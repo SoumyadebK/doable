@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOable Concierge</title>
+<script>
+  // Apply brand color instantly from URL param — before CSS renders — so launcher shows correct color immediately
+  (function() {
+    var c = new URLSearchParams(window.location.search).get('color');
+    if (c) {
+      document.documentElement.style.setProperty('--brand', decodeURIComponent(c));
+      // Color is already known — reveal launcher as soon as DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('doable-launcher');
+        if (el) el.style.opacity = '1';
+      });
+    }
+  })();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,7 +88,8 @@
     box-shadow: 0 4px 18px rgba(0,0,0,0.25);
     border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s; z-index: 9999;
+    transition: transform 0.2s, opacity 0.3s; z-index: 9999;
+    opacity: 0;
   }
   #doable-launcher:hover { transform: scale(1.08); }
   #doable-launcher svg { width: 28px; height: 28px; fill: #fff; }
@@ -381,8 +396,8 @@ function formatDateLong(iso) {
 async function startFlow() {
   showTyping();
   try {
-    LOCATION_CONFIG = await fetchLocationConfig();
-    OFFERINGS       = await fetchOfferings();
+    if (!LOCATION_CONFIG) LOCATION_CONFIG = await fetchLocationConfig();
+    OFFERINGS = await fetchOfferings();
   } catch(e) {
     removeTyping();
     addBotBubble("Sorry, I'm having trouble loading. Please try again shortly.");
@@ -398,6 +413,7 @@ async function startFlow() {
   const color = LOCATION.primary_color || '#c8102e';
   const emoji = LOCATION.avatar_emoji  || '💬';
   document.documentElement.style.setProperty('--brand', color);
+  $('doable-launcher').style.opacity = '1';
   $('chat-avatar').textContent = emoji;
   $('chat-title').textContent  = `${LOCATION_CONFIG.business_name} Concierge`;
 
@@ -533,7 +549,7 @@ async function showOfferingDetail(offering) {
   addElement(card);
   setTimeout(() => {
     addButtons([
-      { label: t('back_to_offerings'), action: () => { addUserBubble(t('back')); handleMenu(LOCATION_CONFIG.menu_options.find(o => o.is_offerings)?.type); } },
+      { label: t('back_to_offerings'), action: () => { addUserBubble(t('back')); handleMenu(LOCATION.menu_options.find(o => o.is_offerings)?.type); } },
       { label: t('book_now'),          action: () => startBooking() },
       { label: t('more_info'),         action: () => backToMenu() },
       { label: t('start_over'),        action: () => { resetState(); backToMenu(); }, secondary: true },
@@ -941,11 +957,26 @@ function toggleChat() {
   window.parent.postMessage({ type: 'doable-toggle', open: chatOpen }, '*');
 }
 
-// Auto-open: 4s desktop, 10s mobile, once per session
-window.addEventListener('load', () => {
+// Pre-fetch branding on page load so launcher shows in the correct color immediately
+// LOCATION_CONFIG is cached here; startFlow() will reuse it if already set
+window.addEventListener('load', async () => {
+  // Apply brand color before chat is opened
+  try {
+    if (!LOCATION_CONFIG) {
+      LOCATION_CONFIG = await fetchLocationConfig();
+    }
+    const loc = LOCATION_CONFIG.locations && LOCATION_CONFIG.locations[0];
+    if (loc && loc.primary_color) {
+      document.documentElement.style.setProperty('--brand', loc.primary_color);
+    }
+  } catch(e) { /* silent — launcher will show with default color */ }
+  // Show launcher now that color is correct (or fallback default)
+  $('doable-launcher').style.opacity = '1';
+
+  // Auto-open: 2s desktop, 6s mobile, once per session
   if (sessionStorage.getItem('doable_opened')) return;
   const isMobile = window.innerWidth < 768;
-  const delay = isMobile ? 10000 : 4000;
+  const delay = isMobile ? 6000 : 2000;
   setTimeout(() => {
     if (!chatOpen) {
       sessionStorage.setItem('doable_opened', '1');

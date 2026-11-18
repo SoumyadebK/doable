@@ -23,14 +23,14 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 $SALES_TAX_PERCENT = getSalesTax($LOCATION_ARRAY[0]);
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
-$PK_USER = $_GET['id'] ?? '';
-$PK_USER_MASTER = $_GET['master_id'] ?? '';
+$PK_USER = empty($_GET['id']) ? '' : $_GET['id'];
+$PK_USER_MASTER = empty($_GET['master_id']) ? '' : $_GET['master_id'];
 $USER_NAME = '';
-$FIRST_NAME = $_GET['FIRST_NAME'] ?? '';
-$LAST_NAME = $_GET['LAST_NAME'] ?? '';
+$FIRST_NAME = empty($_GET['FIRST_NAME']) ? '' : $_GET['FIRST_NAME'];
+$LAST_NAME = empty($_GET['LAST_NAME']) ? '' : $_GET['LAST_NAME'];
 $CUSTOMER_ID = '';
 $UNIQUE_ID = '';
-$EMAIL_ID = $_GET['EMAIL_ID'] ?? '';
+$EMAIL_ID = empty($_GET['EMAIL_ID']) ? '' : $_GET['EMAIL_ID'];
 $USER_IMAGE = '';
 $GENDER = '';
 $DOB = '';
@@ -40,7 +40,7 @@ $PK_COUNTRY = '';
 $PK_STATES = '';
 $CITY = '';
 $ZIP = '';
-$PHONE = $_GET['PHONE'] ?? '';
+$PHONE = empty($_GET['PHONE']) ? '' : $_GET['PHONE'];
 $NOTES = '';
 $PASSWORD = '';
 $ACTIVE = '';
@@ -918,7 +918,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="label">Secondary Location</div>
                                                     <div class="value">
                                                         <?php
-                                                        $selected_location = [];
+                                                        $selected_location = [0];
                                                         $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $PK_USER);
                                                         while (!$selected_location_row->EOF) {
                                                             $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
@@ -967,7 +967,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="label">Tag</div>
                                                     <div class="value">
                                                         <?php
-                                                        $selected_tag = [];
+                                                        $selected_tag = [0];
                                                         $selected_tag_row = $db_account->Execute("SELECT `PK_TAG` FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
                                                         while (!$selected_tag_row->EOF) {
                                                             $selected_tag[] = $selected_tag_row->fields['PK_TAG'];
@@ -1094,7 +1094,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="value">
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE PK_COUNTRY = " . $PK_COUNTRY);
-                                                        echo $row->fields['COUNTRY_NAME'];
+                                                        echo ($row->RecordCount() > 0) ? $row->fields['COUNTRY_NAME'] : '';
                                                         ?>
                                                     </div>
                                                 </div>
@@ -1103,7 +1103,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="value">
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_STATES, STATE_NAME FROM DOA_STATES WHERE PK_COUNTRY = " . $PK_COUNTRY . " AND PK_STATES = " . $PK_STATES);
-                                                        echo $row->fields['STATE_NAME'];
+                                                        echo ($row->RecordCount() > 0) ? $row->fields['STATE_NAME'] : '';
                                                         ?>
                                                     </div>
                                                 </div>
