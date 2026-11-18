@@ -24,7 +24,9 @@ if (!$account_id) {
         $location_result = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.LOCATION_CODE = '$location_id' AND DOA_LOCATION.PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
         $locations = [];
+        $corporation_name = '';
         while (!$location_result->EOF) {
+            $corporation_name = $location_result->fields['CORPORATION_NAME'];
             $booking_periods = [
                 ($location_result->fields['IS_MORNING'] == 1) ? 'M' : '',
                 ($location_result->fields['IS_AFTERNOON'] == 1) ? 'A' : '',
@@ -86,7 +88,7 @@ if (!$account_id) {
 
         $account_config = [
             "account_id" => $account_data->fields['PK_ACCOUNT_MASTER'],
-            "business_name" => $location_result->fields['CORPORATION_NAME'],
+            "business_name" => $locations[0]['name'] ?? $corporation_name,
             "languages" => ['en', 'es'],  // ← hardcoded for now
             "locations" => $locations,
         ];

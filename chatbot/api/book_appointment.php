@@ -32,7 +32,7 @@ if (!$account_id) {
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'http://52.36.228.0/';
+        $http_path = 'https://doable.net/';
     }
 
     if ($db_account->error_number) {
@@ -75,7 +75,7 @@ function createUser($PK_LOCATION, $name, $phone, $email)
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'http://52.36.228.0/';
+        $http_path = 'https://doable.net/';
     }
     if ($db_account->error_number) {
         die("Connection Error");
@@ -208,7 +208,7 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
-        $http_path = 'http://52.36.228.0/';
+        $http_path = 'https://doable.net/';
     }
     if ($db_account->error_number) {
         die("Connection Error");

@@ -1,6 +1,6 @@
 /*
  * DOable Concierge — iframe Loader Script
- * Usage: <script src="http://52.36.228.0/chatbot/chatbot-loader.js" data-account="ACCOUNT_ID"></script>
+ * Usage: <script src="https://doable.net/chatbot/chatbot-loader.js" data-account="ACCOUNT_ID"></script>
  */
 (function() {
   'use strict';
@@ -18,7 +18,7 @@
   }
 
   // ── Base URL — adjust if hosted elsewhere ───────────
-  const FRAME_BASE_URL = 'http://52.36.228.0/chatbot/chatbot-frame.html';
+  const FRAME_BASE_URL = 'https://doable.net/chatbot/chatbot-frame.html';
 
   // ── Create the iframe ────────────────────────────────
   const iframe = document.createElement('iframe');

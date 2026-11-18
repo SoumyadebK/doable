@@ -918,7 +918,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="label">Secondary Location</div>
                                                     <div class="value">
                                                         <?php
-                                                        $selected_location = [];
+                                                        $selected_location = [0];
                                                         $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $PK_USER);
                                                         while (!$selected_location_row->EOF) {
                                                             $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
