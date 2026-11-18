@@ -644,6 +644,34 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     .popover {
         z-index: 999999 !important;
     }
+
+    /* added to Ensure the dropdown list doesn't overflow the screen */
+    @media (max-width: 575px) {
+        body .side-drawer {
+            width: 100%;
+            max-width: 100vw;
+            height: calc(100% - 70px) !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body .side-drawer .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: auto !important;
+            max-height: none !important;
+            overflow-y: auto;
+        }
+
+        body .side-drawer .modal-footer {
+            flex: 0 0 auto;
+        }
+
+        /* Ensure the dropdown list doesn't overflow the screen */
+        body .SumoSelect .optWrapper {
+            width: 100% !important;
+        }
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -927,7 +955,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.customer_select').SumoSelect({
             placeholder: 'Select Customer',
             search: true,
-            searchText: 'Search...'
+            searchText: 'Search...',
+            forceCustomRendering: true, // Forces the custom UI instead of native picker
+            floatWidth: 0 // Helps with layout width issues
         });
 
 

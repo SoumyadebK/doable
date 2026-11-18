@@ -803,6 +803,12 @@ if ($current_address != 'customer.php') {
     //     searchText: 'Search...'
     // });
 
+    // Also apply to the enrollment form dropdown
+    $('#PK_USER_MASTER').SumoSelect({
+        forceCustomRendering: true,
+        floatWidth: 0
+    });
+
     $('.datepicker-normal').datepicker({
         dateFormat: 'mm/dd/yy'
     });
