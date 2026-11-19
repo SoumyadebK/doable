@@ -561,6 +561,9 @@ function handleCustomerEnrollmentsUpload()
         $USER_ID             = 0;
         $PK_CUSTOMER_DETAILS = 0;
 
+        $TOTAL_LESSONS = 0;          // Reset total lessons
+        $amount_owed_for_misc = 0;   // Reset extra debt carry-over
+
         $MINDBODY_CLIENT_ID = trim($getData[0] ?? '');
         $MINDBODY_CLIENT_ID_INT = ($MINDBODY_CLIENT_ID === '') ? 0 : (int)$MINDBODY_CLIENT_ID;
 
@@ -1078,6 +1081,7 @@ function handleCustomerEnrollmentsUpload()
                     }
                 } else {
                     $prepaid_lessons_value = $amount_paid_active;
+                    $amount_owed_for_misc = 0;
                 }
 
                 if ($prepaid_lessons_value > $TOTAL_COST) {
@@ -1117,6 +1121,7 @@ function handleCustomerEnrollmentsUpload()
                     $package_expiry_date = date("Y-m-d", strtotime("+1 month"));
                 }
 
+                $ENROLLMENT_DATA['ENROLLMENT_NAME']      = $getData[37] ?? '';
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
                 $ENROLLMENT_DATA['CHARGE_TYPE']      = 'Session';
@@ -1313,28 +1318,23 @@ function handleCustomerEnrollmentsUpload()
 
         // MISC ENROLLMENT
         // MISC ENROLLMENT / WALLET CREDIT
-        // MISC ENROLLMENT / WALLET CREDIT
         $should_create_misc = false;
         $should_add_to_wallet = false;
         $misc_amount = 0;
 
-        // Rule 1 & 2: Check the sign of the balance
-        if ($account_balance > 0 && !$has_explicit_wallet_credit) { // <--- ADD THIS
+        if ($account_balance > 0 && !$has_explicit_wallet_credit) {
             $should_add_to_wallet = true;
             $misc_amount = $account_balance;
         } elseif ($account_balance < 0) {
             // Negative value = Debt. 
-            // If they have no active lessons, OR if they owe more than the lessons cost, create a MISC.
-            if ($TOTAL_LESSONS <= 0 || $amount_owed_for_misc > 0) {
+            if ($TOTAL_LESSONS <= 0) {
+                // NO LESSONS: Use their full account balance
                 $should_create_misc = true;
-
-                // If we already calculated a leftover debt from the active enrollment, use that.
-                // Otherwise (no lessons), use the absolute account balance.
-                if ($amount_owed_for_misc > 0) {
-                    $misc_amount = $amount_owed_for_misc;
-                } else {
-                    $misc_amount = abs($account_balance);
-                }
+                $misc_amount = abs($account_balance);
+            } elseif ($amount_owed_for_misc > 0) {
+                // HAS LESSONS, BUT OWES EXTRA: Use the leftover debt
+                $should_create_misc = true;
+                $misc_amount = $amount_owed_for_misc;
             }
         }
 
