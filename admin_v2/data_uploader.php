@@ -1121,6 +1121,7 @@ function handleCustomerEnrollmentsUpload()
                     $package_expiry_date = date("Y-m-d", strtotime("+1 month"));
                 }
 
+                $ENROLLMENT_DATA['ENROLLMENT_NAME']      = $getData[37] ?? '';
                 $ENROLLMENT_DATA['PK_USER_MASTER']   = $PK_USER_MASTER;
                 $ENROLLMENT_DATA['PK_LOCATION']      = $PK_LOCATION;
                 $ENROLLMENT_DATA['CHARGE_TYPE']      = 'Session';
