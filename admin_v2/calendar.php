@@ -912,6 +912,44 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 
 
+    <!-- Add secondary service provider modal -->
+    <div class="modal fade" id="add_secondary_service_provider_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <form id="add_secondary_teacher_form" method="post">
+                <input type="hidden" name="FUNCTION_NAME" value="addSecondaryTeacherToAppointment">
+                <input type="hidden" name="PK_APPOINTMENT_MASTER" id="PK_APPOINTMENT_MASTER">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><b>Add Secondary Teacher</b></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <select class="form-control PK_SERVICE_PROVIDER_SECONDARY" name="PK_SERVICE_PROVIDER_SECONDARY" required>
+                                        <option value="">Select <?= $service_provider_title ?></option>
+                                        <?php
+                                        $row = getServiceProvider();
+                                        while (!$row->EOF) { ?>
+                                            <option value="<?php echo $row->fields['PK_USER']; ?>">
+                                                <?= $row->fields['NAME'] ?>
+                                            </option>
+                                        <?php $row->MoveNext();
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -2975,6 +3013,46 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         $('#save_followup_message_model').modal('hide');
                         calendar.refetchEvents();
                     });
+                }
+            });
+        });
+    </script>
+
+    <script>
+        function loadAddSecondaryServiceProviderModal(PK_APPOINTMENT_MASTER) {
+            $('#add_secondary_service_provider_modal').modal('show');
+            $('#add_secondary_teacher_form #PK_APPOINTMENT_MASTER').val(PK_APPOINTMENT_MASTER);
+        }
+
+        $(document).on('submit', '#add_secondary_teacher_form', function(event) {
+            event.preventDefault();
+            let form_data = new FormData($('#add_secondary_teacher_form')[0]);
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.status === 'error') {
+                        Swal.fire({
+                            title: "Error!",
+                            text: data.message,
+                            icon: "error",
+                        });
+                        return;
+                    } else {
+                        Swal.fire({
+                            title: "Added!",
+                            text: "Secondary Service Provider Added.",
+                            icon: "success",
+                            timer: 3000,
+                        }).then((result) => {
+                            $('#add_secondary_service_provider_modal').modal('hide');
+                            calendar.refetchEvents();
+                        });
+                    }
                 }
             });
         });

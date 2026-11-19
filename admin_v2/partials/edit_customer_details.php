@@ -40,6 +40,7 @@ if ($customer_data->RecordCount() > 0) {
     $PK_CUSTOMER_DETAILS = $customer_data->fields['PK_CUSTOMER_DETAILS'];
     $CALL_PREFERENCE = $customer_data->fields['CALL_PREFERENCE'];
     $REMINDER_OPTION = explode(',', $customer_data->fields['REMINDER_OPTION']);
+    $REMINDER_RECEIVE_BY = explode(',', $customer_data->fields['REMINDER_RECEIVE_BY']);
     $ATTENDING_WITH = $customer_data->fields['ATTENDING_WITH'];
     $PARTNER_FIRST_NAME = $customer_data->fields['PARTNER_FIRST_NAME'];
     $PARTNER_LAST_NAME = $customer_data->fields['PARTNER_LAST_NAME'];
@@ -64,6 +65,14 @@ if ($selected_primary_location->RecordCount() > 0) {
     #reminder_email:checked+label,
     #reminder_text:checked+label,
     #reminder_call:checked+label {
+        background-color: #39b54a !important;
+        color: white !important;
+        border-color: #39b54a !important;
+    }
+
+    #reminder_customer:checked+label,
+    #reminder_partner:checked+label,
+    #reminder_family:checked+label {
         background-color: #39b54a !important;
         color: white !important;
         border-color: #39b54a !important;
@@ -255,7 +264,41 @@ if ($selected_primary_location->RecordCount() > 0) {
                     </div>
                 </div>
             </div>
+
             <div class="col-6">
+                <div class="label">Reminder Receive By</div>
+                <div class="value">
+                    <div class="btn-group" role="group" aria-label="Reminder Options" style="gap: 10px; flex-wrap: wrap;">
+                        <input type="checkbox" class="btn-check" name="REMINDER_RECEIVE_BY[]" id="reminder_customer" value="Customer" <?= (is_array($REMINDER_RECEIVE_BY) && in_array('Customer', $REMINDER_RECEIVE_BY)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_customer" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Customer</label>
+
+                        <input type="checkbox" class="btn-check" name="REMINDER_RECEIVE_BY[]" id="reminder_partner" value="Partner" <?= (is_array($REMINDER_RECEIVE_BY) && in_array('Partner', $REMINDER_RECEIVE_BY)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_partner" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Partner</label>
+
+                        <input type="checkbox" class="btn-check" name="REMINDER_RECEIVE_BY[]" id="reminder_family" value="Family Member" <?= (is_array($REMINDER_RECEIVE_BY) && in_array('Family Member', $REMINDER_RECEIVE_BY)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_family" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Family Member</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="label">Date of Birth</div>
+                <div class="value">
+                    <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="label">Gender</div>
+                <div class="value">
+                    <select class="form-control" name="GENDER" id="GENDER">
+                        <option value="">Select Gender</option>
+                        <option value="Male" <?= ($GENDER == 'Male') ? "selected" : "" ?>>Male</option>
+                        <option value="Female" <?= ($GENDER == 'Female') ? "selected" : "" ?>>Female</option>
+                        <option value="Other" <?= ($GENDER == 'Other') ? "selected" : "" ?>>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-4">
                 <div class="label">Tag</div>
                 <div class="value">
                     <?php
@@ -275,24 +318,6 @@ if ($selected_primary_location->RecordCount() > 0) {
                         <?php $row->MoveNext();
                         } ?>
                     </select>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="label">Gender</div>
-                <div class="value">
-                    <select class="form-control" name="GENDER" id="GENDER">
-                        <option value="">Select Gender</option>
-                        <option value="Male" <?= ($GENDER == 'Male') ? "selected" : "" ?>>Male</option>
-                        <option value="Female" <?= ($GENDER == 'Female') ? "selected" : "" ?>>Female</option>
-                        <option value="Other" <?= ($GENDER == 'Other') ? "selected" : "" ?>>Other</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="label">Date of Birth</div>
-                <div class="value">
-                    <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
                 </div>
             </div>
 

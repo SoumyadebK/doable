@@ -25,12 +25,18 @@ if ($TYPE == 'appointment') {
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
+                            SERVICE_PROVIDER_2.PK_USER AS SERVICE_PROVIDER_2_ID,
+                            SERVICE_PROVIDER_2.FIRST_NAME AS SERVICE_PROVIDER_2_FIRST_NAME,
+                            SERVICE_PROVIDER_2.LAST_NAME AS SERVICE_PROVIDER_2_LAST_NAME,
                             GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID,
                             GROUP_CONCAT(DOA_USER_MASTER.PK_USER_MASTER SEPARATOR ',') AS CUSTOMER_ID
                         FROM
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
+
+                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER_SECONDARY ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER_SECONDARY.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER_2 ON DOA_APPOINTMENT_SERVICE_PROVIDER_SECONDARY.PK_USER = SERVICE_PROVIDER_2.PK_USER
                         
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
@@ -137,7 +143,17 @@ if ($TYPE == 'appointment') {
             <ul class="list-inline mb-0 mt-1">
                 <li class="list-inline-item fw-semibold">
                     <span class="namebadge badge sp_badge badge-pill" style="background-color: <?= $profile_color ?>"><?= $profile_name ?></span>
-                    <a href="#!" class="name text-decoration-underline"><?= $service_provider_name ?></a>
+                    <a href="#!" class="name text-decoration-underline"><?= $service_provider_name ?></a> &nbsp;
+                    <?php if (!empty($appointment_data->fields['SERVICE_PROVIDER_2_ID'])) {
+                        $profile_2 = getProfileBadge($appointment_data->fields['SERVICE_PROVIDER_2_FIRST_NAME'] . ' ' . $appointment_data->fields['SERVICE_PROVIDER_2_LAST_NAME']);
+                        $profile_name_2 = $profile_2['initials'];
+                        $profile_color_2 = $profile_2['color'];
+                    ?>
+                        <span class="namebadge badge sp_badge badge-pill" style="background-color: <?= $profile_color_2 ?>"><?= $profile_name_2 ?></span>
+                        <a href="#!" class="name text-decoration-underline"><?= $appointment_data->fields['SERVICE_PROVIDER_2_FIRST_NAME'] . ' ' . $appointment_data->fields['SERVICE_PROVIDER_2_LAST_NAME'] ?></a>
+                    <?php } else { ?>
+                        <a class="btn-new" href="javascript:;" onclick="loadAddSecondaryServiceProviderModal(<?= $PK_APPOINTMENT_MASTER ?>)" style="padding: 1px 10px !important;" title="Add Secondary Teacher"><i class="fa fa-plus" aria-hidden="true"></i></a>
+                    <?php } ?>
                 </li>
             </ul>
         </div>

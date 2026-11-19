@@ -52,6 +52,7 @@ $INQUIRY_DATE = '';
 $PK_CUSTOMER_DETAILS = '';
 $CALL_PREFERENCE = '';
 $REMINDER_OPTION = '';
+$REMINDER_RECEIVE_BY = '';
 $SPECIAL_DATE_1 = '';
 $DATE_NAME_1 = '';
 $SPECIAL_DATE_2 = '';
@@ -112,6 +113,7 @@ if (!empty($_GET['id'])) {
         $PK_CUSTOMER_DETAILS = $customer_data->fields['PK_CUSTOMER_DETAILS'];
         $CALL_PREFERENCE = $customer_data->fields['CALL_PREFERENCE'];
         $REMINDER_OPTION = $customer_data->fields['REMINDER_OPTION'];
+        $REMINDER_RECEIVE_BY = $customer_data->fields['REMINDER_RECEIVE_BY'];
         $ATTENDING_WITH = $customer_data->fields['ATTENDING_WITH'];
         $PARTNER_FIRST_NAME = $customer_data->fields['PARTNER_FIRST_NAME'];
         $PARTNER_LAST_NAME = $customer_data->fields['PARTNER_LAST_NAME'];
@@ -958,12 +960,6 @@ if ($PK_USER_MASTER > 0) {
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
-                                                    <div class="label">Reminder Options</div>
-                                                    <div class="value">
-                                                        <?= $REMINDER_OPTION ?>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
                                                     <div class="label">Tag</div>
                                                     <div class="value">
                                                         <?php
@@ -982,24 +978,40 @@ if ($PK_USER_MASTER > 0) {
                                                         echo implode(", ", $tag_name_arr) ?>
                                                     </div>
                                                 </div>
+
                                                 <div class="col-6">
-                                                    <div class="label">Gender</div>
+                                                    <div class="label">Reminder Options</div>
                                                     <div class="value">
-                                                        <?= $GENDER ?>
+                                                        <?= $REMINDER_OPTION ?>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="label">Reminder Receive By</div>
+                                                    <div class="value">
+                                                        <?= $REMINDER_RECEIVE_BY ?>
+                                                    </div>
+                                                </div>
+
                                                 <div class="col-6">
                                                     <div class="label">Date of Birth</div>
                                                     <div class="value">
                                                         <?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m / d / Y', strtotime($DOB)) ?>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="label">Gender</div>
+                                                    <div class="value">
+                                                        <?= $GENDER ?>
+                                                    </div>
+                                                </div>
+
                                                 <div class="col-md-12">
                                                     <div class="label">Notes</div>
                                                     <div class="value">
                                                         <?= $NOTES ?>
                                                     </div>
                                                 </div>
+
                                                 <div class="col-md-12">
                                                     <div class="label">Status</div>
                                                     <div class="value">
