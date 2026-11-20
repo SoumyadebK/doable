@@ -13,11 +13,10 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$type = $_GET['type'];
+$type = $_GET['type'] ?? 'view';
 
-$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$from_date = date('Y-m-d', strtotime($_GET['start_date'] ?? ''));
 // If an end_date is provided (date-range mode), honor it.
-// Otherwise fall back to the original week behavior (+6 days).
 if (!empty($_GET['end_date'])) {
     $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 } else {
@@ -31,7 +30,8 @@ if ($to_date < $from_date) {
     $to_date = $tmp;
 }
 
-$week_number = $_GET['week_number'];
+// If week_number is empty (e.g., Range mode), derive it from the start_date
+$week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
 $YEAR = date('Y', strtotime($from_date));
 
 $ytd_form_date = firstSundayOfYear($YEAR);
@@ -382,36 +382,35 @@ if ($type === 'export') {
     }
 }
 
-if (!empty($_GET['WEEK_NUMBER'])) {
-    $type = isset($_GET['view']) ? 'view' : 'export';
-    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
-    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $report_name = isset($_GET['NAME']) ? $_GET['NAME'] : 'summary_of_studio_business_report';
+// Only handle PDF/Excel generation triggered from THIS page's form.
+// Never redirect back to this same page — that caused the infinite loop.
+if (!empty($_GET['generate_pdf']) || !empty($_GET['generate_excel'])) {
+    $generate_pdf   = !empty($_GET['generate_pdf'])   ? 1 : 0;
+    $generate_excel = !empty($_GET['generate_excel']) ? 1 : 0;
+    $report_name    = 'summary_of_studio_business_report';
 
-    // Extract week number from "Week Number X" format
-    $week_parts = explode(' ', $_GET['WEEK_NUMBER']);
-    $WEEK_NUMBER = end($week_parts);
-
-    // Calculate start date from week number or use provided start date
-    if (!empty($_GET['start_date'])) {
-        $START_DATE = $_GET['start_date'];
-    } else {
-        // If no start_date provided, calculate from week number
-        $year = date('Y');
-        $date = new DateTime();
-        $date->setISODate($year, $WEEK_NUMBER);
-        $date->modify('-1 day'); // Get Sunday instead of Monday
-        $START_DATE = $date->format('Y-m-d');
+    $WEEK_NUMBER = '';
+    if (!empty($_GET['WEEK_NUMBER']) && strpos($_GET['WEEK_NUMBER'], ' ') !== false) {
+        $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    } elseif (!empty($_GET['start_date'])) {
+        $WEEK_NUMBER = date('W', strtotime($_GET['start_date']));
     }
 
+    $START_DATE = $_GET['start_date'] ?? '';
+    $END_DATE   = $_GET['end_date']   ?? '';
+
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER
+            . '&start_date=' . urlencode($START_DATE)
+            . '&end_date='   . urlencode($END_DATE)
+            . '&report_type=' . $report_name);
         exit;
-    } elseif ($generate_excel === 1) {
-        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
-        exit;
-    } else {
-        header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+    }
+    if ($generate_excel === 1) {
+        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER
+            . '&start_date=' . urlencode($START_DATE)
+            . '&end_date='   . urlencode($END_DATE)
+            . '&report_type=' . $report_name);
         exit;
     }
 }
@@ -491,14 +490,46 @@ function firstSundayOfYear($year)
                                 <div class="card-body" style="padding-bottom: 0px !important;">
                                     <form class="form-material form-horizontal" action="" method="get" id="reportForm">
                                         <input type="hidden" name="start_date" id="weekly_start_date" value="<?= !empty($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>">
+                                        <input type="hidden" name="end_date" id="weekly_end_date" value="<?= !empty($_GET['end_date']) ? htmlspecialchars($_GET['end_date']) : '' ?>">
                                         <input type="hidden" name="NAME" id="NAME" value="summary_of_studio_business_report">
-                                        <div class="row justify-content-start">
-                                            <div class="col-2">
-                                                <div class="form-group">
-                                                    <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>" required>
+
+                                        <div class="row mb-2">
+                                            <div class="col-12">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="MODE" id="mode_week" value="week"
+                                                        <?= empty($_GET['end_date']) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="mode_week">By Week</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="MODE" id="mode_range" value="range"
+                                                        <?= !empty($_GET['end_date']) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="mode_range">By Date Range</label>
                                                 </div>
                                             </div>
-                                            <div class="col-3">
+                                        </div>
+
+                                        <div class="row justify-content-start">
+                                            <div class="col-2" id="weekWrap" <?= !empty($_GET['end_date']) ? 'style="display:none;"' : '' ?>>
+                                                <div class="form-group mb-3">
+                                                    <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week"
+                                                        value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-2" id="rangeStartWrap" <?= empty($_GET['end_date']) ? 'style="display:none;"' : '' ?>>
+                                                <div class="form-group mb-3">
+                                                    <input type="text" id="range_start" class="form-control" placeholder="Start Date"
+                                                        value="<?= !empty($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>">
+                                                </div>
+                                            </div>
+                                            <div class="col-2" id="rangeEndWrap" <?= empty($_GET['end_date']) ? 'style="display:none;"' : '' ?>>
+                                                <div class="form-group mb-3">
+                                                    <input type="text" id="range_end" class="form-control" placeholder="End Date"
+                                                        value="<?= !empty($_GET['end_date']) ? htmlspecialchars($_GET['end_date']) : '' ?>">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
                                                 <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                     <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
                                                     <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
@@ -1682,50 +1713,40 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
         }
 
         // 2) Form submission handler - FIXED for Safari
+        // 2) Form submission handler (week + range aware)
         $('#reportForm input[type="submit"]').on('click', function(e) {
             e.preventDefault();
 
-            // Get the week picker value
-            var weekValue = $('#WEEK_NUMBER1').val();
-            var startDateValue = $('#weekly_start_date').val();
-
-            if (!weekValue || !startDateValue) {
-                alert('Please select a week');
-                return false;
-            }
-
-            // Extract week number from "Week Number X" format
-            var weekParts = weekValue.split(' ');
-            var weekNumber = weekParts[weekParts.length - 1];
-
-            // Set form values
-            $('#weekly_start_date').val(startDateValue);
-            $('#NAME').val('summary_of_studio_business_report');
-
-            // Get which button was clicked
-            var clickedButton = $(this).attr('name');
-            var action = $(this).val();
-
-            // Build base URL
-            var baseUrl = '<?php echo $_SERVER['PHP_SELF']; ?>';
+            var mode = $("input[name='MODE']:checked").val();
+            var clicked = $(this).attr('name'); // view | generate_pdf | generate_excel
             var params = {
-                'WEEK_NUMBER': encodeURIComponent(weekValue),
-                'start_date': encodeURIComponent(startDateValue),
-                'NAME': 'summary_of_studio_business_report'
+                NAME: 'summary_of_studio_business_report',
+                MODE: mode
             };
 
-            if (clickedButton === 'generate_pdf') {
-                params['generate_pdf'] = 1;
-            } else if (clickedButton === 'generate_excel') {
-                params['generate_excel'] = 1;
-            } else if (clickedButton === 'view') {
-                params['view'] = 1;
+            if (mode === 'range') {
+                var s = $('#range_start').val();
+                var en = $('#range_end').val();
+                if (!s || !en) {
+                    alert('Select both Start Date and End Date.');
+                    return false;
+                }
+                params.start_date = s;
+                params.end_date = en;
+            } else {
+                var weekValue = $('#WEEK_NUMBER1').val();
+                var startDate = $('#weekly_start_date').val();
+                if (!weekValue || !startDate) {
+                    alert('Please select a week');
+                    return false;
+                }
+                params.WEEK_NUMBER = weekValue;
+                params.start_date = startDate;
             }
 
-            // Build query string
-            var queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
-            window.location.href = baseUrl + '?' + queryString;
+            params[clicked] = 1;
 
+            window.location.href = '<?= $_SERVER['PHP_SELF'] ?>?' + $.param(params);
             return false;
         });
 
@@ -1930,5 +1951,73 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
             // $(this).closest('form').submit();
         });
 
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        // Initialize Datepickers for the Range Mode
+        $("#range_start").datepicker({
+            dateFormat: "mm/dd/yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2000:2035",
+            onSelect: function(selected) {
+                $("#range_end").datepicker("option", "minDate", selected);
+            }
+        });
+        $("#range_end").datepicker({
+            dateFormat: "mm/dd/yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2000:2035"
+        });
+
+        // Toggle between Week and Range modes
+        $("input[name='MODE']").on('change', function() {
+            if ($(this).val() === 'range') {
+                $('#weekWrap').hide();
+                $('#rangeStartWrap, #rangeEndWrap').show();
+                $('#WEEK_NUMBER1').prop('disabled', true).prop('required', false);
+                $('#range_start, #range_end').prop('required', true);
+            } else {
+                $('#weekWrap').show();
+                $('#rangeStartWrap, #rangeEndWrap').hide();
+                $('#WEEK_NUMBER1').prop('disabled', false).prop('required', true);
+                $('#range_start, #range_end').prop('required', false);
+
+                // Clear out the range if they switch back to Week
+                $('#weekly_end_date').val('');
+                $('#range_start, #range_end').val('');
+            }
+        });
+
+        // On submit, handle validation and set hidden fields
+        $('#reportForm').on('submit', function(e) {
+            if ($("input[name='MODE']:checked").val() === 'range') {
+                var s = $('#range_start').val(),
+                    en = $('#range_end').val();
+                if (!s || !en) {
+                    e.preventDefault();
+                    alert('Select both Start Date and End Date.');
+                    return false;
+                }
+
+                // Set the hidden fields that PHP expects
+                $('#weekly_start_date').val(s);
+                $('#weekly_end_date').val(en);
+
+                // Important: Disable the week picker so its value isn't submitted
+                // This forces the backend to rely purely on start_date and end_date
+                $('#WEEK_NUMBER1').prop('disabled', true);
+
+            } else {
+                // Week mode
+                $('#weekly_end_date').val(''); // clear end date
+                $('#WEEK_NUMBER1').prop('disabled', false);
+
+                // The week picker's onSelect already updates #weekly_start_date
+                // We just need to make sure WEEK_NUMBER is submitted
+            }
+        });
     });
 </script>

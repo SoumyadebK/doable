@@ -13,9 +13,22 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
-$to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+// If an end_date is provided (date-range mode), honor it.
+if (!empty($_GET['end_date'])) {
+    $to_date = date('Y-m-d', strtotime($_GET['end_date']));
+} else {
+    $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+}
 
-$week_number = $_GET['week_number'];
+// Safety: if end < start, swap so query doesn't return nothing
+if ($to_date < $from_date) {
+    $tmp = $from_date;
+    $from_date = $to_date;
+    $to_date = $tmp;
+}
+
+// If week_number is empty (e.g., Range mode), derive it from the start_date
+$week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
 $YEAR = date('Y', strtotime($from_date));
 
 $ytd_form_date = firstSundayOfYear($YEAR);
