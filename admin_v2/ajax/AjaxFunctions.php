@@ -4807,6 +4807,7 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
     $CUSTOMER_USER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
     //$CUSTOMER_USER_DATA['CALL_PREFERENCE'] = $RESPONSE_DATA['CALL_PREFERENCE'];
     $CUSTOMER_USER_DATA['REMINDER_OPTION'] = isset($RESPONSE_DATA['REMINDER_OPTION']) ? implode(',', $RESPONSE_DATA['REMINDER_OPTION']) : '';
+    $CUSTOMER_USER_DATA['REMINDER_RECEIVE_BY'] = isset($RESPONSE_DATA['REMINDER_RECEIVE_BY']) ? implode(',', $RESPONSE_DATA['REMINDER_RECEIVE_BY']) : '';
     /* $CUSTOMER_USER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'];
     $CUSTOMER_USER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'];
     $CUSTOMER_USER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'];
@@ -5287,9 +5288,6 @@ function mailAgreementToCustomer($RESPONSE_DATA)
 
 
 
-
-
-
 function mailReceiptToCustomer($RESPONSE_DATA)
 {
     error_reporting(E_ALL);
@@ -5425,5 +5423,40 @@ function mailReceiptToCustomer($RESPONSE_DATA)
         $return_data['success'] = false;
         $return_data['message'] = $e->getMessage();
         echo json_encode($return_data);
+    }
+}
+
+
+function addSecondaryTeacherToAppointment($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $PK_SERVICE_PROVIDER_SECONDARY = $RESPONSE_DATA['PK_SERVICE_PROVIDER_SECONDARY'];
+
+    $check_primary_teacher_query = "SELECT * FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER` = '$PK_SERVICE_PROVIDER_SECONDARY'";
+    $check_primary_teacher_result = $db_account->Execute($check_primary_teacher_query);
+
+    // Check if the secondary teacher is already assigned to the appointment
+    $check_query = "SELECT * FROM `DOA_APPOINTMENT_SERVICE_PROVIDER_SECONDARY` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER` = '$PK_SERVICE_PROVIDER_SECONDARY'";
+    $check_result = $db_account->Execute($check_query);
+
+    if ($check_primary_teacher_result->RecordCount() > 0) {
+        // Teacher is already assigned as primary, return an error message
+        echo json_encode(['status' => 'error', 'message' => 'This teacher is already assigned as the primary teacher for the appointment.']);
+    } elseif ($check_result->RecordCount() > 0) {
+        // Teacher is already assigned, return an error message
+        echo json_encode(['status' => 'error', 'message' => 'This teacher is already assigned to the appointment.']);
+    } else {
+        // Assign the secondary teacher to the appointment
+        $insert_data = [
+            'PK_APPOINTMENT_MASTER' => $PK_APPOINTMENT_MASTER,
+            'PK_USER' => $PK_SERVICE_PROVIDER_SECONDARY,
+            'ASSIGNED_ON' => date("Y-m-d H:i:s")
+        ];
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER_SECONDARY', $insert_data, 'insert');
+
+        echo json_encode(['status' => 'success', 'message' => 'Secondary teacher added to the appointment successfully.']);
     }
 }
