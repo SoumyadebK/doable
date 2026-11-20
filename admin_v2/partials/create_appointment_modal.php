@@ -134,6 +134,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             </div>
                         </div>
                     </div>
+
                     <div class="row mb-3 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
@@ -154,6 +155,11 @@ if ($location_operational_hour->RecordCount() > 0) {
                             </div>
                         </div>
                     </div>
+
+                    <div id="customer_partner_and_family_members_div">
+
+                    </div>
+
                     <div class="row mb-3 enrollment_area d-none">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
@@ -1193,6 +1199,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function selectThisCustomerForAppointmentCreation(param) {
         let PK_USER_MASTER = $(param).val();
+        getCustomerPartnerAndFamilyMembers(PK_USER_MASTER);
         $('#create_appointment_form .enrollment_area').removeClass('d-none');
         $('#create_appointment_form .schedule_code_area').removeClass('d-none');
         $.ajax({
@@ -1207,6 +1214,21 @@ if ($location_operational_hour->RecordCount() > 0) {
                 $('#create_appointment_form #enrollment_div').html(result);
                 $(param).closest('form').find('#PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
                 $('.selected_enrollment').trigger('click');
+            }
+        });
+    }
+
+    function getCustomerPartnerAndFamilyMembers(PK_USER_MASTER) {
+        $.ajax({
+            url: "partials/get_customer_partner_and_family_members.php",
+            type: "POST",
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#create_appointment_form #customer_partner_and_family_members_div').html(result);
             }
         });
     }

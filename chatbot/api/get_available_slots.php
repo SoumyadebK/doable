@@ -61,7 +61,7 @@ if (!$account_id) {
         }
 
         // Sort all slots by start time ascending
-        usort($slot_data, function($a, $b) {
+        usort($slot_data, function ($a, $b) {
             return strcmp($a['slot_start_time'], $b['slot_start_time']);
         });
 
@@ -73,10 +73,17 @@ if (!$account_id) {
 
 function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot_duration)
 {
+    global $db; // Use the global $db variable for the main database connection
     $provider_id   = (int)$provider_id;
     $location_id   = (int)$location_id;
     $date          = addslashes($date);
     $slot_duration = addslashes($slot_duration);
+
+    //check is holiday of not
+    $holiday_data = $db->Execute("SELECT * FROM DOA_LOCATION_HOLIDAY_LIST WHERE PK_LOCATION = $location_id AND HOLIDAY_DATE = '$date'");
+    if ($holiday_data->RecordCount() > 0) {
+        return []; // No slots available on holidays
+    }
 
     // Get provider working hours for the day
     $day_name  = strtoupper(substr(date('l', strtotime($date)), 0, 3));
@@ -154,7 +161,7 @@ function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot
     }
 
     // Sort booked slots by start time
-    usort($booked_slots, function($a, $b) {
+    usort($booked_slots, function ($a, $b) {
         return $a['start'] - $b['start'];
     });
 

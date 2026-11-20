@@ -1749,10 +1749,13 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                 <button class="tab-item" data-tab="concierge" role="tab">
                                                     <i class="fas fa-gear"></i> Concierge
                                                 </button>
-                                                <button class="tab-item" data-tab="faq" role="tab">
-                                                    <i class="fas fa-question"></i> FAQ
-                                                </button>
                                             <?php } ?>
+                                            <button class="tab-item" data-tab="leads_api" role="tab">
+                                                <i class="fas fa-plug"></i> Leads API
+                                            </button>
+                                            <button class="tab-item" data-tab="faq" role="tab">
+                                                <i class="fas fa-question"></i> FAQ
+                                            </button>
                                         <?php endif; ?>
                                     </div>
 
@@ -2908,6 +2911,30 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     </button>
                                                 </div>
                                             </form>
+                                        </div>
+
+                                        <!-- Leads API Tab -->
+                                        <div class="tab-pane-modern" id="leads_api" role="tabpanel">
+                                            <div class="card-body">
+                                                <div class="form-group-modern">
+                                                    <label class="form-label">API URL</label>
+                                                    <pre>https://doable.net/api/create_leads.php</pre>
+                                                </div>
+
+                                                <div class="form-group-modern mt-3">
+                                                    <label class="form-label">API Parameters</label>
+                                                    <pre style="margin-left: -44%;">
+                                                        {
+                                                            "LOCATION_ID": "<?= $PK_LOCATION ?>",
+                                                            "FIRST_NAME": "",
+                                                            "LAST_NAME": "",
+                                                            "PHONE": "",
+                                                            "EMAIL_ID": "",
+                                                            "DESCRIPTION": ""
+                                                        } 
+                                                    </pre>
+                                                </div>
+                                            </div>
                                         </div>
 
 
