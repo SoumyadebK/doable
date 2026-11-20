@@ -13,12 +13,34 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
-$to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+// Guard: require start_date
+$start_raw = $_GET['start_date'] ?? '';
+if ($start_raw === '') {
+    die('start_date is required');
+}
 
-$week_number = $_SESSION['week_number'];
+$from_date = date('Y-m-d', strtotime($start_raw));
+
+if (!empty($_GET['end_date'])) {
+    $to_date = date('Y-m-d', strtotime($_GET['end_date']));
+} else {
+    $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+}
+
+if ($to_date < $from_date) {
+    $tmp = $from_date;
+    $from_date = $to_date;
+    $to_date = $tmp;
+}
+
+// FIX #1: read week_number from GET (same as view), fallback to derived week
+$week_number = $_GET['week_number'] ?? '';
+if ($week_number === '' && !empty($from_date)) {
+    $week_number = date('W', strtotime($from_date));
+}
 $YEAR = date('Y', strtotime($from_date));
 
+// FIX #2: removed IS_REFUNDED = 0 to match the view query exactly
 $PAYMENT_QUERY = "SELECT
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
                     DOA_ENROLLMENT_PAYMENT.AMOUNT,
@@ -66,7 +88,6 @@ $PAYMENT_QUERY = "SELECT
 
                 WHERE CUSTOMER.IS_DELETED = 0
                     AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
-                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
                     AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment')
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -102,7 +123,6 @@ $PAYMENT_QUERY = "SELECT
                     ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
 
                 WHERE DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
-                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
                     AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate'
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -111,6 +131,7 @@ $PAYMENT_QUERY = "SELECT
                 ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $REFUND_QUERY = "SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
                     DOA_ENROLLMENT_PAYMENT.AMOUNT,
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -152,6 +173,7 @@ $REFUND_QUERY = "SELECT
                 UNION ALL
 
                 SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
                     DOA_ENROLLMENT_PAYMENT.AMOUNT,
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -181,7 +203,14 @@ $REFUND_QUERY = "SELECT
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+
+// FIX #3: same business_name sanitization as the view page
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
+if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
+    $business_name = '';
+} else {
+    $business_name = 'Franchisee: ' . $business_name;
+}
 
 $location_name = '';
 $results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -198,7 +227,6 @@ foreach ($resultsArray as $key => $result) {
         $concatenatedResults .= ", ";
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -231,7 +259,8 @@ foreach ($resultsArray as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" ?></th>
+                                    <!-- FIX #4: use sanitized $business_name consistently, same string as the view -->
+                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?> (<?= $concatenatedResults ?>)</th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
@@ -418,7 +447,8 @@ foreach ($resultsArray as $key => $result) {
                                         <?php
                                         if ($i < $total_record) { ?>
                                             <tr style="margin-top: 100px;">
-                                                <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name ?></th>
+                                                <!-- FIX #4 continued: sanitized business name on the continuation header row too -->
+                                                <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                                 <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                                 <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                             </tr>
@@ -447,7 +477,7 @@ foreach ($resultsArray as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name ?></th>
+                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
