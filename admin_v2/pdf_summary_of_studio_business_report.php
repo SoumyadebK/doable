@@ -282,7 +282,36 @@ function firstSundayOfYear($year)
                                 </tr>
                                 <tr>
                                     <?php
-                                    $active_interview_renewal_data = $db_account->Execute("SELECT (SELECT CONCAT(SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), '/', SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))) FROM (SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons >= 12) markers RIGHT JOIN (SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN DATE_ADD('$from_date', INTERVAL -23 DAY) AND DATE_ADD('$from_date', INTERVAL 6 DAY) GROUP BY AC.PK_USER_MASTER) Active USING (PK_USER_MASTER)) AS ACTIVE_INTERVIEW_RENEWAL_COUNT");
+                                    $active_interview_renewal_data = $db_account->Execute("
+                                                                                            SELECT (
+                                                                                                SELECT CONCAT(
+                                                                                                    SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), 
+                                                                                                    '/', 
+                                                                                                    SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))
+                                                                                                ) 
+                                                                                                FROM (
+                                                                                                    SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, 
+                                                                                                    SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date 
+                                                                                                    FROM DOA_APPOINTMENT_CUSTOMER AC 
+                                                                                                    INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+                                                                                                    INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+                                                                                                    WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                                                                                                    AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                                                                                                    GROUP BY AC.PK_USER_MASTER 
+                                                                                                    HAVING total_lessons >= 12
+                                                                                                ) markers 
+                                                                                                RIGHT JOIN (
+                                                                                                    SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE 
+                                                                                                    FROM DOA_APPOINTMENT_CUSTOMER AC 
+                                                                                                    INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+                                                                                                    WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                                                                                                    AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                                                                                                    AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                                                                                                    AND AM.DATE BETWEEN DATE_ADD('$to_date', INTERVAL -23 DAY) AND '$to_date' 
+                                                                                                    GROUP BY AC.PK_USER_MASTER
+                                                                                                ) Active USING (PK_USER_MASTER)
+                                                                                            ) AS ACTIVE_INTERVIEW_RENEWAL_COUNT
+                                                                                        ");
                                     $active_interview_renewal_count = explode('/', $active_interview_renewal_data->fields['ACTIVE_INTERVIEW_RENEWAL_COUNT']);
 
                                     $weekly_interview_renewal_data = $db_account->Execute("SELECT CONCAT(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END),'/',SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END)) AS INTERVIEW_RENEWAL_COUNT FROM (SELECT AC.PK_USER_MASTER,SUM(SC.UNIT) AS total_lessons,SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','),',',12),',',-1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons>=12) AS M RIGHT JOIN (SELECT AC.PK_USER_MASTER,AM.DATE,SUM(SC.UNIT) AS total_units FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN $weekly_date_condition GROUP BY AC.PK_USER_MASTER,AM.DATE) AS W USING (PK_USER_MASTER)");

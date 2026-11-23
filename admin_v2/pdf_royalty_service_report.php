@@ -262,7 +262,13 @@ foreach ($resultsArray as $key => $result) {
                                     <!-- FIX #4: use sanitized $business_name consistently, same string as the view -->
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?> (<?= $concatenatedResults ?>)</th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
-                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">
+                                        <?php if (!empty($_GET['end_date'])): ?>
+                                            <?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>
+                                        <?php else: ?>
+                                            Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)
+                                        <?php endif; ?>
+                                    </th>
                                 </tr>
                                 <tr>
                                     <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Receipt number</th>
@@ -450,7 +456,13 @@ foreach ($resultsArray as $key => $result) {
                                                 <!-- FIX #4 continued: sanitized business name on the continuation header row too -->
                                                 <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                                 <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
-                                                <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                                <th style="width:20%; text-align: center; font-weight: bold" colspan="5">
+                                                    <?php if (!empty($_GET['end_date'])): ?>
+                                                        <?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>
+                                                    <?php else: ?>
+                                                        Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)
+                                                    <?php endif; ?>
+                                                </th>
                                             </tr>
                                         <?php } ?>
                                 <?php
@@ -479,7 +491,13 @@ foreach ($resultsArray as $key => $result) {
                                 <tr>
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
-                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">
+                                        <?php if (!empty($_GET['end_date'])): ?>
+                                            <?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>
+                                        <?php else: ?>
+                                            Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)
+                                        <?php endif; ?>
+                                    </th>
                                 </tr>
                                 <tr>
                                     <th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.

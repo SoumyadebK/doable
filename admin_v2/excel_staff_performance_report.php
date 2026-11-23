@@ -15,7 +15,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
+$from_date = date('Y-m-d', strtotime($_GET['start_date'] ?? ''));
 // If an end_date is provided (date-range mode), honor it.
 if (!empty($_GET['end_date'])) {
     $to_date = date('Y-m-d', strtotime($_GET['end_date']));
@@ -30,8 +30,16 @@ if ($to_date < $from_date) {
     $to_date = $tmp;
 }
 
-// If week_number is empty (e.g., Range mode), derive it from the start_date
-$week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
+// Calculate the correct week number based on a Sunday start
+if (empty($_GET['week_number'])) {
+    $temp_week_date = new DateTime($from_date);
+    if ($temp_week_date->format('w') == 0) { // If Sunday, shift to Saturday
+        $temp_week_date->modify('-1 day');
+    }
+    $week_number = $temp_week_date->format('W');
+} else {
+    $week_number = $_GET['week_number'];
+}
 $YEAR = date('Y', strtotime($from_date));
 
 $enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
@@ -127,7 +135,11 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "H2";
 $objPHPExcel->getActiveSheet()->mergeCells('H2:I2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+if (!empty($_GET['end_date'])) {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+} else {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+}
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
