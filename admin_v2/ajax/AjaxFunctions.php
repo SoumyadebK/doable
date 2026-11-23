@@ -4233,6 +4233,13 @@ function addCustomerToGroupClassProcess($RESPONSE_DATA)
             echo json_encode($return_data);
             die();
         } else {
+
+            if (isset($_POST['ATTENDING_WITH']) && !in_array('Self', $_POST['ATTENDING_WITH'])) {
+                $GROUP_CLASS_CUSTOMER_DATA['CUSTOMER_NOT_ATTEND'] = 1;
+            } else {
+                $GROUP_CLASS_CUSTOMER_DATA['CUSTOMER_NOT_ATTEND'] = 0;
+            }
+
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 0;
@@ -4245,13 +4252,18 @@ function addCustomerToGroupClassProcess($RESPONSE_DATA)
             $APPOINTMENT_ENROLLMENT_DATA['IS_CHARGED'] = 0;
             db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPOINTMENT_ENROLLMENT_DATA, 'insert');
 
-            $partner_text = ' without partner';
-            if ($RESPONSE_DATA['WITH_PARTNER'] == 1) {
+            if (isset($_POST['ATTENDING_WITH']) && in_array('Partner', $_POST['ATTENDING_WITH'])) {
+                $partner_text = ' with partner';
+                $PARTNER_GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 1;
+            } else {
+                $partner_text = ' without partner';
+                $PARTNER_GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 0;
+            }
+
+            if ($PARTNER_GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] == 1) {
                 $PARTNER_GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
                 $PARTNER_GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                $PARTNER_GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 1;
                 db_perform_account('DOA_APPOINTMENT_CUSTOMER', $PARTNER_GROUP_CLASS_CUSTOMER_DATA, 'insert');
-                $partner_text = ' with partner';
 
                 $APPOINTMENT_ENROLLMENT_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
                 $APPOINTMENT_ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
@@ -4259,6 +4271,30 @@ function addCustomerToGroupClassProcess($RESPONSE_DATA)
                 $APPOINTMENT_ENROLLMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
                 $APPOINTMENT_ENROLLMENT_DATA['IS_CHARGED'] = 0;
                 db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPOINTMENT_ENROLLMENT_DATA, 'insert');
+            }
+
+            if (isset($_POST['ATTENDING_WITH']) && in_array('Family Member', $_POST['ATTENDING_WITH'])) {
+                $partner_text .= ' & with family member';
+                $FAMILY_MEMBER_GROUP_CLASS_CUSTOMER_DATA['PK_FAMILY_MEMBERS'] = implode(',', $_POST['FAMILY_MEMBER_ID']);
+            } else {
+                $partner_text .= ' & without family member';
+                $FAMILY_MEMBER_GROUP_CLASS_CUSTOMER_DATA['PK_FAMILY_MEMBERS'] = 0;
+            }
+
+            if (isset($_POST['FAMILY_MEMBER_ID']) && count($_POST['FAMILY_MEMBER_ID']) > 0) {
+                $FAMILY_MEMBER_GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $FAMILY_MEMBER_GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $FAMILY_MEMBER_GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+                $family_member_ids = $_POST['FAMILY_MEMBER_ID'];
+                foreach ($family_member_ids as $family_member_id) {
+                    $APPOINTMENT_ENROLLMENT_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                    $APPOINTMENT_ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                    $APPOINTMENT_ENROLLMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $APPOINTMENT_ENROLLMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                    $APPOINTMENT_ENROLLMENT_DATA['IS_CHARGED'] = 0;
+                    db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPOINTMENT_ENROLLMENT_DATA, 'insert');
+                }
             }
 
             $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;

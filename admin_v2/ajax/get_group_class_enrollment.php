@@ -8,6 +8,9 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $PK_SERVICE_CODE = $_POST['PK_SERVICE_CODE'];
 $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+
+$customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
+$PK_CUSTOMER_DETAILS = $customer_details->fields['PK_CUSTOMER_DETAILS'];
 ?>
 <?php
 $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_SERVICE_CODE.PK_SERVICE_CODE = $PK_SERVICE_CODE AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER . " ORDER BY DOA_SERVICE_CODE.SORT_ORDER"); ?>
@@ -15,22 +18,43 @@ $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLM
 <div class="row mb-3 mt-3">
     <div class="col-4 col-md-4">
         <div class="d-flex gap-2 align-items-center">
-            <label class="mb-0" style="margin-left: 33px;">Partner Details</label>
+            <label class="mb-0" style="margin-left: 33px;">Attending With</label>
         </div>
     </div>
     <div class="col-8 col-md-8">
-        <div style="font-size: 13px;">
-            <?php
-            $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
-            if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') {
-                echo "<p>" . $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'] . "</p>"; ?>
-                <label style="font-weight: normal;"><input type="radio" name="WITH_PARTNER" value="0" checked> Without a Partner</label> &nbsp;&nbsp;
-                <label style="font-weight: normal;"><input type="radio" name="WITH_PARTNER" value="1"> With a Partner</label>
-            <?php
-            } else {
-                echo "<p>" . 'No partner details found.' . "</p>";
-            }
-            ?>
+        <div class="form-group">
+            <label style="font-weight: normal;"><input class="ATTENDING_WITH" type="checkbox" name="ATTENDING_WITH[]" value="Self" onclick="showPartnerOrFamilyMemberDiv(this)" checked> Self</label> &nbsp;&nbsp;
+            <label style="font-weight: normal;"><input class="ATTENDING_WITH" type="checkbox" name="ATTENDING_WITH[]" value="Partner" onclick="showPartnerOrFamilyMemberDiv(this)"> Partner</label> &nbsp;&nbsp;
+            <label style="font-weight: normal;"><input class="ATTENDING_WITH" type="checkbox" name="ATTENDING_WITH[]" value="Family Member" onclick="showPartnerOrFamilyMemberDiv(this)"> Family Member</label>
+
+            <div class="form-group mt-2" style="display: none;" id="partner_div">
+                <label for="FAMILY_MEMBER_NAME">Partner Name</label>
+                <?php
+                if ($customer_details->RecordCount() > 0 && $customer_details->fields['ATTENDING_WITH'] == 'With a Partner') {
+                    echo '<br><label style="font-weight: normal; font-size: 13px;"><input type="checkbox" name="PARTNER_ID" value="' . $customer_details->fields['PK_CUSTOMER_DETAILS'] . '"> ' . $customer_details->fields['PARTNER_FIRST_NAME'] . ' ' . $customer_details->fields['PARTNER_LAST_NAME'] . '</label>'; ?>
+                <?php
+                } else {
+                    echo "<p style=\"font-size: 13px;\">" . 'No partner details found.' . "</p>";
+                }
+                ?>
+            </div>
+
+            <div class="form-group mt-2" style="display: none;" id="family_member_div">
+                <label for="FAMILY_MEMBER_NAME">Family Members</label>
+                <?php
+                $family_member_details = $db_account->Execute("SELECT DOA_CUSTOMER_DETAILS.*, DOA_RELATIONSHIP.RELATIONSHIP FROM DOA_CUSTOMER_DETAILS LEFT JOIN $master_database.DOA_RELATIONSHIP AS DOA_RELATIONSHIP ON DOA_CUSTOMER_DETAILS.PK_RELATIONSHIP = DOA_RELATIONSHIP.PK_RELATIONSHIP WHERE DOA_CUSTOMER_DETAILS.PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND DOA_CUSTOMER_DETAILS.IS_PRIMARY = 0");
+                if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
+                    while (!$family_member_details->EOF) { ?>
+                        <br><label style="font-weight: normal; font-size: 13px;"><input type="checkbox" name="FAMILY_MEMBER_ID[]" value="<?php echo $family_member_details->fields['PK_CUSTOMER_DETAILS']; ?>"> <?php echo $family_member_details->fields['FIRST_NAME'] . ' ' . $family_member_details->fields['LAST_NAME'] . ' (' . $family_member_details->fields['RELATIONSHIP'] . ')'; ?></label>
+                <?php
+                        $family_member_details->MoveNext();
+                    }
+                } else {
+                    echo "<p style=\"font-size: 13px;\">" . 'No family member details found.' . "</p>";
+                }
+                ?>
+            </div>
+
         </div>
     </div>
 </div>
@@ -103,3 +127,24 @@ $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLM
         </div>
     </div>
 </div>
+
+
+<script>
+    function showPartnerOrFamilyMemberDiv(param) {
+        let ATTENDING_WITH = $('input[name="ATTENDING_WITH[]"]:checked').map(function() {
+            return this.value;
+        }).get();
+
+        if (ATTENDING_WITH.includes('Partner')) {
+            $('#partner_div').show();
+        } else {
+            $('#partner_div').hide();
+        }
+
+        if (ATTENDING_WITH.includes('Family Member')) {
+            $('#family_member_div').show();
+        } else {
+            $('#family_member_div').hide();
+        }
+    }
+</script>

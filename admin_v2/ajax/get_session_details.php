@@ -282,7 +282,7 @@ if ($TYPE == 'appointment') {
         </div>
         <hr class="my-2">
         <?php
-        $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' ORDER BY DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_CUSTOMER ASC, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER ASC";
+        $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER, DOA_APPOINTMENT_CUSTOMER.CUSTOMER_NOT_ATTEND, DOA_APPOINTMENT_CUSTOMER.PK_FAMILY_MEMBERS FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' ORDER BY DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_CUSTOMER ASC, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER ASC";
         $appointment_customer_data = $db_account->Execute($appointment_customer_query);
         ?>
         <div class="appointment-profile d-flex">
@@ -293,28 +293,13 @@ if ($TYPE == 'appointment') {
         <div class="collapse multi-collapse show" id="collaseexample1">
             <?php
             while (!$appointment_customer_data->EOF) {
-                if ($appointment_customer_data->fields['IS_PARTNER'] == 1) {
-                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $appointment_customer_data->fields['PK_USER_MASTER']);
-                    $selected_customer = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
-                    $customer_phone = $partner_data->fields['PARTNER_PHONE'];
-                    $customer_email = $partner_data->fields['PARTNER_EMAIL'];
-                    $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
-                    $selected_user_id = $appointment_customer_data->fields['PK_USER'];
-            ?>
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <span class="badge bgsuccess d-inline-block p-1"></span>
-                            <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
-                            <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
-                        </div>
-                    </div>
-                <?php } else {
+                if ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 0 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] == null) {
                     $selected_customer = $appointment_customer_data->fields['NAME'];
                     $customer_phone = $appointment_customer_data->fields['PHONE'];
                     $customer_email = $appointment_customer_data->fields['EMAIL_ID'];
                     $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
                     $selected_user_id = $appointment_customer_data->fields['PK_USER'];
-                ?>
+            ?>
                     <div class="d-flex align-items-center">
                         <div>
                             <span class="badge bgsuccess d-inline-block p-1"></span>
@@ -330,6 +315,35 @@ if ($TYPE == 'appointment') {
                             </a>
                         </div>
                     </div>
+                <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 1 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] == null) {
+                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $appointment_customer_data->fields['PK_USER_MASTER']);
+                    $selected_customer = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                    $customer_phone = $partner_data->fields['PARTNER_PHONE'];
+                    $customer_email = $partner_data->fields['PARTNER_EMAIL'];
+                    $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
+                    $selected_user_id = $appointment_customer_data->fields['PK_USER'];
+                ?>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <span class="badge bgsuccess d-inline-block p-1"></span>
+                            <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
+                            <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
+                        </div>
+                    </div>
+                    <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 0 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] != null) {
+                    $family_member_ids = explode(',', $appointment_customer_data->fields['PK_FAMILY_MEMBERS']);
+                    foreach ($family_member_ids as $family_member_id) {
+                        $family_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $family_member_id); ?>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <span class="badge bgsuccess d-inline-block p-1"></span>
+                                <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $family_data->fields['FIRST_NAME'] . ' ' . $family_data->fields['LAST_NAME'] ?></a>
+                                <div class="theme-text-light f12 ms-2"><?= $family_data->fields['PHONE'] ?></div>
+                            </div>
+                        </div>
+                    <?php
+                    }
+                    ?>
             <?php }
                 $appointment_customer_data->MoveNext();
             }

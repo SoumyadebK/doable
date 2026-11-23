@@ -381,7 +381,7 @@ if ($TYPE == 'appointment') {
                         <?php
                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE PK_LOCATION IN (" . $PK_LOCATION . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                         while (!$row->EOF) { ?>
-                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
                         <?php $row->MoveNext();
                         } ?>
                     </select>
@@ -739,7 +739,7 @@ if ($TYPE == 'appointment') {
 ?>
 
     <?php
-    $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' ORDER BY DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_CUSTOMER ASC, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER ASC";
+    $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER, DOA_APPOINTMENT_CUSTOMER.CUSTOMER_NOT_ATTEND, DOA_APPOINTMENT_CUSTOMER.PK_FAMILY_MEMBERS FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' ORDER BY DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_CUSTOMER ASC, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER ASC";
     $appointment_customer_data = $db_account->Execute($appointment_customer_query);
     ?>
     <div class="appointment-profile d-flex gap-3 f12 theme-text-light mb-2">
@@ -750,47 +750,57 @@ if ($TYPE == 'appointment') {
     <div class="collapse multi-collapse show" id="collaseexample1">
         <?php
         while (!$appointment_customer_data->EOF) {
-            if ($appointment_customer_data->fields['IS_PARTNER'] == 1) {
-                $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $appointment_customer_data->fields['PK_USER_MASTER']);
-                $selected_customer = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
-                $customer_phone = $partner_data->fields['PARTNER_PHONE'];
-                $customer_email = $partner_data->fields['PARTNER_EMAIL'];
-                $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
-                $selected_user_id = $appointment_customer_data->fields['PK_USER'];
-        ?>
-                <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
-                    <div>
-                        <span class="badge bgsuccess d-inline-block p-1"></span>
-                        <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
-                        <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
-                    </div>
-                </div>
-
-            <?php } else {
+            if ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 0 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] == null) {
                 $selected_customer = $appointment_customer_data->fields['NAME'];
                 $customer_phone = $appointment_customer_data->fields['PHONE'];
                 $customer_email = $appointment_customer_data->fields['EMAIL_ID'];
                 $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
-                $selected_user_id = $appointment_customer_data->fields['PK_USER']; ?>
-
-                <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
+                $selected_user_id = $appointment_customer_data->fields['PK_USER'];
+        ?>
+                <div class="d-flex align-items-center">
                     <div>
                         <span class="badge bgsuccess d-inline-block p-1"></span>
                         <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold" onclick="loadViewCustomerModal(<?= $selected_user_id ?>, 0)"><?= $selected_customer ?></a>
                         <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
                     </div>
                     <div class="d-flex gap-2 ms-auto">
-                        <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>)">
-                            <i class="fa fa-times" aria-hidden="true"></i>
-                        </a>
-                        <a href="javascript:;" class="btn-icon">
+                        <a href="javascript:;" class="btn-icon" onclick="sendReminder('email', <?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send Email Reminder">
                             <i class="fa fa-envelope" aria-hidden="true"></i>
                         </a>
-                        <a href="javascript:;" class="btn-icon">
+                        <a href="javascript:;" class="btn-icon" onclick="sendReminder('sms', <?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send SMS Reminder ">
                             <i class="fa fa-comment" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>
+            <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 1 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] == null) {
+                $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $appointment_customer_data->fields['PK_USER_MASTER']);
+                $selected_customer = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                $customer_phone = $partner_data->fields['PARTNER_PHONE'];
+                $customer_email = $partner_data->fields['PARTNER_EMAIL'];
+                $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
+                $selected_user_id = $appointment_customer_data->fields['PK_USER'];
+            ?>
+                <div class="d-flex align-items-center">
+                    <div>
+                        <span class="badge bgsuccess d-inline-block p-1"></span>
+                        <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
+                        <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
+                    </div>
+                </div>
+                <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 0 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] != null) {
+                $family_member_ids = explode(',', $appointment_customer_data->fields['PK_FAMILY_MEMBERS']);
+                foreach ($family_member_ids as $family_member_id) {
+                    $family_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $family_member_id); ?>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <span class="badge bgsuccess d-inline-block p-1"></span>
+                            <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $family_data->fields['FIRST_NAME'] . ' ' . $family_data->fields['LAST_NAME'] ?></a>
+                            <div class="theme-text-light f12 ms-2"><?= $family_data->fields['PHONE'] ?></div>
+                        </div>
+                    </div>
+                <?php
+                }
+                ?>
         <?php }
             $appointment_customer_data->MoveNext();
         }
@@ -803,7 +813,7 @@ if ($TYPE == 'appointment') {
     <!-- Group Class Details -->
     <form class="mb-0 edit_appointment_form" id="edit_group_class_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
 
-        <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $CUSTOMER_ID ?>">
+        <!-- <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $CUSTOMER_ID ?>"> -->
         <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
         <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
         <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $TYPE ?>">
@@ -890,7 +900,7 @@ if ($TYPE == 'appointment') {
                         <?php
                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE PK_LOCATION IN (" . $PK_LOCATION . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                         while (!$row->EOF) { ?>
-                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
                         <?php $row->MoveNext();
                         } ?>
                     </select>
@@ -1219,7 +1229,7 @@ if ($TYPE == 'appointment') {
                         <?php
                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
                         while (!$row->EOF) { ?>
-                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
                         <?php $row->MoveNext();
                         } ?>
                     </select>
