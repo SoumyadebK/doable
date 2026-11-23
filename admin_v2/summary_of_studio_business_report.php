@@ -30,8 +30,16 @@ if ($to_date < $from_date) {
     $to_date = $tmp;
 }
 
-// If week_number is empty (e.g., Range mode), derive it from the start_date
-$week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
+// Calculate the correct week number based on a Sunday start
+if (empty($_GET['week_number'])) {
+    $temp_week_date = new DateTime($from_date);
+    if ($temp_week_date->format('w') == 0) { // If Sunday, shift to Saturday
+        $temp_week_date->modify('-1 day');
+    }
+    $week_number = $temp_week_date->format('W');
+} else {
+    $week_number = $_GET['week_number'];
+}
 $YEAR = date('Y', strtotime($from_date));
 
 $ytd_form_date = firstSundayOfYear($YEAR);
@@ -198,7 +206,36 @@ if ($type === 'export') {
         $interview_renewal_data = $weekly_interview_renewal_data->fields['INTERVIEW_RENEWAL_COUNT'] ?? 0;
         $weekly_interview_renewal_count = explode('/', $interview_renewal_data);
 
-        $active_interview_renewal_data = $db_account->Execute("SELECT (SELECT CONCAT(SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), '/', SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))) FROM (SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons >= 12) markers RIGHT JOIN (SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN DATE_ADD('$from_date', INTERVAL -23 DAY) AND DATE_ADD('$from_date', INTERVAL 6 DAY) GROUP BY AC.PK_USER_MASTER) Active USING (PK_USER_MASTER)) AS ACTIVE_INTERVIEW_RENEWAL_COUNT");
+        $active_interview_renewal_data = $db_account->Execute("
+                                                                SELECT (
+                                                                    SELECT CONCAT(
+                                                                        SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), 
+                                                                        '/', 
+                                                                        SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))
+                                                                    ) 
+                                                                    FROM (
+                                                                        SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, 
+                                                                        SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date 
+                                                                        FROM DOA_APPOINTMENT_CUSTOMER AC 
+                                                                        INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+                                                                        INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+                                                                        WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                                                                        AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                                                                        GROUP BY AC.PK_USER_MASTER 
+                                                                        HAVING total_lessons >= 12
+                                                                    ) markers 
+                                                                    RIGHT JOIN (
+                                                                        SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE 
+                                                                        FROM DOA_APPOINTMENT_CUSTOMER AC 
+                                                                        INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+                                                                        WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                                                                        AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                                                                        AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                                                                        AND AM.DATE BETWEEN DATE_ADD('$to_date', INTERVAL -23 DAY) AND '$to_date' 
+                                                                        GROUP BY AC.PK_USER_MASTER
+                                                                    ) Active USING (PK_USER_MASTER)
+                                                                ) AS ACTIVE_INTERVIEW_RENEWAL_COUNT
+                                                            ");
         $active_interview_renewal = $active_interview_renewal_data->fields['ACTIVE_INTERVIEW_RENEWAL_COUNT'] ?? 0;
         $active_interview_renewal_count = explode('/', $active_interview_renewal);
 
@@ -577,7 +614,13 @@ function firstSundayOfYear($year)
                                                 <tr>
                                                     <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $concatenatedResults ?></th>
                                                     <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
-                                                    <th style="width:20%; text-align: center; font-weight: bold">Week # <?= $week_number ?></th>
+                                                    <th style="width:20%; text-align: center; font-weight: bold">
+                                                        <?php if (!empty($_GET['end_date'])): ?>
+                                                            <?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>
+                                                        <?php else: ?>
+                                                            Week # <?= $week_number ?>
+                                                        <?php endif; ?>
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>

@@ -111,6 +111,18 @@ foreach ($resultsArray as $key => $result) {
     }
 }
 
+$location_tax_rates = [];
+$location_ids = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+$has_any_tax = false;
+
+foreach ($location_ids as $loc_id) {
+    $tax_rate = getSalesTax($loc_id);
+    $location_tax_rates[$loc_id] = $tax_rate;
+    if ($tax_rate > 0) {
+        $has_any_tax = true;
+    }
+}
+
 $executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER > 0 $enrollment_date");
 $executive_id = [];
 while (!$executive_data->EOF) {
@@ -240,13 +252,16 @@ if (!empty($_GET['START_DATE'])) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:45%; text-align: center; vertical-align:auto; font-weight: bold" colspan="10"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $concatenatedResults ?></th>
+                                                    <th style="width:45%; text-align: center; vertical-align:auto; font-weight: bold" colspan="<?= $has_any_tax ? '11' : '10' ?>"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $concatenatedResults ?></th>
                                                     <th style="width:55%; text-align: center; font-weight: bold" colspan="9">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
                                                 <tr>
                                                     <th style="width:8%; text-align: center">Payment Date</th>
                                                     <th style="width:9%; text-align: center">Payment Amount</th>
                                                     <th style="width:9%; text-align: center">Enrollment Payment</th>
+                                                    <?php if ($has_any_tax) { ?>
+                                                        <th style="width:9%; text-align: center">Sales Tax</th>
+                                                    <?php } ?>
                                                     <th style="width:8%; text-align: center">Tip</th>
                                                     <th style="width:9%; text-align: center">Payment Title</th>
                                                     <th style="width:9%; text-align: center">Payment Method</th>
@@ -268,7 +283,7 @@ if (!empty($_GET['START_DATE'])) {
                                             <tbody>
                                                 <?php
                                                 // Get all payments first and separate regular payments from refunds
-                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID, COALESCE(DOA_ENROLLMENT_TIP.TIP_AMOUNT, 0) AS TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " GROUP BY DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID, COALESCE(DOA_ENROLLMENT_TIP.TIP_AMOUNT, 0) AS TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " GROUP BY DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
                                                 // Get gift certificate payments (both active and refunded)
                                                 $gift_payments = $db_account->Execute("SELECT
@@ -283,6 +298,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                                                     DOA_ENROLLMENT_PAYMENT.IS_REFUNDED,
                                                     DOA_PAYMENT_TYPE.PAYMENT_TYPE AS PAYMENT_TYPE_NAME,
+                                                     NULL AS PK_LOCATION,
                                                     NULL AS ENROLLMENT_NAME,
                                                     NULL AS ENROLLMENT_ID,
                                                     NULL AS MISC_ID,
@@ -333,6 +349,9 @@ if (!empty($_GET['START_DATE'])) {
                                                     $gift_payments->MoveNext();
                                                 }
 
+                                                $total_tax_collected = 0;
+                                                $total_refund_tax = 0;
+
                                                 // Get wallet payments
                                                 $total_wallet = 0;
                                                 $wallet_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_CUSTOMER_WALLET.BALANCE_LEFT, 0 AS TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_CUSTOMER_WALLET ON DOA_ENROLLMENT_PAYMENT.PK_CUSTOMER_WALLET = DOA_CUSTOMER_WALLET.PK_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_CUSTOMER_WALLET.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE = DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO != 'Gift Certificate' AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
@@ -347,6 +366,9 @@ if (!empty($_GET['START_DATE'])) {
                                                             <td style="text-align: center"><?= date('m/d/Y', strtotime($wallet_payments->fields['PAYMENT_DATE'])) ?></td>
                                                             <td style="text-align: right">$<?= number_format($wallet_payments->fields['BALANCE_LEFT'], 2) ?></td>
                                                             <td style="text-align: right">$<?= number_format($wallet_payments->fields['BALANCE_LEFT'], 2) ?></td>
+                                                            <?php if ($has_any_tax) { ?>
+                                                                <td style="text-align: right">$0.00</td>
+                                                            <?php } ?>
                                                             <td style="text-align: right">$0.00</td>
                                                             <td style="text-align: center">Wallet</td>
                                                             <td style="text-align: center"><?= $wallet_payments->fields['PAYMENT_TYPE'] ?></td>
@@ -424,6 +446,26 @@ if (!empty($_GET['START_DATE'])) {
 
                                                     // Get tip amount
                                                     $tip_amount = $payment['TIP_AMOUNT'] ?? 0;
+
+                                                    // --- NEW: CALCULATE TAX PER TRANSACTION ---
+                                                    $transaction_tax = 0;
+                                                    $payment_location = $payment['PK_LOCATION'] ?? '';
+                                                    $tax_display = ''; // Add this variable
+
+                                                    // Check if this specific payment's location has tax
+                                                    if ($has_any_tax && isset($location_tax_rates[$payment_location]) && $location_tax_rates[$payment_location] > 0) {
+                                                        $tax_rate = $location_tax_rates[$payment_location];
+                                                        // Formula: Tax = Amount - (Amount / (1 + (TaxRate/100)))
+                                                        $base_amount = $payment['AMOUNT'] / (1 + ($tax_rate / 100));
+                                                        $transaction_tax = $payment['AMOUNT'] - $base_amount;
+
+                                                        // Create the display string
+                                                        $tax_display = '$' . number_format($transaction_tax, 2) . ' (' . $tax_rate . '%)';
+                                                    } else {
+                                                        $tax_display = '$0.00';
+                                                    }
+                                                    $total_tax_collected += $transaction_tax;
+
                                                     $total_payment = $payment['AMOUNT'];
                                                     $total_amount += $payment['AMOUNT'];
                                                     $total_tips += $tip_amount;
@@ -496,6 +538,9 @@ if (!empty($_GET['START_DATE'])) {
                                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right">$<?= number_format($total_payment, 2) ?></td>
                                                         <td style="text-align: right">$<?= number_format(($payment['AMOUNT'] - $tip_amount), 2) ?></td>
+                                                        <?php if ($has_any_tax) { ?>
+                                                            <td style="text-align: right"><?= $tax_display ?></td>
+                                                        <?php } ?>
                                                         <td style="text-align: right">$<?= number_format($tip_amount, 2) ?></td>
                                                         <td style="text-align: center"><?= $payment_type ?></td>
                                                         <td style="text-align: center"><?= $payment['PAYMENT_TYPE'] ?></td>
@@ -537,6 +582,24 @@ if (!empty($_GET['START_DATE'])) {
                                                     $refund_tip = $refund['TIP_AMOUNT'] ?? 0;
                                                     $total_refund_tips += $refund_tip;
                                                     $refund_total = $refund['AMOUNT'] + $refund_tip;
+
+                                                    // --- NEW: CALCULATE REFUND TAX DYNAMICALLY ---
+                                                    $refund_tax = 0;
+                                                    $refund_location = $refund['PK_LOCATION'] ?? '';
+                                                    $refund_tax_display = ''; // Add this variable
+
+                                                    if ($has_any_tax && isset($location_tax_rates[$refund_location]) && $location_tax_rates[$refund_location] > 0) {
+                                                        $tax_rate = $location_tax_rates[$refund_location];
+                                                        $refund_base_amount = $refund['AMOUNT'] / (1 + ($tax_rate / 100));
+                                                        $refund_tax = $refund['AMOUNT'] - $refund_base_amount;
+
+                                                        // Create the display string
+                                                        $refund_tax_display = '$' . number_format($refund_tax, 2) . ' (' . $tax_rate . '%)';
+                                                    } else {
+                                                        $refund_tax_display = '$0.00';
+                                                    }
+                                                    $total_refund_tax += $refund_tax;
+
                                                     $PK_USER_MASTER = $refund['PK_USER_MASTER'] ?? '';
 
                                                     if (!$is_gift_refund && !empty($refund['ENROLLMENT_BY_ID'])) {
@@ -616,6 +679,9 @@ if (!empty($_GET['START_DATE'])) {
                                                         <td style="text-align: center; color: red"><?= date('m/d/Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right; color: red">$<?= number_format($refund_total, 2) ?></td>
                                                         <td style="text-align: right; color: red">$<?= number_format($refund['AMOUNT'], 2) ?></td>
+                                                        <?php if ($has_any_tax) { ?>
+                                                            <td style="text-align: right; color: red"><?= $refund_tax_display ?></td>
+                                                        <?php } ?>
                                                         <td style="text-align: right; color: red">$<?= number_format($refund_tip, 2) ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Cash' && !$is_gift_refund) { ?>
                                                             <td style="text-align: center; color: red"><?= $refund['TYPE'] ?></td>
@@ -648,8 +714,11 @@ if (!empty($_GET['START_DATE'])) {
                                                     <td style="text-align: center">Total</td>
                                                     <td style="text-align: right">$<?= number_format(($total_amount + $total_tips) - ($total_refund + $total_refund_tips), 2) ?></td>
                                                     <td style="text-align: right">$<?= number_format($total_amount - $total_refund, 2) ?></td>
+                                                    <?php if ($has_any_tax) { ?>
+                                                        <td style="text-align: right">$<?= number_format($total_tax_collected - $total_refund_tax, 2) ?></td>
+                                                    <?php } ?>
                                                     <td style="text-align: right">$<?= number_format($total_tips - $total_refund_tips, 2) ?></td>
-                                                    <td colspan="15"></td>
+                                                    <td colspan="<?= ($has_any_tax) ? '14' : '15' ?>"></td>
                                                 </tr>
                                             </tbody>
                                         </table>

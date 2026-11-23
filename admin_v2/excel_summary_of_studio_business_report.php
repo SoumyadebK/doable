@@ -10,28 +10,36 @@ include('../global/excel/Classes/PHPExcel/IOFactory.php');
 $title = "SUMMARY OF STUDIO BUSINESS REPORT";
 
 $week_number = '';
-$from_date = '';
+$from_date = date('Y-m-d', strtotime($_GET['start_date'] ?? ''));
 $to_date = '';
 
-if (!empty($_GET['week_number'])) {
-    $from_date = date('Y-m-d', strtotime($_GET['start_date']));
-    // If an end_date is provided (date-range mode), honor it.
-    if (!empty($_GET['end_date'])) {
-        $to_date = date('Y-m-d', strtotime($_GET['end_date']));
-    } else {
-        $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
-    }
+// If an end_date is provided (date-range mode), honor it.
+if (!empty($_GET['end_date'])) {
+    $to_date = date('Y-m-d', strtotime($_GET['end_date']));
+} else {
+    $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+}
 
-    // Safety: if end < start, swap so query doesn't return nothing
-    if ($to_date < $from_date) {
-        $tmp = $from_date;
-        $from_date = $to_date;
-        $to_date = $tmp;
-    }
+// Safety: if end < start, swap so query doesn't return nothing
+if ($to_date < $from_date) {
+    $tmp = $from_date;
+    $from_date = $to_date;
+    $to_date = $tmp;
+}
 
-    // If week_number is empty (e.g., Range mode), derive it from the start_date
-    $week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
-    $YEAR = date('Y', strtotime($from_date));
+// Calculate the correct week number based on a Sunday start
+if (empty($_GET['week_number'])) {
+    $temp_week_date = new DateTime($from_date);
+    if ($temp_week_date->format('w') == 0) { // If Sunday, shift to Saturday
+        $temp_week_date->modify('-1 day');
+    }
+    $week_number = $temp_week_date->format('W');
+} else {
+    $week_number = $_GET['week_number'];
+}
+$YEAR = date('Y', strtotime($from_date));
+
+if (!empty($_GET['start_date'])) {
 
     $ytd_form_date = firstSundayOfYear($YEAR);
     $prev_form_date = firstSundayOfYear($YEAR - 1);
@@ -220,7 +228,11 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "J2";
 $objPHPExcel->getActiveSheet()->mergeCells('J2:K2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+if (!empty($_GET['end_date'])) {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+} else {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+}
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -468,7 +480,36 @@ $PERIOD[] = "Y.T.D.";
 $PERIOD[] = "PREV";
 
 //weekly
-$active_interview_renewal_data = $db_account->Execute("SELECT (SELECT CONCAT(SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), '/', SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))) FROM (SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons >= 12) markers RIGHT JOIN (SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN DATE_ADD('$from_date', INTERVAL -23 DAY) AND DATE_ADD('$from_date', INTERVAL 6 DAY) GROUP BY AC.PK_USER_MASTER) Active USING (PK_USER_MASTER)) AS ACTIVE_INTERVIEW_RENEWAL_COUNT");
+$active_interview_renewal_data = $db_account->Execute("
+    SELECT (
+        SELECT CONCAT(
+            SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND (twelfth_date IS NULL OR Active.DATE <= twelfth_date), 1, 0)), 
+            '/', 
+            SUM(IF(Active.PK_USER_MASTER IS NOT NULL AND Active.DATE > twelfth_date, 1, 0))
+        ) 
+        FROM (
+            SELECT AC.PK_USER_MASTER, SUM(SC.UNIT) AS total_lessons, 
+            SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date 
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+            WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+            AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+            GROUP BY AC.PK_USER_MASTER 
+            HAVING total_lessons >= 12
+        ) markers 
+        RIGHT JOIN (
+            SELECT AC.PK_USER_MASTER, MAX(AM.DATE) AS DATE 
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+            AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+            AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+            AND AM.DATE BETWEEN DATE_ADD('$to_date', INTERVAL -23 DAY) AND '$to_date' 
+            GROUP BY AC.PK_USER_MASTER
+        ) Active USING (PK_USER_MASTER)
+    ) AS ACTIVE_INTERVIEW_RENEWAL_COUNT
+");
 $active_interview_renewal_count = explode('/', $active_interview_renewal_data->fields['ACTIVE_INTERVIEW_RENEWAL_COUNT']);
 
 $weekly_interview_renewal_data = $db_account->Execute("SELECT CONCAT(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END),'/',SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END)) AS INTERVIEW_RENEWAL_COUNT FROM (SELECT AC.PK_USER_MASTER,SUM(SC.UNIT) AS total_lessons,SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','),',',12),',',-1) AS twelfth_date FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') GROUP BY AC.PK_USER_MASTER HAVING total_lessons>=12) AS M RIGHT JOIN (SELECT AC.PK_USER_MASTER,AM.DATE,SUM(SC.UNIT) AS total_units FROM DOA_APPOINTMENT_CUSTOMER AC INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER=AM.PK_APPOINTMENT_MASTER INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE=SC.PK_SCHEDULING_CODE WHERE AM.STATUS='A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND AM.DATE BETWEEN $weekly_date_condition GROUP BY AC.PK_USER_MASTER,AM.DATE) AS W USING (PK_USER_MASTER)");

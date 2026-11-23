@@ -35,9 +35,14 @@ if ($to_date < $from_date) {
     $to_date = $tmp;
 }
 
+// FIX #1: read week_number from GET, fallback to a Sunday-aligned derived week
 $week_number = $_GET['week_number'] ?? '';
 if ($week_number === '' && !empty($from_date)) {
-    $week_number = date('W', strtotime($from_date));
+    $temp_week_date = new DateTime($from_date);
+    if ($temp_week_date->format('w') == 0) { // If Sunday, shift to Saturday for correct ISO count
+        $temp_week_date->modify('-1 day');
+    }
+    $week_number = $temp_week_date->format('W');
 }
 $YEAR = date('Y', strtotime($from_date));
 
@@ -291,7 +296,11 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "K2";
 $objPHPExcel->getActiveSheet()->mergeCells('K2:M2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+if (!empty($_GET['end_date'])) {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+} else {
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+}
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -613,7 +622,11 @@ while (!$payment_data->EOF) {
 
             $cell_no = "K" . $line;
             $objPHPExcel->getActiveSheet()->mergeCells('K' . $line . ':M' . $line);
-            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+            if (!empty($_GET['end_date'])) {
+                $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+            } else {
+                $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+            }
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
