@@ -424,10 +424,37 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
             $SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
-            $customerNameArray = [];
-            $partnerNameArray = [];
+            //$customerNameArray = [];
+            //$partnerNameArray = [];
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
+
+            $customerNameArray = [];
             $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
+            while (!$selected_customer->EOF) {
+                if ($selected_customer->fields['CUSTOMER_NOT_ATTEND'] == 1) {
+                    $customerNameArray = [];
+                } else {
+                    $customerNameArray[] = $customerName;
+                }
+
+                if ($selected_customer->fields['IS_PARTNER'] == 1) {
+                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $selected_customer->fields['PK_USER_MASTER']);
+                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                }
+
+                if ($selected_customer->fields['PK_FAMILY_MEMBERS'] != null && $selected_customer->fields['PK_FAMILY_MEMBERS'] != '' && $selected_customer->fields['PK_FAMILY_MEMBERS'] != 0) {
+                    $family_member_ids = explode(',', $selected_customer->fields['PK_FAMILY_MEMBERS']);
+                    foreach ($family_member_ids as $family_member_id) {
+                        $family_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $family_member_id);
+                        $customerNameArray[] = $family_data->fields['FIRST_NAME'] . ' ' . $family_data->fields['LAST_NAME'];
+                    }
+                }
+                $selected_customer->MoveNext();
+            }
+            $customerName = implode(', ', array_unique($customerNameArray));
+
+
+            /* $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
             while (!$selected_customer->EOF) {
                 if ($selected_customer->fields['IS_PARTNER'] == 0) {
                     $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $selected_customer->fields['PK_USER_MASTER']);
@@ -438,7 +465,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
                 }
                 $selected_customer->MoveNext();
             }
-            $customerName = implode(', ', $customerNameArray);
+            $customerName = implode(', ', $customerNameArray); */
             //$partnerName = implode(', ', $partnerNameArray);
         }
 
@@ -464,7 +491,11 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
             } else {
                 $PACKAGE = " || " . "$PACKAGE_NAME";
             } */
-            $title = strtoupper($appointment_data->fields['SERVICE_NAME'] . ', ' . $appointment_data->fields['SERVICE_CODE'] . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? ' (Ad-Hoc)' : ''));
+            if ($appointment_data->fields['ENROLLMENT_NAME'] !== null && trim((string)$appointment_data->fields['ENROLLMENT_NAME']) !== '') {
+                $title = strtoupper($appointment_data->fields['ENROLLMENT_NAME']);
+            } else {
+                $title = strtoupper($appointment_data->fields['SERVICE_NAME'] . ', ' . $appointment_data->fields['SERVICE_CODE'] . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? ' (Ad-Hoc)' : ''));
+            }
             //$paid_status = (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
