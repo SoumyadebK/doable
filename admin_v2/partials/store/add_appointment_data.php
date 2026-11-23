@@ -212,6 +212,25 @@ for ($n = 0; $n < $TOTAL_APPOINTMENT_TO_CREATE; $n++) {
 
             $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+
+            if (isset($_POST['ATTENDING_WITH']) && !in_array('Self', $_POST['ATTENDING_WITH'])) {
+                $APPOINTMENT_CUSTOMER_DATA['CUSTOMER_NOT_ATTEND'] = 1;
+            } else {
+                $APPOINTMENT_CUSTOMER_DATA['CUSTOMER_NOT_ATTEND'] = 0;
+            }
+
+            if (isset($_POST['ATTENDING_WITH']) && in_array('Partner', $_POST['ATTENDING_WITH'])) {
+                $APPOINTMENT_CUSTOMER_DATA['IS_PARTNER'] = 1;
+            } else {
+                $APPOINTMENT_CUSTOMER_DATA['IS_PARTNER'] = 0;
+            }
+
+            if (isset($_POST['ATTENDING_WITH']) && in_array('Family Member', $_POST['ATTENDING_WITH'])) {
+                $APPOINTMENT_CUSTOMER_DATA['PK_FAMILY_MEMBERS'] = implode(',', $_POST['FAMILY_MEMBER_ID']);
+            } else {
+                $APPOINTMENT_CUSTOMER_DATA['PK_FAMILY_MEMBERS'] = 0;
+            }
+
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
     }

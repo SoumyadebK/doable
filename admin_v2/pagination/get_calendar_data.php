@@ -382,7 +382,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
         $partnerName = '';
 
         if ($appointment_data->fields['APPOINTMENT_TYPE'] != 'GROUP') {
-            $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+            /* $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
             $ATTENDING_WITH = '';
             $PARTNER_FIRST_NAME = '';
             $PARTNER_LAST_NAME = '';
@@ -393,7 +393,31 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
             }
             if ($ATTENDING_WITH == 'With a Partner') {
                 $customerName .= ' & ' . $PARTNER_FIRST_NAME . ' ' . $PARTNER_LAST_NAME;
+            } */
+            $customerNameArray = [];
+            $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
+            while (!$selected_customer->EOF) {
+                if ($selected_customer->fields['CUSTOMER_NOT_ATTEND'] == 1) {
+                    $customerNameArray = [];
+                } else {
+                    $customerNameArray[] = $customerName;
+                }
+
+                if ($selected_customer->fields['IS_PARTNER'] == 1) {
+                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $selected_customer->fields['PK_USER_MASTER']);
+                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                }
+
+                if ($selected_customer->fields['PK_FAMILY_MEMBERS'] != null && $selected_customer->fields['PK_FAMILY_MEMBERS'] != '' && $selected_customer->fields['PK_FAMILY_MEMBERS'] != 0) {
+                    $family_member_ids = explode(',', $selected_customer->fields['PK_FAMILY_MEMBERS']);
+                    foreach ($family_member_ids as $family_member_id) {
+                        $family_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $family_member_id);
+                        $customerNameArray[] = $family_data->fields['FIRST_NAME'] . ' ' . $family_data->fields['LAST_NAME'];
+                    }
+                }
+                $selected_customer->MoveNext();
             }
+            $customerName = implode(', ', $customerNameArray);
         }
 
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
