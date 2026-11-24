@@ -505,7 +505,7 @@ $active_interview_renewal_data = $db_account->Execute("
             WHERE AM.STATUS = 'A' AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
             AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
             AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-            AND AM.DATE BETWEEN DATE_ADD('$to_date', INTERVAL -23 DAY) AND '$to_date' 
+            AND AM.DATE BETWEEN DATE_ADD('$to_date', INTERVAL -30 DAY) AND '$to_date' 
             GROUP BY AC.PK_USER_MASTER
         ) Active USING (PK_USER_MASTER)
     ) AS ACTIVE_INTERVIEW_RENEWAL_COUNT

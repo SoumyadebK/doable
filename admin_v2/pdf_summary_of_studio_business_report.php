@@ -27,8 +27,16 @@ if ($to_date < $from_date) {
     $to_date = $tmp;
 }
 
-// If week_number is empty (e.g., Range mode), derive it from the start_date
-$week_number = $_GET['week_number'] ?? date('W', strtotime($from_date));
+// Calculate the correct week number based on a Sunday start
+if (empty($_GET['week_number'])) {
+    $temp_week_date = new DateTime($from_date);
+    if ($temp_week_date->format('w') == 0) { // If it's Sunday
+        $temp_week_date->modify('-1 day'); // Shift to Saturday so ISO counts it in the correct Sunday-start week
+    }
+    $week_number = $temp_week_date->format('W');
+} else {
+    $week_number = $_GET['week_number'];
+}
 $YEAR = date('Y', strtotime($from_date));
 
 $ytd_form_date = firstSundayOfYear($YEAR);
@@ -195,8 +203,13 @@ function firstSundayOfYear($year)
                             <thead>
                                 <tr>
                                     <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= ($res->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $concatenatedResults ?></th>
-                                    <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
-                                    <th style="width:20%; text-align: center; font-weight: bold">Week # <?= $week_number ?></th>
+                                    <th style="width:20%; text-align: center; font-weight: bold">
+                                        <?php if (!empty($_GET['end_date'])): ?>
+                                            <?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>
+                                        <?php else: ?>
+                                            Week # <?= $week_number ?>
+                                        <?php endif; ?>
+                                    </th>
                                 </tr>
                             </thead>
                         </table>
