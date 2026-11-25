@@ -14,6 +14,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
 $UPLOAD_TYPES = [
     'customer_enrollments' => 'Customer & Enrollments',
+    'payment_schedule'     => 'Payment Schedule',
     'appointments'         => 'Appointments',
     'staff'                => 'Staff / Teachers', // <-- Add this
 ];
@@ -68,6 +69,8 @@ if (!empty($_POST)) {
         } else {
             if ($UPLOAD_TYPE === 'customer_enrollments') {
                 handleCustomerEnrollmentsUpload();
+            } elseif ($UPLOAD_TYPE === 'payment_schedule') { // <-- ADD THIS
+                handlePaymentScheduleUpload();
             } elseif ($UPLOAD_TYPE === 'appointments') {
                 handleAppointmentsUpload();
             } elseif ($UPLOAD_TYPE === 'staff') { // <-- Add this
@@ -1528,6 +1531,388 @@ function handleCustomerEnrollmentsUpload()
     $upload_success = implode('', $msg_parts);
 }
 
+// =====================================================================
+// PAYMENT SCHEDULE UPLOAD
+// =====================================================================
+
+function handlePaymentScheduleUpload()
+{
+    global $db, $db_account, $PK_ACCOUNT_MASTER;
+    global $upload_error, $upload_success;
+
+    $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER));
+    if (!$account_data || $account_data->RecordCount() == 0) {
+        $upload_error = "Account configuration not found.";
+        return;
+    }
+    $DB_NAME = $account_data->fields['DB_NAME'];
+    if (empty($DB_NAME)) {
+        $upload_error = "Account database name missing.";
+        return;
+    }
+
+    require_once('../global/common_functions_account.php');
+    $account_database = $DB_NAME;
+    $db_account = new queryFactory();
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+        $db_account->connect('localhost', 'root', '', $account_database);
+    } else {
+        $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $account_database);
+    }
+    if (mysqli_connect_error()) {
+        $upload_error = "Account DB connection failed.";
+        return;
+    }
+
+    $PK_LOCATION = intval($_POST['PK_LOCATION'] ?? 0);
+    if ($PK_LOCATION <= 0) {
+        $upload_error = "Please select a location.";
+        return;
+    }
+
+    $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
+    if (!$csvFile) {
+        $upload_error = "Could not open uploaded file.";
+        return;
+    }
+
+    $bom = fread($csvFile, 3);
+    if ($bom !== "\xEF\xBB\xBF") {
+        rewind($csvFile);
+    }
+
+    // ---- Header map (case-insensitive, BOM-safe, alias-tolerant) ----
+    $headerRow = fgetcsv($csvFile, 10000, ",");
+    if (!$headerRow) {
+        fclose($csvFile);
+        $upload_error = "CSV is empty or unreadable.";
+        return;
+    }
+
+    if (isset($headerRow[0])) {
+        $headerRow[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headerRow[0]);
+    }
+
+    $normalize = function ($s) {
+        $s = trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $s));
+        $s = preg_replace('/\s+/', ' ', $s);
+        $s = str_replace(['（', '）'], ['(', ')'], $s);
+        $s = str_replace(['–', '—'], '-', $s);
+        return strtoupper($s);
+    };
+
+    $col_map = [];
+    foreach ($headerRow as $index => $colName) {
+        $col_map[$normalize($colName)] = $index;
+    }
+
+    $aliases = [
+        'CLIENT_ID'  => ['CLIENT_ID', 'CLIENT ID', 'MINDBODY_CLIENT_ID', 'MINDBODY CLIENT ID', 'CUSTOMER_ID', 'CUSTOMER ID'],
+        'ENROLLMENT' => ['ENROLLMENT NAME', 'ENROLLMENT_NAME', 'ENROLLMENT'],
+        'DUE_DATE'   => ['DUE DATE', 'DUEDATE', 'DUE DATE (DD-MM-YYYY)', 'DUE DATE (DD/MM/YYYY)'],
+        'AMOUNT'     => ['AMOUNT', 'AMOUNT (TAX INCLUDED)', 'AMOUNT (TAX INCL)', 'AMOUNT (INCL. TAX)', 'PAYMENT AMOUNT'],
+        'AUTO_PAY'   => ['AUTO PAY', 'AUTO_PAY', 'AUTOPAY', 'AUTO-PAY', 'AUTO PAY (Y/N)', 'AUTO_PAY (Y/N)', 'AUTO-PAY (Y/N)'],
+        'NOTE'       => ['NOTE', 'NOTES', 'MEMO'],
+    ];
+
+    $field_idx = [];
+    $missing   = [];
+    foreach ($aliases as $field => $names) {
+        $found = null;
+        foreach ($names as $n) {
+            if (isset($col_map[$n])) {
+                $found = $col_map[$n];
+                break;
+            }
+        }
+        if ($found === null) $missing[] = $field;
+        else                 $field_idx[$field] = $found;
+    }
+
+    if (!empty($missing)) {
+        fclose($csvFile);
+        $upload_error = "Missing required column(s): " . implode(', ', $missing)
+            . ". Headers found: " . implode(' | ', array_map('htmlspecialchars', $headerRow));
+        return;
+    }
+
+    // ---- Parse all rows ----
+    $rows = [];
+    $lineNumber = 2;
+    while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
+        if (empty($getData) || (count($getData) == 1 && trim($getData[0]) === '')) {
+            $lineNumber++;
+            continue;
+        }
+        if (count($getData) < count($headerRow)) {
+            $getData = array_pad($getData, count($headerRow), '');
+        }
+        $rows[] = [
+            'rowIndex'   => $lineNumber,
+            'client_id'  => trim($getData[$field_idx['CLIENT_ID']] ?? ''),
+            'enrollment' => trim($getData[$field_idx['ENROLLMENT']] ?? ''),
+            'due_date'   => trim($getData[$field_idx['DUE_DATE']] ?? ''),
+            'amount'     => trim($getData[$field_idx['AMOUNT']] ?? ''),
+            'auto_pay'   => strtoupper(trim($getData[$field_idx['AUTO_PAY']] ?? '')),
+            'note'       => isset($field_idx['NOTE']) ? trim($getData[$field_idx['NOTE']] ?? '') : '',
+        ];
+        $lineNumber++;
+    }
+    fclose($csvFile);
+
+    if (empty($rows)) {
+        $upload_error = "No data rows found in the CSV.";
+        return;
+    }
+
+    $results = uploadPaymentSchedule($db, $db_account, $PK_LOCATION, $rows);
+
+    $loaded    = [];
+    $rejected  = [];
+    foreach ($results as $r) {
+        if ($r['ok']) $loaded[] = $r['message'];
+        else          $rejected[] = $r['message'];
+    }
+
+    $msg_parts = ["Payment Schedule processed. Enrollments loaded: " . count($loaded) . ", rejected: " . count($rejected) . "."];
+    if (!empty($loaded)) {
+        $msg_parts[] = "<br><br><b>Loaded:</b><br>• " . implode('<br>• ', array_map('htmlspecialchars', $loaded));
+    }
+    if (!empty($rejected)) {
+        $msg_parts[] = "<br><br><b>Rejected (not loaded):</b><br>• " . implode('<br>• ', array_map('htmlspecialchars', $rejected));
+    }
+    $upload_success = implode('', $msg_parts);
+}
+
+function resolveEnrollmentForSchedule($db, $db_account, $PK_ACCOUNT_MASTER, $PK_LOCATION, $CLIENT_ID, $ENROLLMENT_NAME)
+{
+    $CLIENT_ID_INT = (int)$CLIENT_ID;
+    if ($CLIENT_ID_INT <= 0) {
+        return [false, "CLIENT_ID '{$CLIENT_ID}' is not a valid numeric ID"];
+    }
+
+    // 1. Master DB: find user matching this UNIQUE_ID and PRIMARY_LOCATION_ID
+    $um = $db->Execute("
+        SELECT U.PK_USER, UM.PK_USER_MASTER
+        FROM DOA_USERS U
+        INNER JOIN DOA_USER_MASTER UM ON UM.PK_USER = U.PK_USER
+        WHERE U.UNIQUE_ID = " . $CLIENT_ID_INT . "
+          AND U.PK_ACCOUNT_MASTER = " . intval($PK_ACCOUNT_MASTER) . "
+          AND UM.PRIMARY_LOCATION_ID = " . intval($PK_LOCATION) . "
+        LIMIT 1
+    ");
+
+    if (!$um || $um->RecordCount() == 0) {
+        return [false, "CLIENT_ID {$CLIENT_ID} not found (no user profile for UNIQUE_ID {$CLIENT_ID_INT} at location {$PK_LOCATION})"];
+    }
+    $PK_USER_MASTER = (int)$um->fields['PK_USER_MASTER'];
+
+    // 2. Account DB: find active enrollment by name
+    $enr = $db_account->Execute("
+        SELECT PK_ENROLLMENT_MASTER
+        FROM DOA_ENROLLMENT_MASTER
+        WHERE PK_USER_MASTER = " . $PK_USER_MASTER . "
+          AND ENROLLMENT_NAME = '" . addslashes($ENROLLMENT_NAME) . "'
+          AND PK_LOCATION    = " . intval($PK_LOCATION) . "
+          AND STATUS         = 'A'
+        ORDER BY PK_ENROLLMENT_MASTER DESC
+        LIMIT 1
+    ");
+
+    if (!$enr || $enr->RecordCount() == 0) {
+        return [false, "Enrollment '{$ENROLLMENT_NAME}' not found for CLIENT_ID {$CLIENT_ID} at this location"];
+    }
+
+    return [true, (int)$enr->fields['PK_ENROLLMENT_MASTER']];
+}
+
+function uploadPaymentSchedule($db, $db_account, $PK_LOCATION, array $rows)
+{
+    global $PK_ACCOUNT_MASTER;
+    $results = [];
+
+    $grouped = [];
+    foreach ($rows as $r) {
+        $key = strtoupper($r['client_id']) . '||' . $r['enrollment'];
+
+        if ($r['client_id'] === '' || $r['enrollment'] === '') {
+            $results[] = ['ok' => false, 'message' => "Line {$r['rowIndex']}: missing CLIENT_ID or Enrollment Name"];
+            continue;
+        }
+        if (!in_array($r['auto_pay'], ['Y', 'N'], true)) {
+            $results[] = ['ok' => false, 'message' => "Line {$r['rowIndex']}: Auto Pay must be Y or N (got '{$r['auto_pay']}')"];
+            continue;
+        }
+
+        $grouped[$key]['client_id']      = $r['client_id'];
+        $grouped[$key]['enrollment']     = $r['enrollment'];
+        $grouped[$key]['auto_pay_set'][] = $r['auto_pay'];
+        $grouped[$key]['rows'][] = [
+            'rowIndex' => $r['rowIndex'],
+            'due_date' => $r['due_date'],
+            'amount'   => (float)str_replace(['$', ','], '', $r['amount']),
+            'note'     => $r['note'],
+        ];
+    }
+
+    foreach ($grouped as $g) {
+        $client     = $g['client_id'];
+        $name       = $g['enrollment'];
+        $label      = "Enrollment '{$name}' (client {$client})";
+
+        list($resolved, $payload) = resolveEnrollmentForSchedule(
+            $db,
+            $db_account,
+            $PK_ACCOUNT_MASTER,
+            $PK_LOCATION,
+            $client,
+            $name
+        );
+        if (!$resolved) {
+            $results[] = ['ok' => false, 'message' => $label . ' rejected: ' . $payload];
+            continue;
+        }
+        $PK_ENROLLMENT_MASTER = $payload;
+
+        $autoPayValues = array_unique($g['auto_pay_set']);
+        if (count($autoPayValues) !== 1) {
+            $results[] = ['ok' => false, 'message' => $label . ' rejected: Auto Pay is not consistent across rows (found: ' . implode(',', $autoPayValues) . ')'];
+            continue;
+        }
+        $ACTIVE_AUTO_PAY = ($autoPayValues[0] === 'Y') ? 1 : 0;
+
+        $scheduleSum = 0.0;
+        $parsedRows  = [];
+        $dateError   = false;
+        foreach ($g['rows'] as $r) {
+            $d = DateTime::createFromFormat('d-m-Y', $r['due_date']);
+            if (!$d || $d->format('d-m-Y') !== $r['due_date']) {
+                $results[] = ['ok' => false, 'message' => $label . " rejected: invalid Due Date '{$r['due_date']}' on line {$r['rowIndex']} (expected DD-MM-YYYY)"];
+                $dateError = true;
+                break;
+            }
+            $scheduleSum += $r['amount'];
+            $parsedRows[] = [
+                'due_date' => $d->format('Y-m-d'),
+                'amount'   => round($r['amount'], 2),
+                'note'     => $r['note'],
+            ];
+        }
+        if ($dateError) continue;
+
+        $owedRes = $db_account->Execute("
+            SELECT SUM(FINAL_AMOUNT) AS OWED
+            FROM DOA_ENROLLMENT_SERVICE
+            WHERE PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER) . "
+              AND STATUS = 'A'
+        ");
+        $amountOwed = (float)($owedRes->fields['OWED'] ?? 0);
+
+        if (abs($scheduleSum - $amountOwed) > 0.01) {
+            $results[] = [
+                'ok'             => false,
+                'message'        => $label . ' rejected: schedule total ' . number_format($scheduleSum, 2, '.', '') .
+                    ' does not match amount owed ' . number_format($amountOwed, 2, '.', ''),
+                'schedule_total' => $scheduleSum,
+                'amount_owed'    => $amountOwed,
+            ];
+            continue;
+        }
+
+        $db_account->Execute("
+            DELETE FROM DOA_ENROLLMENT_LEDGER
+            WHERE PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER) . "
+              AND TRANSACTION_TYPE = 'Billing'
+              AND IS_DOWN_PAYMENT = 0
+        ");
+
+        $billing = $db_account->Execute("
+            SELECT PK_ENROLLMENT_BILLING
+            FROM DOA_ENROLLMENT_BILLING
+            WHERE PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER) . "
+            ORDER BY PK_ENROLLMENT_BILLING DESC
+            LIMIT 1
+        ");
+
+        $BILLING_DATA = [
+            'ACTUAL_AMOUNT'     => $amountOwed,
+            'DOWN_PAYMENT'      => 0,
+            'BALANCE_PAYABLE'   => $amountOwed,
+            'TOTAL_AMOUNT'      => $amountOwed,
+            'PAYMENT_METHOD'    => 'Flexible Payments',
+            'NUMBER_OF_PAYMENT' => count($parsedRows),
+            'FIRST_DUE_DATE'    => $parsedRows[0]['due_date'],
+        ];
+
+        if ($billing && $billing->RecordCount() > 0) {
+            $PK_ENROLLMENT_BILLING = (int)$billing->fields['PK_ENROLLMENT_BILLING'];
+
+            db_perform_account(
+                'DOA_ENROLLMENT_BILLING',
+                $BILLING_DATA,
+                'update',
+                " PK_ENROLLMENT_BILLING = " . $PK_ENROLLMENT_BILLING
+            );
+        } else {
+            unset($BILLING_DATA['PK_ENROLLMENT_BILLING']);
+            $BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $BILLING_DATA['BILLING_REF']          = '';
+            $BILLING_DATA['BILLING_DATE']         = date('Y-m-d');
+            $BILLING_DATA['DISCOUNT']             = 0;
+            $BILLING_DATA['PAYMENT_TERM']         = '';
+            $BILLING_DATA['INSTALLMENT_AMOUNT']   = 0;
+            $BILLING_DATA['CREATED_BY']           = $_SESSION['PK_USER'];
+            $BILLING_DATA['CREATED_ON']           = date('Y-m-d H:i');
+            db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
+            $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
+        }
+
+        $balance = 0.0;
+        $inserted = 0;
+        foreach ($parsedRows as $pr) {
+            $balance += $pr['amount'];
+            $LEDGER = [
+                'TRANSACTION_TYPE'         => 'Billing',
+                'ENROLLMENT_LEDGER_PARENT' => 0,
+                'PK_ENROLLMENT_MASTER'     => $PK_ENROLLMENT_MASTER,
+                'PK_ENROLLMENT_BILLING'    => $PK_ENROLLMENT_BILLING,
+                'DUE_DATE'                 => $pr['due_date'],
+                'BILLED_AMOUNT'            => $pr['amount'],
+                'PAID_AMOUNT'              => 0.00,
+                'BALANCE'                  => $balance,
+                'IS_PAID'                  => 0,
+                'IS_DOWN_PAYMENT'          => 0,
+                'STATUS'                   => 'A',
+            ];
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER, 'insert');
+            $inserted++;
+        }
+
+        $ENR_UPDATE = ['ACTIVE_AUTO_PAY' => $ACTIVE_AUTO_PAY];
+        if ($ACTIVE_AUTO_PAY == 1) {
+            $card = function_exists('getCustomerDefaultCard') ? getCustomerDefaultCard($um_user_master ?? 0) : '';
+            if ($card !== '') {
+                $ENR_UPDATE['PAYMENT_METHOD_ID'] = $card;
+            }
+        }
+        db_perform_account(
+            'DOA_ENROLLMENT_MASTER',
+            $ENR_UPDATE,
+            'update',
+            " PK_ENROLLMENT_MASTER = " . intval($PK_ENROLLMENT_MASTER)
+        );
+
+        $results[] = [
+            'ok'      => true,
+            'message' => $label . ': ' . $inserted . ' payment(s), total ' .
+                number_format($scheduleSum, 2, '.', '') .
+                ', auto-pay ' . ($ACTIVE_AUTO_PAY ? 'ON' : 'OFF'),
+        ];
+    }
+
+    return $results;
+}
+
 /**
  * ================================================================
  * HANDLER: Appointments
@@ -2389,6 +2774,9 @@ $selected_upload_type = $_POST['UPLOAD_TYPE'] ?? 'customer_enrollments';
                                         </option>
                                         <option value="customer_enrollments" data-file="../uploads/demo_sheet/Demo Sheet (Customers & Enrollments).csv" <?= ($selected_upload_type === 'customer_enrollments') ? 'selected' : '' ?>>
                                             Customer & Enrollments
+                                        </option>
+                                        <option value="payment_schedule" data-file="../uploads/demo_sheet/Demo Sheet (Payment Schedule).csv" <?= ($selected_upload_type === 'payment_schedule') ? 'selected' : '' ?>>
+                                            Payment Schedule
                                         </option>
                                         <option value="appointments" data-file="../uploads/demo_sheet/Demo Sheet (Appointments).csv" <?= ($selected_upload_type === 'appointments') ? 'selected' : '' ?>>
                                             Appointments

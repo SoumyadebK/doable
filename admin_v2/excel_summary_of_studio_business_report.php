@@ -211,6 +211,8 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(20);
+
+// Column 1: Location Name (A2:F2)
 $cell_no = "A2";
 $objPHPExcel->getActiveSheet()->mergeCells('A2:F2');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($concatenatedResults);
@@ -219,20 +221,20 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+// Column 2: Combined Period / Date Range (G2:K2)
 $cell_no = "G2";
-$objPHPExcel->getActiveSheet()->mergeCells('G2:I2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('(' . date('m/d/Y', strtotime($from_date)) . " - " . date('m/d/Y', strtotime($to_date)) . ')');
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$objPHPExcel->getActiveSheet()->mergeCells('G2:K2');
 
-$cell_no = "J2";
-$objPHPExcel->getActiveSheet()->mergeCells('J2:K2');
+// Logic to determine what to show
 if (!empty($_GET['end_date'])) {
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+    // Date Range Mode: Show the dates
+    $period_display = date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date));
 } else {
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Week # " . $week_number);
+    // Week Mode: Show the Week Number
+    $period_display = "Week # " . $week_number;
 }
+
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($period_display);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -630,8 +632,8 @@ $IN_CLASS[] = $group_data_prev_year->fields['GROUP_COUNT'] . " [" . $group_data_
 
 $STUD = array();
 $STUD[] = "Department";
-$STUD[] = $active_interview_renewal_count[0] . " Intv(front)";
-$STUD[] = $active_interview_renewal_count[1] . " Ren(back)";
+$STUD[] = ((isset($active_interview_renewal_count[0]) && $active_interview_renewal_count[0] !== '') ? $active_interview_renewal_count[0] : '0') . " Intv(front)";
+$STUD[] = ((isset($active_interview_renewal_count[1]) && $active_interview_renewal_count[1] !== '') ? $active_interview_renewal_count[1] : '0') . " Ren(back)";
 
 foreach ($PERIOD as $key => $val) {
     $line++;

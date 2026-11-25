@@ -401,7 +401,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $yearly_interview_renewal_count[0] ?? 0 ?></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $yearly_interview_renewal_count[1] ?? 0 ?></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $group_data_yearly->fields['GROUP_COUNT'] . " [" . $group_data_yearly->fields['GROUP_COUNT'] . "]" ?></th>
-                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[0] ?? 0 ?> Intv(front)</th>
+                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= (isset($active_interview_renewal_count[0]) && $active_interview_renewal_count[0] !== '') ? $active_interview_renewal_count[0] : '0' ?> Intv(front)</th>
                                 </tr>
                                 <tr>
                                     <?php
@@ -440,7 +440,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[0] ?? 0 ?></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[1] ?? 0 ?></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $group_data_prev_year->fields['GROUP_COUNT'] . " [" . $group_data_prev_year->fields['GROUP_COUNT'] . "]" ?></th>
-                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[1] ?? 0 ?> Ren(back)</th>
+                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= (isset($active_interview_renewal_count[1]) && $active_interview_renewal_count[1] !== '') ? $active_interview_renewal_count[1] : '0' ?> Ren(back)</th>
                                 </tr>
                             </thead>
                         </table>
