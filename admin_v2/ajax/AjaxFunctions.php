@@ -4318,18 +4318,49 @@ function removeCustomerFromGroupClass($RESPONSE_DATA)
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+    $TYPE = $RESPONSE_DATA['TYPE'];
+    $FAMILY_ID = $RESPONSE_DATA['FAMILY_ID'];
 
-    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER'");
-    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER'");
+    if ($TYPE == 'customer') {
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' AND `IS_PARTNER` = 0 AND CUSTOMER_NOT_ATTEND = 0 AND (PK_FAMILY_MEMBERS IS NULL OR PK_FAMILY_MEMBERS = 0 OR PK_FAMILY_MEMBERS = '')");
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' LIMIT 1");
 
-    $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-    $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
-    $details = '(' . $user_data->fields['NAME'] . ' Removed By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
-    $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
-    db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+        $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+        $details = '(' . $user_data->fields['NAME'] . ' Removed By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
+        $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+        db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+        $return_data['success'] = true;
+        $return_data['message'] = 'Customer removed successfully';
+    } elseif ($TYPE == 'partner') {
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' AND `IS_PARTNER` = 1 AND CUSTOMER_NOT_ATTEND = 0 AND (PK_FAMILY_MEMBERS IS NULL OR PK_FAMILY_MEMBERS = 0 OR PK_FAMILY_MEMBERS = '')");
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' LIMIT 1");
 
-    $return_data['success'] = true;
-    $return_data['message'] = 'Customer removed successfully';
+        $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
+        $details = '(' . $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'] . ' Removed By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
+        $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+        db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+        $return_data['success'] = true;
+        $return_data['message'] = 'Partner removed successfully';
+    } elseif ($TYPE == 'family_member') {
+        $db_account->Execute("DELETE FROM DOA_APPOINTMENT_CUSTOMER WHERE TRIM(PK_FAMILY_MEMBERS) = '$FAMILY_ID' AND PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' AND PK_USER_MASTER = '$PK_USER_MASTER'");
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_CUSTOMER SET PK_FAMILY_MEMBERS = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', PK_FAMILY_MEMBERS, ','),',$FAMILY_ID,',',')) WHERE FIND_IN_SET('$FAMILY_ID', PK_FAMILY_MEMBERS) > 0 AND PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' AND PK_USER_MASTER = '$PK_USER_MASTER'");
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' LIMIT 1");
+
+        $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $family_member_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $FAMILY_ID);
+        $details = '(' . $family_member_data->fields['FIRST_NAME'] . ' ' . $family_member_data->fields['LAST_NAME'] . ' Removed By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
+        $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+        db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+        $return_data['success'] = true;
+        $return_data['message'] = 'Family member removed successfully';
+    } else {
+        $return_data['success'] = false;
+        $return_data['message'] = 'Invalid type specified';
+    }
+
+
     echo json_encode($return_data);
 }
 

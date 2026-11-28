@@ -770,6 +770,9 @@ if ($TYPE == 'appointment') {
                         <a href="javascript:;" class="btn-icon" onclick="sendReminder('sms', <?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send SMS Reminder ">
                             <i class="fa fa-comment" aria-hidden="true"></i>
                         </a>
+                        <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>, 'customer', 0)" title="Remove Customer">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
             <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 1 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] == null) {
@@ -786,8 +789,14 @@ if ($TYPE == 'appointment') {
                         <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
                         <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
                     </div>
+                    <div class="d-flex gap-2 ms-auto">
+                        <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>, 'partner', 0)" title="Remove Partner">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </a>
+                    </div>
                 </div>
                 <?php } elseif ($appointment_customer_data->fields['CUSTOMER_NOT_ATTEND'] == 0 && $appointment_customer_data->fields['IS_PARTNER'] == 0 && $appointment_customer_data->fields['PK_FAMILY_MEMBERS'] != null) {
+                $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
                 $family_member_ids = explode(',', $appointment_customer_data->fields['PK_FAMILY_MEMBERS']);
                 foreach ($family_member_ids as $family_member_id) {
                     $family_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = " . $family_member_id); ?>
@@ -796,6 +805,11 @@ if ($TYPE == 'appointment') {
                             <span class="badge bgsuccess d-inline-block p-1"></span>
                             <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $family_data->fields['FIRST_NAME'] . ' ' . $family_data->fields['LAST_NAME'] ?></a>
                             <div class="theme-text-light f12 ms-2"><?= $family_data->fields['PHONE'] ?></div>
+                        </div>
+                        <div class="d-flex gap-2 ms-auto">
+                            <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>, 'family_member', <?= $family_member_id ?>)" title="Remove Family Member">
+                                <i class="fa fa-times" aria-hidden="true"></i>
+                            </a>
                         </div>
                     </div>
                 <?php
@@ -1088,25 +1102,45 @@ if ($TYPE == 'appointment') {
 
         }
 
-        function removeThisCustomerFromGroupClass(PK_APPOINTMENT_MASTER, PK_USER_MASTER) {
-            if (confirm("Are you sure you want to remove this customer from the appointment?")) {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: "POST",
-                    data: {
-                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
-                        PK_USER_MASTER: PK_USER_MASTER,
-                        FUNCTION_NAME: 'removeCustomerFromGroupClass'
-                    },
-                    success: function(result) {
-                        loadViewAppointmentModal(PK_APPOINTMENT_MASTER, 'group_class');
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error loading view_appointment_modal.php:", error);
-                        alert("Error removing customer from appointment.");
-                    }
-                });
-            }
+        function removeThisCustomerFromGroupClass(PK_APPOINTMENT_MASTER, PK_USER_MASTER, TYPE, FAMILY_ID) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                            PK_USER_MASTER: PK_USER_MASTER,
+                            TYPE: TYPE,
+                            FAMILY_ID: FAMILY_ID,
+                            FUNCTION_NAME: 'removeCustomerFromGroupClass'
+                        },
+                        success: function(result) {
+                            Swal.fire({
+                                title: result.message,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(function() {
+                                loadViewAppointmentModal(PK_APPOINTMENT_MASTER, 'group_class');
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error loading view_appointment_modal.php:", error);
+                            alert("Error removing customer from appointment.");
+                        }
+                    });
+                }
+            });
         }
     </script>
 <?php } elseif ($TYPE == 'special_appointment') {
